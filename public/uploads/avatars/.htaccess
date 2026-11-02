@@ -1,0 +1,14 @@
+# User-uploaded avatars.
+#
+# Files here are served statically, so script execution is explicitly denied.
+# The application also validates MIME type and size before writing.
+
+<FilesMatch "\.(php|phtml|phar|php[0-9]|cgi|pl|py|asp|aspx|jsp|sh)$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+
+Options -Indexes -ExecCGI

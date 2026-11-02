@@ -1,0 +1,23 @@
+/vendor/
+/node_modules/
+/composer.phar
+.env
+
+# Build output (run `npm run build`)
+/public/assets/css/app.css
+/public/assets/js/app.js
+/public/assets/js/app.js.map
+
+# Runtime files
+/storage/logs/*.log
+/storage/cache/*
+!/storage/cache/.gitkeep
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
