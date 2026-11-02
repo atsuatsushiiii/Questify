@@ -6,6 +6,7 @@ use App\Controllers\Web\AuthController;
 use App\Controllers\Web\DashboardController;
 use App\Controllers\Web\LandingController;
 use App\Controllers\Web\PasswordResetController;
+use App\Controllers\Web\PlaceholderController;
 use App\Core\Router;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\GuestMiddleware;
@@ -29,4 +30,12 @@ $router->post('/reset-password', [PasswordResetController::class, 'reset'], [Gue
 
 // Authenticated routes.
 $router->get('/dashboard', [DashboardController::class, 'index'], [AuthMiddleware::class]);
+
+// Phase 3–5 destinations. The pages are intentionally explicit about scope.
+$router->get('/quests', [PlaceholderController::class, 'quests'], [AuthMiddleware::class]);
+$router->get('/achievements', [PlaceholderController::class, 'achievements'], [AuthMiddleware::class]);
+$router->get('/leaderboard', [PlaceholderController::class, 'leaderboard'], [AuthMiddleware::class]);
+$router->get('/profile', [PlaceholderController::class, 'profile'], [AuthMiddleware::class]);
+$router->get('/settings', [PlaceholderController::class, 'settings'], [AuthMiddleware::class]);
+
 $router->post('/logout', [AuthController::class, 'logout'], [AuthMiddleware::class, VerifyCsrfToken::class]);

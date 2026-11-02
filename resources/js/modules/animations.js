@@ -81,6 +81,34 @@ export function initAnimations() {
     }
   });
 
+  // The server renders the final value; GSAP counts up to it, so the number is
+  // still correct when motion is reduced or JavaScript never runs.
+  document.querySelectorAll('[data-counter]').forEach((element) => {
+    const target = Number(element.dataset.counter);
+
+    if (!Number.isFinite(target) || target <= 0) {
+      return;
+    }
+
+    const formatter =
+      element.dataset.counterFormat === 'comma' ? new Intl.NumberFormat('en-US') : null;
+    const state = { value: 0 };
+
+    gsap.to(state, {
+      value: target,
+      duration: 1.1,
+      ease: 'power2.out',
+      delay: 0.35,
+      onUpdate: () => {
+        const value = Math.round(state.value);
+        element.textContent = formatter ? formatter.format(value) : String(value);
+      },
+      onComplete: () => {
+        element.textContent = formatter ? formatter.format(target) : String(target);
+      },
+    });
+  });
+
   document.querySelectorAll('[data-reveal]').forEach((element, index) => {
     gsap.from(element, {
       y: 28,

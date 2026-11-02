@@ -3,8 +3,9 @@
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 1 — authentication complete. Account security (password
-> changes, sessions, 2FA) and the quest engine follow in later phases.
+> **Status:** Phase 2 — application shell and dashboard complete. Authentication
+> is live; the quest engine arrives in Phase 3, achievements in Phase 4, and
+> leaderboard, profile, and settings in Phase 5.
 > See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full architecture,
 > schema, and roadmap.
 
@@ -96,6 +97,7 @@ app/Core/        Router, request/response, config, PDO, sessions, errors
 app/Controllers/ Thin HTTP layer (Web + Api)
 app/Services/    Business rules and transactions (added per phase)
 app/Models/      Explicit SQL per table (added per phase)
+app/Support/     Shared helpers and display-only progression calculations
 app/Views/       Layouts, partials, components, pages, errors
 config/          App, database, session, security, game economy
 routes/          web.php + api.php
@@ -117,6 +119,8 @@ docs/            Architecture plan and security notes
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
 | `php tests/auth_flow.php` | End-to-end auth regression suite (55 checks) |
+| `php tests/app_shell.php` | Authenticated shell and dashboard suite (58 checks) |
+| `composer test` | Run both regression suites |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -165,21 +169,56 @@ Get-Content storage/logs/mail.log -Wait
 Outside `local`, `MailService` refuses to silently drop mail; wire a real
 transport before deploying.
 
-### Running the auth suite
+### Running the test suites
 
-The suite drives the real HTTP surface, so start MySQL, migrate, build assets,
+Both suites drive the real HTTP surface, so start MySQL, migrate, build assets,
 and serve the app first:
 
 ```powershell
 php scripts/migrate.php
 npm run build
 php -S localhost:8000 -t public scripts/router.php
-php tests/auth_flow.php        # or: composer test:auth
+
+composer test                 # both suites
+php tests/auth_flow.php       # auth only (55 checks)
+php tests/app_shell.php       # shell only (58 checks)
 ```
 
-It creates a throwaway account, exercises registration, CSRF rejection, login
-throttling, remember-me rotation and tampering, password reset, and session
-expiry, then deletes its own data.
+The auth suite creates a throwaway account, exercises registration, CSRF
+rejection, login throttling, remember-me rotation and tampering, password reset,
+and session expiry. The shell suite checks route protection, the application
+layout, navigation, sidebar persistence, placeholder pages, and honest empty
+states. Both delete their own data.
+
+## Application shell (Phase 2)
+
+Every authenticated page renders inside `app/Views/layouts/app.php`:
+
+- Collapsible desktop sidebar with server-rendered state (the `questify_sidebar`
+  cookie), an off-canvas drawer and bottom tab bar on mobile, and a top bar with
+  the account menu.
+- Six destinations: Dashboard, My Quests, Achievements, Leaderboard, My Profile,
+  and Settings. Pages scheduled for later phases are clearly labelled previews,
+  not working features.
+- The dashboard reads only values stored on the signed-in account — level, XP,
+  streaks, timezone, and timestamps. Quest, achievement, and leaderboard panels
+  render labelled empty states because that data does not exist yet; no
+  statistics, badges, or rankings are fabricated.
+- The “New quest” control opens a non-functional `<dialog>` preview and falls
+  back to `/quests` when JavaScript is unavailable.
+
+| Route | Status |
+|---|---|
+| `/dashboard` | Live — account, level/XP, streak, honest empty states |
+| `/quests` | Placeholder — Phase 3 |
+| `/achievements` | Placeholder — Phase 4 |
+| `/leaderboard` | Placeholder — Phase 5 |
+| `/profile` | Placeholder — Phase 5 |
+| `/settings` | Placeholder — Phase 5 |
+
+All six routes require authentication. XP awarding, streak transitions,
+achievement unlocks, and ranking calculations are deliberately not implemented
+here; they belong to Phases 3 and 4.
 
 ## Security baseline (active)
 
@@ -193,5 +232,5 @@ expiry, then deletes its own data.
 - CSRF synchroniser tokens, login throttling, and route authentication
   middleware (Phase 1)
 
-Authorization policies (roles, ownership) and account settings arrive with the
-quest engine in Phase 2.
+Authorization policies (roles, ownership) arrive with the quest engine in
+Phase 3, and account settings in Phase 5.

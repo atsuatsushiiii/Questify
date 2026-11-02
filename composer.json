@@ -29,9 +29,14 @@
         "optimize-autoloader": true
     },
     "scripts": {
-        "migrate": "php scripts/migrate.php migrate",
-        "migrate:status": "php scripts/migrate.php status",
-        "migrate:rollback": "php scripts/migrate.php rollback",
-        "test:auth": "php tests/auth_flow.php"
+        "migrate": "@php scripts/migrate.php migrate",
+        "migrate:status": "@php scripts/migrate.php status",
+        "migrate:rollback": "@php scripts/migrate.php rollback",
+        "test:auth": "@php tests/auth_flow.php",
+        "test:shell": "@php tests/app_shell.php",
+        "test": [
+            "@test:auth",
+            "@test:shell"
+        ]
     }
 }
