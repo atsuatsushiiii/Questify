@@ -105,6 +105,16 @@ final class Session
         }
     }
 
+    /**
+     * Clear all session values while keeping a valid session for flash
+     * messages, then rotate the identifier.
+     */
+    public static function flush(): void
+    {
+        $_SESSION = [];
+        self::regenerate();
+    }
+
     public static function destroy(): void
     {
         if (!self::$active) {

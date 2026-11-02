@@ -19,6 +19,14 @@
     @apply bg-brand-500/30 text-white;
   }
 
+  input[type='checkbox'] {
+    accent-color: #8b5cf6;
+  }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
   :focus-visible {
     @apply outline-none ring-2 ring-aqua-400/70 ring-offset-2 ring-offset-void;
   }
@@ -103,6 +111,19 @@
   .field-input {
     @apply w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder:text-slate-600 transition focus:border-brand-400/60 focus:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-brand-500/20;
   }
+
+  .field-input.is-invalid {
+    @apply border-rose-400/50 bg-rose-500/[0.04] focus:border-rose-400 focus:ring-rose-500/20;
+  }
+
+  /*
+   * Password visibility toggles ship with the hidden attribute so no-JS users
+   * never see a dead control. The attribute has to outweigh the grid utility
+   * class; the auth module unhides the button once it binds.
+   */
+  [data-password-toggle][hidden] {
+    display: none;
+  }
 }
 
 @layer utilities {
@@ -154,6 +175,22 @@
   grid-template-rows: 1fr;
   opacity: 1;
   visibility: visible;
+}
+
+/* Authentication forms fade in once without hiding content from no-JS users. */
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-panel {
+  animation: panel-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -7,6 +7,10 @@ $links = [
     ['label' => 'How it works', 'href' => '#how'],
     ['label' => 'Preview', 'href' => '#preview'],
 ];
+$navUser = auth_user();
+$navName = $navUser !== null
+    ? (string) ($navUser['display_name'] ?? $navUser['username'] ?? 'Adventurer')
+    : '';
 ?>
 <header class="fixed inset-x-0 top-0 z-50" data-nav>
     <div class="container-page">
@@ -32,16 +36,26 @@ $links = [
             </nav>
 
             <div class="hidden items-center gap-2 md:flex">
-                <a
-                    href="<?= e(url('/login')) ?>"
-                    class="rounded-lg px-3.5 py-2 text-sm font-medium text-slate-300 transition hover:text-white"
-                >
-                    Sign in
-                </a>
-                <a href="<?= e(url('/register')) ?>" class="btn btn-primary btn-sm group">
-                    Get started
-                    <i data-lucide="arrow-right" class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"></i>
-                </a>
+                <?php if ($navUser !== null): ?>
+                    <span class="max-w-[9rem] truncate px-2 text-xs font-medium text-slate-400">
+                        <?= e($navName) ?>
+                    </span>
+                    <a href="<?= e(url('/dashboard')) ?>" class="btn btn-primary btn-sm group">
+                        Dashboard
+                        <i data-lucide="arrow-right" class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"></i>
+                    </a>
+                <?php else: ?>
+                    <a
+                        href="<?= e(url('/login')) ?>"
+                        class="rounded-lg px-3.5 py-2 text-sm font-medium text-slate-300 transition hover:text-white"
+                    >
+                        Sign in
+                    </a>
+                    <a href="<?= e(url('/register')) ?>" class="btn btn-primary btn-sm group">
+                        Get started
+                        <i data-lucide="arrow-right" class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"></i>
+                    </a>
+                <?php endif; ?>
             </div>
 
             <button
@@ -74,8 +88,12 @@ $links = [
                     <?php endforeach; ?>
 
                     <div class="mt-2 grid gap-2 border-t border-white/[0.06] pt-3">
-                        <a href="<?= e(url('/login')) ?>" class="btn btn-ghost w-full">Sign in</a>
-                        <a href="<?= e(url('/register')) ?>" class="btn btn-primary w-full">Get started</a>
+                        <?php if ($navUser !== null): ?>
+                            <a href="<?= e(url('/dashboard')) ?>" class="btn btn-primary w-full">Open dashboard</a>
+                        <?php else: ?>
+                            <a href="<?= e(url('/login')) ?>" class="btn btn-ghost w-full">Sign in</a>
+                            <a href="<?= e(url('/register')) ?>" class="btn btn-primary w-full">Get started</a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

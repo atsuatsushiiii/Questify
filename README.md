@@ -3,7 +3,8 @@
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 0 — foundation complete. Authentication is the next phase.
+> **Status:** Phase 1 — authentication complete. Account security (password
+> changes, sessions, 2FA) and the quest engine follow in later phases.
 > See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full architecture,
 > schema, and roadmap.
 
@@ -115,9 +116,72 @@ docs/            Architecture plan and security notes
 | `npm run build` | Compile + minify CSS and JS |
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
+| `php tests/auth_flow.php` | End-to-end auth regression suite (55 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
-## Security baseline (already active)
+## Authentication
+
+| Route | Purpose |
+|---|---|
+| `GET/POST /register` | Create an account, then sign in automatically |
+| `GET/POST /login` | Sign in with email or username; optional 30-day remember-me |
+| `POST /logout` | End the session and revoke the remember-me token |
+| `GET/POST /forgot-password` | Request a reset link (generic response, no account enumeration) |
+| `GET/POST /reset-password` | Set a new password with a single-use, one-hour token |
+| `GET /dashboard` | Authenticated account home; guests are redirected to `/login` |
+
+Security properties:
+
+- Passwords are hashed with `password_hash()` (bcrypt) and transparently
+  rehashed on sign-in when the algorithm cost changes. Plain-text passwords are
+  never stored or logged.
+- Every state-changing form carries a session CSRF token; POST requests without
+  one are rejected with `419`. The token is rotated after sign-in.
+- Login throttling allows 5 failures per identifier + IP and 20 failures per IP
+  in a 15-minute window. Successful sign-in clears the identifier's failures.
+- Remember-me uses a selector + validator cookie. Only `sha256(validator)` is
+  stored; the validator rotates on every use and a tampered selector is revoked.
+- Reset tokens are 32 random bytes, stored as SHA-256 hashes, single-use, and
+  expire after one hour. A successful reset revokes all sessions and
+  remember-me tokens for the account.
+- Signed-in users are redirected away from guest-only auth pages, and guest
+  requests to protected pages remember the intended URL.
+- Validation is server-side (mirrored by HTML constraints); failures re-render
+  the form with `422` and field-level messages.
+
+Tune throttling, token lifetimes, and password length limits in
+[`config/auth.php`](config/auth.php).
+
+### Local password-reset email
+
+No SMTP transport is configured yet. In the `local` environment, reset links are
+appended to `storage/logs/mail.log` instead of being sent. The same file can be
+watched while testing:
+
+```powershell
+Get-Content storage/logs/mail.log -Wait
+```
+
+Outside `local`, `MailService` refuses to silently drop mail; wire a real
+transport before deploying.
+
+### Running the auth suite
+
+The suite drives the real HTTP surface, so start MySQL, migrate, build assets,
+and serve the app first:
+
+```powershell
+php scripts/migrate.php
+npm run build
+php -S localhost:8000 -t public scripts/router.php
+php tests/auth_flow.php        # or: composer test:auth
+```
+
+It creates a throwaway account, exercises registration, CSRF rejection, login
+throttling, remember-me rotation and tampering, password reset, and session
+expiry, then deletes its own data.
+
+## Security baseline (active)
 
 - PDO prepared statements with emulation disabled
 - Database-backed sessions; IDs hashed at rest, `HttpOnly`, `SameSite=Lax`,
@@ -126,6 +190,8 @@ docs/            Architecture plan and security notes
 - Central error handler that logs details but never leaks production traces
 - Upload directory denies script execution
 - `.env`, `vendor/`, `node_modules/`, build output and logs are git-ignored
+- CSRF synchroniser tokens, login throttling, and route authentication
+  middleware (Phase 1)
 
-Authentication, CSRF, rate limiting and authorization middleware arrive in
-Phase 1–2.
+Authorization policies (roles, ownership) and account settings arrive with the
+quest engine in Phase 2.

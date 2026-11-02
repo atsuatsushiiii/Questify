@@ -54,6 +54,11 @@ final class Response
         return new self($this->statusCode, $headers, $this->content);
     }
 
+    public function withStatus(int $status): self
+    {
+        return new self($status, $this->headers, $this->content);
+    }
+
     public function status(): int
     {
         return $this->statusCode;

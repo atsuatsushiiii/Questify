@@ -31,6 +31,7 @@
     "scripts": {
         "migrate": "php scripts/migrate.php migrate",
         "migrate:status": "php scripts/migrate.php status",
-        "migrate:rollback": "php scripts/migrate.php rollback"
+        "migrate:rollback": "php scripts/migrate.php rollback",
+        "test:auth": "php tests/auth_flow.php"
     }
 }

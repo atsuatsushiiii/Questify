@@ -43,12 +43,21 @@ $productLinks = [
             <div>
                 <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Account</p>
                 <ul class="mt-4 space-y-3">
-                    <li>
-                        <a href="<?= e(url('/login')) ?>" class="text-sm text-slate-400 transition hover:text-white">Sign in</a>
-                    </li>
-                    <li>
-                        <a href="<?= e(url('/register')) ?>" class="text-sm text-slate-400 transition hover:text-white">Create an account</a>
-                    </li>
+                    <?php if (auth_check()): ?>
+                        <li>
+                            <a href="<?= e(url('/dashboard')) ?>" class="text-sm text-slate-400 transition hover:text-white">Your dashboard</a>
+                        </li>
+                        <li>
+                            <a href="<?= e(url('/')) ?>" class="text-sm text-slate-400 transition hover:text-white">Public site</a>
+                        </li>
+                    <?php else: ?>
+                        <li>
+                            <a href="<?= e(url('/login')) ?>" class="text-sm text-slate-400 transition hover:text-white">Sign in</a>
+                        </li>
+                        <li>
+                            <a href="<?= e(url('/register')) ?>" class="text-sm text-slate-400 transition hover:text-white">Create an account</a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>

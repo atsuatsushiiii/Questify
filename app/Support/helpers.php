@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Core\Auth;
 use App\Core\Config;
+use App\Core\Csrf;
 use App\Core\HttpException;
 use App\Core\Response;
 use App\Core\View;
@@ -116,5 +118,36 @@ if (!function_exists('nav_active')) {
         $target = '/' . trim($path, '/');
 
         return $current === $target || str_starts_with($current, $target . '/');
+    }
+}
+
+if (!function_exists('auth_user')) {
+    /**
+     * @return array<string, mixed>|null
+     */
+    function auth_user(): ?array
+    {
+        return Auth::user();
+    }
+}
+
+if (!function_exists('auth_check')) {
+    function auth_check(): bool
+    {
+        return Auth::check();
+    }
+}
+
+if (!function_exists('csrf_token')) {
+    function csrf_token(): string
+    {
+        return Csrf::token();
+    }
+}
+
+if (!function_exists('csrf_field')) {
+    function csrf_field(): string
+    {
+        return Csrf::field();
     }
 }
