@@ -28,6 +28,22 @@ return [
 
     'streak_milestones' => [3, 7, 14, 30, 60, 100],
 
+    'avatar' => [
+        'max_bytes' => 2 * 1024 * 1024,
+        'min_dimension' => 64,
+        'max_dimension' => 4096,
+    ],
+
+    'leaderboard' => [
+        'per_page' => 20,
+        'podium_size' => 3,
+    ],
+
+    'notifications' => [
+        'recent_limit' => 5,
+        'per_page' => 20,
+    ],
+
     'difficulties' => ['easy', 'medium', 'hard', 'epic'],
     'recurrences' => ['once', 'daily', 'weekly'],
 ];

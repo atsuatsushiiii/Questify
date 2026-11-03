@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Controllers\Web\AchievementController;
 use App\Controllers\Web\AuthController;
 use App\Controllers\Web\DashboardController;
 use App\Controllers\Web\LandingController;
+use App\Controllers\Web\LeaderboardController;
+use App\Controllers\Web\NotificationController;
 use App\Controllers\Web\PasswordResetController;
 use App\Controllers\Web\PlaceholderController;
+use App\Controllers\Web\ProfileController;
 use App\Controllers\Web\QuestController;
 use App\Core\Router;
 use App\Middleware\AuthMiddleware;
@@ -44,10 +48,21 @@ $router->post('/quests/{id}/archive', [QuestController::class, 'archive'], [Auth
 $router->post('/quests/{id}/restore', [QuestController::class, 'restore'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/quests/{id}/delete', [QuestController::class, 'destroy'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 
-// Phase 4–5 destinations. The pages are intentionally explicit about scope.
-$router->get('/achievements', [PlaceholderController::class, 'achievements'], [AuthMiddleware::class]);
-$router->get('/leaderboard', [PlaceholderController::class, 'leaderboard'], [AuthMiddleware::class]);
-$router->get('/profile', [PlaceholderController::class, 'profile'], [AuthMiddleware::class]);
+// Phase 4: achievements, profiles, notifications and leaderboards.
+$router->get('/achievements', [AchievementController::class, 'index'], [AuthMiddleware::class]);
+
+$router->get('/leaderboard', [LeaderboardController::class, 'index'], [AuthMiddleware::class]);
+
+$router->get('/profile', [ProfileController::class, 'show'], [AuthMiddleware::class]);
+$router->post('/profile', [ProfileController::class, 'update'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/profile/avatar', [ProfileController::class, 'updateAvatar'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/profile/avatar/remove', [ProfileController::class, 'removeAvatar'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+
+$router->get('/notifications', [NotificationController::class, 'index'], [AuthMiddleware::class]);
+$router->post('/notifications/read-all', [NotificationController::class, 'markAllRead'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/notifications/{id}/read', [NotificationController::class, 'markRead'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+
+// Phase 5 destination.
 $router->get('/settings', [PlaceholderController::class, 'settings'], [AuthMiddleware::class]);
 
 $router->post('/logout', [AuthController::class, 'logout'], [AuthMiddleware::class, VerifyCsrfToken::class]);

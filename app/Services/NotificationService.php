@@ -1,0 +1,117 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Models\Notification;
+use PDO;
+
+/**
+ * Builds and stores in-app notifications. Every event carries a stable key and
+ * the table's unique (user_id, event_key) index makes creation idempotent.
+ */
+final class NotificationService
+{
+    public static function achievementUnlocked(PDO $db, int $userId, array $achievement): bool
+    {
+        $key = (string) ($achievement['achievement_key'] ?? '');
+
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'achievement',
+            'title' => 'Achievement unlocked — ' . (string) ($achievement['name'] ?? 'Badge'),
+            'message' => (string) ($achievement['description'] ?? 'A new achievement is yours.'),
+            'icon' => (string) ($achievement['icon'] ?? 'trophy'),
+            'url' => '/achievements',
+            'related_type' => 'achievement',
+            'related_id' => isset($achievement['id']) ? (int) $achievement['id'] : null,
+            'event_key' => 'achievement:' . $key,
+        ]);
+    }
+
+    public static function levelUp(PDO $db, int $userId, int $level, string $rank): bool
+    {
+        $level = max(1, $level);
+
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'level',
+            'title' => 'Level ' . $level . ' reached',
+            'message' => 'You are now a ' . $rank . '. Keep climbing.',
+            'icon' => 'trending-up',
+            'url' => '/dashboard',
+            'event_key' => 'level:' . $level,
+        ]);
+    }
+
+    public static function streakMilestone(PDO $db, int $userId, int $milestone, string $localDate): bool
+    {
+        $milestone = max(1, $milestone);
+
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'streak',
+            'title' => $milestone . '-day streak',
+            'message' => 'The flame is still alive. Complete a quest tomorrow to keep it burning.',
+            'icon' => 'flame',
+            'url' => '/profile',
+            'event_key' => 'streak:' . $localDate . ':' . $milestone,
+        ]);
+    }
+
+    public static function profileUpdated(PDO $db, int $userId): bool
+    {
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'profile',
+            'title' => 'Profile updated',
+            'message' => 'Your profile changes are live.',
+            'icon' => 'user-round',
+            'url' => '/profile',
+            'event_key' => 'profile:' . gmdate('YmdHis') . ':' . bin2hex(random_bytes(4)),
+        ]);
+    }
+
+    public static function leaderboardRankChanged(
+        PDO $db,
+        int $userId,
+        int $oldRank,
+        int $newRank,
+        string $localDate,
+    ): bool {
+        if ($oldRank === $newRank || $oldRank < 1 || $newRank < 1) {
+            return false;
+        }
+
+        $direction = $newRank < $oldRank ? 'climbed' : 'moved';
+
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'leaderboard',
+            'title' => 'Leaderboard rank changed',
+            'message' => 'You ' . $direction . ' from #' . $oldRank . ' to #' . $newRank . '.',
+            'icon' => 'crown',
+            'url' => '/leaderboard',
+            'event_key' => 'leaderboard:rank:' . $localDate . ':' . $oldRank . '->' . $newRank,
+        ]);
+    }
+
+    /**
+     * @param array{user_id: int, type: string, title: string, message: string, icon: string, url?: string|null, related_type?: string|null, related_id?: int|null, event_key: string} $data
+     */
+    public static function create(PDO $db, array $data): bool
+    {
+        return Notification::create($db, [
+            'user_id' => (int) $data['user_id'],
+            'type' => mb_substr((string) $data['type'], 0, 32),
+            'title' => mb_substr((string) $data['title'], 0, 120),
+            'message' => mb_substr((string) $data['message'], 0, 255),
+            'icon' => mb_substr((string) $data['icon'], 0, 64),
+            'url' => isset($data['url']) ? mb_substr((string) $data['url'], 0, 255) : null,
+            'related_type' => isset($data['related_type']) ? mb_substr((string) $data['related_type'], 0, 32) : null,
+            'related_id' => isset($data['related_id']) ? (int) $data['related_id'] : null,
+            'event_key' => mb_substr((string) $data['event_key'], 0, 120),
+        ]);
+    }
+}

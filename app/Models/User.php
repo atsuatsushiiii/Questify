@@ -98,6 +98,44 @@ final class User
         $statement->execute([max(0, $xpTotal), max(1, $level), $id]);
     }
 
+    public static function updateStreak(PDO $db, int $id, int $current, int $longest, string $lastDate): void
+    {
+        $statement = $db->prepare(
+            'UPDATE users
+             SET current_streak = ?, longest_streak = ?, last_streak_date = ?, updated_at = UTC_TIMESTAMP()
+             WHERE id = ?',
+        );
+        $statement->execute([max(0, $current), max(0, $longest), $lastDate, $id]);
+    }
+
+    public static function updateProfile(int $id, string $displayName, string $timezone, bool $visible): void
+    {
+        $statement = Database::connection()->prepare(
+            'UPDATE users
+             SET display_name = ?, timezone = ?, show_on_leaderboard = ?, updated_at = UTC_TIMESTAMP()
+             WHERE id = ?',
+        );
+        $statement->execute([$displayName, $timezone, $visible ? 1 : 0, $id]);
+    }
+
+    public static function updateAvatar(int $id, ?string $path): void
+    {
+        $statement = Database::connection()->prepare(
+            'UPDATE users SET avatar_path = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?',
+        );
+        $statement->execute([$path, $id]);
+    }
+
+    public static function updateLeaderboardRank(PDO $db, int $id, int $rank): void
+    {
+        $statement = $db->prepare(
+            'UPDATE users
+             SET last_leaderboard_rank = ?, last_leaderboard_checked_at = UTC_TIMESTAMP()
+             WHERE id = ?',
+        );
+        $statement->execute([max(1, $rank), $id]);
+    }
+
     public static function updatePassword(int $id, string $hash): void
     {
         $statement = Database::connection()->prepare(

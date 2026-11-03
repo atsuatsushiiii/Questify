@@ -149,7 +149,7 @@ final class QuestService
      * the status transition and the ledger unique key make duplicate awards
      * impossible, and the whole operation is atomic.
      *
-     * @return array{ok: bool, status?: int, message?: string, reward?: int, xp?: int, level?: int, old_level?: int, level_up?: bool, rank?: string, quest_id?: int, quest_title?: string}
+     * @return array{ok: bool, status?: int, message?: string, reward?: int, xp?: int, level?: int, old_level?: int, level_up?: bool, rank?: string, quest_id?: int, quest_title?: string, streak?: int, streak_milestone?: int|null, achievements?: list<string>}
      */
     public function complete(int $questId, int $userId): array
     {
@@ -248,6 +248,33 @@ final class QuestService
             }
 
             User::updateProgression($pdo, $userId, $newXp, $newLevel);
+
+            // Phase 4 side effects share this transaction: a failure anywhere
+            // rolls the XP award back instead of leaving partial progress.
+            $streak = StreakService::recordCompletion($pdo, $user, $questId);
+            $newlyUnlocked = AchievementService::evaluate($pdo, $userId, [
+                'xp_total' => $newXp,
+                'level' => $newLevel,
+                'longest_streak' => $streak['longest'],
+            ]);
+
+            foreach ($newlyUnlocked as $achievement) {
+                NotificationService::achievementUnlocked($pdo, $userId, $achievement);
+            }
+
+            if ($newLevel > $oldLevel) {
+                NotificationService::levelUp($pdo, $userId, $newLevel, Progression::rank($newLevel));
+            }
+
+            if ($streak['milestone'] !== null) {
+                NotificationService::streakMilestone(
+                    $pdo,
+                    $userId,
+                    (int) $streak['milestone'],
+                    (string) $streak['date'],
+                );
+            }
+
             $pdo->commit();
 
             return [
@@ -260,6 +287,12 @@ final class QuestService
                 'old_level' => $oldLevel,
                 'level_up' => $newLevel > $oldLevel,
                 'rank' => Progression::rank($newLevel),
+                'streak' => $streak['current'],
+                'streak_milestone' => $streak['milestone'],
+                'achievements' => array_map(
+                    static fn (array $achievement): string => (string) $achievement['name'],
+                    $newlyUnlocked,
+                ),
                 'message' => 'Quest complete. +' . $reward . ' XP awarded.',
             ];
         } catch (Throwable $exception) {

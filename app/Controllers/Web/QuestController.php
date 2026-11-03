@@ -170,6 +170,14 @@ final class QuestController
                 . ' and the rank of ' . (string) $result['rank'] . '.';
         }
 
+        foreach ((array) ($result['achievements'] ?? []) as $achievementName) {
+            $message .= ' Achievement unlocked — ' . (string) $achievementName . '.';
+        }
+
+        if (($result['streak_milestone'] ?? null) !== null) {
+            $message .= ' ' . (int) $result['streak_milestone'] . '-day streak!';
+        }
+
         Flash::success($message);
 
         return redirect('/quests/' . (int) $quest['id']);

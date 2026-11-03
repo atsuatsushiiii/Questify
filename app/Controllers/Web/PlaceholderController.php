@@ -12,79 +12,25 @@ use App\Core\Response;
 /**
  * Destinations for modules that are deliberately not built yet.
  *
- * Each page states its phase and what will arrive there, so unfinished
- * navigation is honest rather than presenting placeholder statistics as data.
+ * Phase 4 ships achievements, profiles, notifications and leaderboards, so
+ * Settings is the only remaining placeholder.
  */
 final class PlaceholderController
 {
-    public function achievements(Request $request): Response
-    {
-        return $this->page([
-            'title' => 'Achievements — Questify',
-            'eyebrow' => 'Trophy hall',
-            'heading' => 'Achievements',
-            'description' => 'Badges for milestones, consistency, and difficult quests will be unlocked here as you play.',
-            'phase' => 'Phase 4',
-            'icon' => 'trophy',
-            'features' => [
-                'A gallery of unlockable achievement definitions',
-                'Progress tracking toward each locked badge',
-                'Unlock toasts when a milestone is reached',
-                'Bonus XP for the hardest achievements',
-            ],
-        ]);
-    }
-
-    public function leaderboard(Request $request): Response
-    {
-        return $this->page([
-            'title' => 'Leaderboard — Questify',
-            'eyebrow' => 'Hall of fame',
-            'heading' => 'Leaderboard',
-            'description' => 'See how your consistency compares with other adventurers across weekly, monthly, and all-time periods.',
-            'phase' => 'Phase 5',
-            'icon' => 'crown',
-            'features' => [
-                'Weekly, monthly, and all-time rankings',
-                'A podium for the top three adventurers',
-                'A sticky “your rank” row while you browse',
-                'Opt-in privacy through leaderboard visibility settings',
-            ],
-        ]);
-    }
-
-    public function profile(Request $request): Response
-    {
-        return $this->page([
-            'title' => 'My Profile — Questify',
-            'eyebrow' => 'Adventurer card',
-            'heading' => 'My Profile',
-            'description' => 'Your public-facing adventurer profile, stats, and activity history will be managed here.',
-            'phase' => 'Phase 5',
-            'icon' => 'user-round',
-            'features' => [
-                'A shareable public profile at your username',
-                'Level, XP, streak, and quest history at a glance',
-                'An activity heatmap and unlocked badge showcase',
-                'Avatar and bio controls',
-            ],
-        ]);
-    }
-
     public function settings(Request $request): Response
     {
         return $this->page([
             'title' => 'Settings — Questify',
             'eyebrow' => 'Account controls',
             'heading' => 'Settings',
-            'description' => 'Account preferences, security controls, and privacy options will be collected here.',
+            'description' => 'Account security, email preferences, and session controls will be collected here.',
             'phase' => 'Phase 5',
             'icon' => 'settings',
             'features' => [
-                'Display name, avatar, bio, and timezone',
-                'Leaderboard visibility and privacy preferences',
                 'Password changes and active session management',
+                'Email address and account recovery controls',
                 'Notification and reminder preferences',
+                'Account export and deletion controls',
             ],
         ]);
     }

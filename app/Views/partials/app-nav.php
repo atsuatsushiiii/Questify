@@ -16,14 +16,15 @@ return [
         'items' => [
             ['label' => 'Dashboard', 'href' => '/dashboard', 'icon' => 'layout-dashboard', 'phase' => null],
             ['label' => 'My Quests', 'href' => '/quests', 'icon' => 'scroll-text', 'phase' => null],
-            ['label' => 'Achievements', 'href' => '/achievements', 'icon' => 'trophy', 'phase' => 4],
-            ['label' => 'Leaderboard', 'href' => '/leaderboard', 'icon' => 'crown', 'phase' => 5],
+            ['label' => 'Achievements', 'href' => '/achievements', 'icon' => 'trophy', 'phase' => null],
+            ['label' => 'Leaderboard', 'href' => '/leaderboard', 'icon' => 'crown', 'phase' => null],
         ],
     ],
     [
         'label' => 'Account',
         'items' => [
-            ['label' => 'My Profile', 'href' => '/profile', 'icon' => 'user-round', 'phase' => 5],
+            ['label' => 'My Profile', 'href' => '/profile', 'icon' => 'user-round', 'phase' => null],
+            ['label' => 'Notifications', 'href' => '/notifications', 'icon' => 'bell', 'phase' => null],
             ['label' => 'Settings', 'href' => '/settings', 'icon' => 'settings', 'phase' => 5],
         ],
     ],

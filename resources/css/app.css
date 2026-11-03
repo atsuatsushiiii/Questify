@@ -197,6 +197,34 @@
   }
 
   /*
+   * Notification read state is expressed with component classes so the
+   * notifications module can flip a row to read without rebuilding utilities.
+   */
+  .notification-card {
+    @apply border-white/[0.06] bg-white/[0.015];
+  }
+
+  .notification-card.is-unread {
+    @apply border-gold-400/20 bg-gradient-to-r from-gold-400/[0.07] to-transparent;
+  }
+
+  .notification-icon {
+    @apply border-white/10 bg-white/[0.03] text-slate-500;
+  }
+
+  .notification-card.is-unread .notification-icon {
+    @apply border-gold-400/25 bg-gold-400/10 text-gold-300;
+  }
+
+  .notification-dot {
+    display: none;
+  }
+
+  .notification-card.is-unread .notification-dot {
+    display: inline-block;
+  }
+
+  /*
    * Password visibility toggles ship with the hidden attribute so no-JS users
    * never see a dead control. The attribute has to outweigh the grid utility
    * class; the auth module unhides the button once it binds.

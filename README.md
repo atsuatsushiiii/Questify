@@ -3,9 +3,9 @@
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 3 — quest management and the XP engine are live. Authentication
-> and the application shell are complete; achievements arrive in Phase 4, and
-> leaderboard, profile, and settings in Phase 5.
+> **Status:** Phase 4 — achievements, daily streaks, owner profiles, in-app
+> notifications, and leaderboards are live alongside the Phase 1–3 auth, shell,
+> and quest engine. Account settings remain scheduled for Phase 5.
 > See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full architecture,
 > schema, and roadmap.
 
@@ -119,9 +119,10 @@ docs/            Architecture plan and security notes
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
 | `php tests/auth_flow.php` | End-to-end auth regression suite (55 checks) |
-| `php tests/app_shell.php` | Authenticated shell and dashboard suite (62 checks) |
+| `php tests/app_shell.php` | Authenticated shell and Phase 4 pages suite (65 checks) |
 | `php tests/quest_flow.php` | Quest engine, ownership, XP, and locking suite (117 checks) |
-| `composer test` | Run all three regression suites |
+| `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
+| `composer test` | Run all four regression suites (315 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -180,53 +181,106 @@ php scripts/migrate.php
 npm run build
 php -S localhost:8000 -t public scripts/router.php
 
-composer test                 # all three suites
+composer test                 # all four suites
 php tests/auth_flow.php       # auth only (55 checks)
-php tests/app_shell.php       # shell/dashboard only (62 checks)
+php tests/app_shell.php       # shell and Phase 4 pages (65 checks)
 php tests/quest_flow.php      # quests only (117 checks)
+php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leaderboard (78 checks)
 ```
 
 The auth suite creates a throwaway account, exercises registration, CSRF
 rejection, login throttling, remember-me rotation and tampering, password reset,
 and session expiry. The shell suite checks route protection, the application
-layout, navigation, sidebar persistence, placeholder pages, and honest empty
+layout, navigation, sidebar persistence, Phase 4 destinations, and honest empty
 states. The quest suite covers creation, validation, editing, ownership, rewards
 for every difficulty, duplicate and lock-serialized completion, archive,
 restore, deletion rules, level/rank changes, dashboard statistics, and CSRF on
-every mutation. All three delete their own data.
+every mutation. The Phase 4 suite covers idempotent achievement evaluation,
+timezone-aware streaks and duplicate/archive behaviour, profile validation and
+avatar storage, notification ownership and deduplication, and leaderboard
+periods, visibility, tie-breaking, and pagination. All four delete their own
+data.
 
-## Application shell and quest log (Phases 2–3)
+## Application shell, quest log, and Phase 4 (Phases 2–4)
 
 Every authenticated page renders inside `app/Views/layouts/app.php`:
 
 - Collapsible desktop sidebar with server-rendered state (the `questify_sidebar`
   cookie), an off-canvas drawer and bottom tab bar on mobile, and a top bar with
-  the account menu.
-- Six destinations: Dashboard, My Quests, Achievements, Leaderboard, My Profile,
-  and Settings. My Quests is live; pages scheduled for later phases are clearly
-  labelled previews, not working features.
+  a notification bell, unread badge, and the account menu.
+- Seven destinations: Dashboard, My Quests, Achievements, Leaderboard, My
+  Profile, Notifications, and Settings. Settings is the only remaining preview
+  and is clearly labelled; the other six are live.
 - The dashboard reads real quest counts from the database and builds its recent
-  activity feed from the XP ledger. Achievement and leaderboard panels remain
-  labelled empty states; no statistics, badges, or rankings are fabricated.
+  activity feed from the XP ledger. It also shows live achievement progress,
+  the real seven-day streak strip, and an all-time leaderboard panel.
 - “New quest” links to the real creation form. Every quest action is a normal
   form with a CSRF token, so the journal works without JavaScript; the bundled
   script only adds the live reward preview, character counter, confirmation
-  prompts, and double-submit feedback.
+  prompts, double-submit feedback, and the notification/profile enhancements.
 
 | Route | Status |
 |---|---|
-| `/dashboard` | Live — level/XP, rank, quest counts, XP activity |
+| `/dashboard` | Live — level/XP, rank, streak, quest counts, XP activity, trophy and leaderboard panels |
 | `/quests` | Live — active, completed, and archived quest tabs |
 | `/quests/create` | Live — create with server-derived XP |
 | `/quests/{id}` | Live — owner-only detail and actions |
 | `/quests/{id}/edit` | Live — edit active quests |
-| `/achievements` | Placeholder — Phase 4 |
-| `/leaderboard` | Placeholder — Phase 5 |
-| `/profile` | Placeholder — Phase 5 |
+| `/achievements` | Live — catalogue, progress, and category filters |
+| `/leaderboard` | Live — all-time, weekly, and monthly boards with pagination |
+| `/profile` | Live — owner-only editor, avatar, streak history, visibility |
+| `/notifications` | Live — owner-scoped inbox with read/unread filters |
 | `/settings` | Placeholder — Phase 5 |
 
-All routes require authentication. Streak transitions, achievement unlocks, and
-leaderboard ranking calculations are deliberately not implemented yet.
+All routes require authentication. There is no public profile route; profiles
+are owner-only in Phase 4.
+
+## Adventure systems (Phase 4)
+
+### Achievements
+
+- Ten definitions are seeded in `database/seeders/achievements.php` and evaluated
+  from typed criteria (`criteria_type` + `threshold`), never from client input.
+- `AchievementService::evaluate()` runs inside the quest-completion transaction.
+  Inserts are idempotent, so re-evaluating never duplicates an unlock.
+- Unlocks create one deduplicated notification per achievement
+  (`event_key = achievement:<key>`).
+
+### Daily streaks
+
+- Streak days use the account's timezone, not UTC. One qualifying quest per
+  local day records one `streak_activity` row; duplicate completions and
+  archive/restore cycles never add another.
+- `current_streak` decays to zero after a missed local day, while
+  `longest_streak` is preserved. The profile page renders a 12-week heatmap.
+
+### Profiles
+
+- Owner-only edits validate display name, timezone, and visibility server-side;
+  failures re-render with `422` and field errors.
+- Avatars accept JPEG, PNG, and WebP up to 2 MB and 64×64–4096×4096. Files are
+  validated by real content, renamed with random server-generated names, and
+  stored in `public/uploads/avatars`, which denies script execution. The upload
+  path is verified with `realpath()` before writing.
+- Leaderboard visibility is opt-in and shown directly on the profile card.
+
+### Notifications
+
+- In-app events (achievement, level-up, streak milestone, profile, leaderboard
+  rank) are stored per user with `UNIQUE(user_id, event_key)` deduplication.
+- The inbox is ownership-scoped; another user's notification cannot be read or
+  marked read (`404`). JavaScript enhances mark-read/mark-all without a reload,
+  and the forms still submit normally without it.
+
+### Leaderboards
+
+- Rankings are computed from the XP ledger, never from a cached counter.
+- All-time, weekly, and monthly periods are supported. Weekly and monthly
+  boundaries use UTC (Monday 00:00 and the first of the month at 00:00).
+- Hidden, suspended, and deleted accounts are excluded. Ties break
+  deterministically by lifetime XP and then account age, and the board paginates.
+- Viewing the board records the viewer's all-time rank and creates a deduplicated
+  rank-change notification; the first view records a baseline instead.
 
 ## Quest engine (Phase 3)
 
@@ -267,6 +321,9 @@ the server; a submitted `xp_reward` field is ignored.
   middleware (Phase 1)
 - Quest ownership checks on every query, server-derived XP, a transactional
   single-use award, and an append-only XP ledger (Phase 3)
+- Idempotent server-evaluated achievements, timezone-aware streaks, owner-only
+  profile edits, content-validated avatar uploads, ownership-scoped
+  deduplicated notifications, and visibility-aware leaderboards (Phase 4)
 
 Role-based admin policies and account settings remain scheduled for later
 phases.

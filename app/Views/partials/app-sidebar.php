@@ -91,6 +91,14 @@
                                         >
                                             Soon
                                         </span>
+                                    <?php elseif ($item['href'] === '/notifications' && isset($unreadNotifications) && $unreadNotifications > 0): ?>
+                                        <span
+                                            data-sidebar-badge
+                                            data-unread-count
+                                            class="ml-auto rounded-full border border-ember-400/30 bg-ember-500/15 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-ember-200"
+                                        >
+                                            <?= e($unreadNotifications > 99 ? '99+' : (string) $unreadNotifications) ?>
+                                        </span>
                                     <?php endif; ?>
                                 </a>
                             </li>
@@ -119,11 +127,15 @@
                 <a
                     href="<?= e(url('/profile')) ?>"
                     class="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-2 transition hover:border-gold-400/20 hover:bg-white/[0.04]"
-                    title="<?= e($displayName . ' — profile planned for Phase 5') ?>"
+                    title="<?= e($displayName . ' — profile') ?>"
                 >
-                    <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-ember-500 to-gold-400 text-[11px] font-bold text-white">
-                        <?= e($initial) ?>
-                    </span>
+                    <?php if (isset($avatarUrl) && $avatarUrl !== null): ?>
+                        <img src="<?= e($avatarUrl) ?>" alt="" class="h-8 w-8 shrink-0 rounded-lg border border-white/10 object-cover">
+                    <?php else: ?>
+                        <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-ember-500 to-gold-400 text-[11px] font-bold text-white">
+                            <?= e($initial) ?>
+                        </span>
+                    <?php endif; ?>
                     <span data-sidebar-label class="min-w-0 flex-1">
                         <span class="block truncate text-xs font-semibold text-slate-200"><?= e($displayName) ?></span>
                         <span class="block truncate text-[10px] text-slate-600">@<?= e($username) ?></span>
@@ -146,7 +158,7 @@
 
             <p data-sidebar-label class="mt-2.5 flex items-center gap-1.5 px-1 text-[9px] text-slate-700">
                 <i data-lucide="info" class="h-3 w-3 shrink-0"></i>
-                Phase 3 · quest log live
+                Phase 4 · adventure systems live
             </p>
         </div>
     </div>

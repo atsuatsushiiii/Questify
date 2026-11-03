@@ -79,6 +79,31 @@ if (!function_exists('asset')) {
     }
 }
 
+if (!function_exists('avatar_url')) {
+    /**
+     * Turn a stored avatar path into a safe public URL.
+     *
+     * Only application-generated filenames inside uploads/avatars are accepted;
+     * anything else falls back to the initial-letter avatar.
+     */
+    function avatar_url(?string $path): ?string
+    {
+        if ($path === null || $path === '') {
+            return null;
+        }
+
+        $relative = ltrim($path, '/');
+
+        if (preg_match('#^uploads/avatars/[A-Za-z0-9][A-Za-z0-9._-]*\.(jpg|jpeg|png|webp)$#i', $relative) !== 1) {
+            return null;
+        }
+
+        $file = (string) config('paths.public', '') . '/' . $relative;
+
+        return is_file($file) ? asset($relative) : null;
+    }
+}
+
 if (!function_exists('view')) {
     /**
      * @param array<string, mixed> $data

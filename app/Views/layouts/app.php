@@ -8,6 +8,7 @@
  */
 
 use App\Core\Flash;
+use App\Models\Notification;
 use App\Support\Progression;
 
 $currentUser = auth_user() ?? [];
@@ -15,6 +16,8 @@ $displayName = (string) ($currentUser['display_name'] ?? $currentUser['username'
 $username = (string) ($currentUser['username'] ?? 'adventurer');
 $email = (string) ($currentUser['email'] ?? '');
 $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
+$avatarUrl = avatar_url(isset($currentUser['avatar_path']) ? (string) $currentUser['avatar_path'] : null);
+$unreadNotifications = isset($currentUser['id']) ? Notification::unreadCount((int) $currentUser['id']) : 0;
 $progression = Progression::snapshot($currentUser);
 $appNav = require __DIR__ . '/../partials/app-nav.php';
 $pageTitle = $title ?? 'Questify';
@@ -97,10 +100,10 @@ $sidebarState = ($_COOKIE['questify_sidebar'] ?? '') === 'collapsed' ? 'collapse
 
             <footer class="mt-auto hidden border-t border-white/[0.05] px-8 py-5 lg:block">
                 <div class="mx-auto flex w-full max-w-[92rem] items-center justify-between gap-4 text-[10px] text-slate-600">
-                    <p>&copy; <?= e(date('Y')) ?> Questify · Phase 3 quest journal</p>
+                    <p>&copy; <?= e(date('Y')) ?> Questify · Phase 4 adventure systems</p>
                     <p class="inline-flex items-center gap-1.5">
                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-                        Signed in as <?= e($username) ?>
+                        <?= e($displayName) ?> · <?= e($progression['rank']) ?> · Level <?= e((string) $progression['level']) ?>
                     </p>
                 </div>
             </footer>

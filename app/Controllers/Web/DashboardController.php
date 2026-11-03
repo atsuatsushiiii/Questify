@@ -10,6 +10,9 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Models\Quest;
 use App\Models\XpTransaction;
+use App\Services\AchievementService;
+use App\Services\LeaderboardService;
+use App\Services\StreakService;
 use App\Support\Progression;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -29,6 +32,9 @@ final class DashboardController
         $timezone = (string) ($user['timezone'] ?? 'UTC');
         $userId = (int) $user['id'];
         $counts = Quest::countsForUser($userId);
+        $achievementOverview = AchievementService::overview($userId, $user);
+        $leaderboard = LeaderboardService::board('all', 1, 5, $user);
+        $currentStreak = StreakService::effectiveCurrent($user);
         $recentActivity = [];
 
         foreach (XpTransaction::recentForUser($userId, 6) as $entry) {
@@ -54,8 +60,8 @@ final class DashboardController
             'progress' => $progression['progress'],
             'xpToNext' => $progression['xp_to_next'],
             'rank' => $progression['rank'],
-            'streak' => max(0, (int) ($user['current_streak'] ?? 0)),
-            'longestStreak' => max(0, (int) ($user['longest_streak'] ?? 0)),
+            'streak' => $currentStreak,
+            'longestStreak' => max($currentStreak, (int) ($user['longest_streak'] ?? 0)),
             'today' => $this->today($timezone),
             'memberSince' => $this->formatDate((string) $user['created_at'], $timezone),
             'lastLogin' => $this->formatDate(
@@ -65,8 +71,12 @@ final class DashboardController
             'completedQuests' => $counts['completed'],
             'activeQuests' => $counts['active'],
             'recentActivity' => $recentActivity,
-            'achievementPreview' => [],
-            'leaderboardEntries' => [],
+            'achievementPreview' => AchievementService::preview($achievementOverview, 4),
+            'achievementSummary' => $achievementOverview['summary'],
+            'leaderboardEntries' => $leaderboard['rows'],
+            'leaderboardTotal' => $leaderboard['total'],
+            'viewerRank' => $leaderboard['viewer_rank'],
+            'streakDays' => StreakService::lastSevenDays($userId, $timezone),
         ], 'layouts/app');
     }
 

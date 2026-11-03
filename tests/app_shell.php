@@ -184,7 +184,7 @@ $client = new HttpClient($baseUrl);
 
 echo "\n1. Authentication protection\n";
 
-foreach (['/dashboard', '/quests', '/quests/create', '/quests/1', '/achievements', '/leaderboard', '/profile', '/settings'] as $route) {
+foreach (['/dashboard', '/quests', '/quests/create', '/quests/1', '/achievements', '/leaderboard', '/notifications', '/profile', '/settings'] as $route) {
     $response = $client->get($route);
     check(
         "{$route} requires authentication",
@@ -234,7 +234,8 @@ check('Account email is available in the profile menu', contains($html, e($email
 check('Profile menu is wired', contains($html, 'data-user-menu-toggle') && contains($html, 'data-user-menu-panel'));
 check('Quest creation is a real link', contains($html, 'New quest') && contains($html, '/quests/create'));
 check('Phase 2 preview dialog is gone', !contains($html, 'data-quest-dialog') && !contains($html, 'non-functional preview'));
-check('My Quests is shipped navigation', contains($html, 'Phase 3 · quest log live'));
+check('Phase 4 navigation is shipped', contains($html, 'Phase 4 · adventure systems live'));
+check('Notification bell is present', contains($html, 'aria-label="Notifications"') && contains($html, '/notifications'));
 
 echo "\n4. Real values and honest empty states\n";
 
@@ -244,12 +245,12 @@ check('XP is shown from the account', contains($html, 'XP total') && contains($h
 check('Completed quests shows the real zero count', contains($html, 'Completed quests') && contains($html, 'Complete a quest to start your record.'));
 check('Active quests shows the real zero count', contains($html, 'Active quests') && contains($html, 'Your active log is clear.'));
 check('Recent activity has an honest empty state', contains($html, 'No activity yet'));
-check('Achievements are not fabricated', contains($html, 'No achievements are defined yet') && contains($html, 'Locked slot'));
-check('Leaderboard shows only the real account row', contains($html, 'No other adventurers are shown') && contains($html, 'Unranked'));
-check('Unfinished modules are labelled by phase', contains($html, 'Phase 4') && contains($html, 'Phase 5'));
+check('Achievements are defined and shown as locked', contains($html, 'of 10 unlocked') && contains($html, 'still locked'));
+check('Leaderboard renders real ranking copy', contains($html, 'public adventurers are currently ranked') || contains($html, 'public adventurer is currently ranked'));
+check('Unfinished modules are labelled by phase', contains($html, 'Soon') && contains($html, 'Settings'));
 check('No PHP diagnostics leaked into the page', !contains($html, 'Warning:') && !contains($html, 'Fatal error') && !contains($html, 'Undefined'));
 
-echo "\n5. Placeholder destinations\n";
+echo "\n5. Phase 4 destinations and the Settings placeholder\n";
 
 $questLog = $client->get('/quests');
 check('Quest log renders for the owner', $questLog['status'] === 200 && contains($questLog['body'], 'My Quests') && contains($questLog['body'], 'Quest journal'));
@@ -260,31 +261,88 @@ $questForm = $client->get('/quests/create');
 check('Quest creation page renders', $questForm['status'] === 200 && contains($questForm['body'], 'data-quest-form'));
 check('Difficulty rewards are visible before submission', contains($questForm['body'], 'Reward preview') && contains($questForm['body'], 'data-xp-preview'));
 
-$placeholders = [
-    '/achievements' => ['Achievements', 'Phase 4', 'A gallery of unlockable achievement definitions'],
-    '/leaderboard' => ['Leaderboard', 'Phase 5', 'Weekly, monthly, and all-time rankings'],
-    '/profile' => ['My Profile', 'Phase 5', 'A shareable public profile at your username'],
-    '/settings' => ['Settings', 'Phase 5', 'Password changes and active session management'],
-];
+$achievements = $client->get('/achievements');
+check(
+    'Achievement hall renders for the owner',
+    $achievements['status'] === 200
+        && contains($achievements['body'], 'Trophy hall')
+        && contains($achievements['body'], 'Collection progress')
+        && contains($achievements['body'], 'First Steps'),
+);
+check(
+    'Achievement hall can filter by category',
+    contains($achievements['body'], 'Milestones')
+        && contains($achievements['body'], '/achievements?category=streak'),
+);
+check(
+    'Achievement hall keeps the application shell',
+    contains($achievements['body'], 'data-app-shell') && contains($achievements['body'], 'aria-current="page"'),
+);
 
-foreach ($placeholders as $route => [$heading, $phase, $feature]) {
-    $page = $client->get($route);
-    check(
-        "{$route} renders its placeholder",
-        $page['status'] === 200
-            && contains($page['body'], '<h1')
-            && contains($page['body'], e($heading))
-            && contains($page['body'], 'Planned for ' . $phase),
-    );
-    check(
-        "{$route} clearly marks the module inactive",
-        contains($page['body'], 'This module is not active yet') && contains($page['body'], e($feature)),
-    );
-    check(
-        "{$route} still uses the application shell",
-        contains($page['body'], 'data-app-shell') && contains($page['body'], 'aria-current="page"'),
-    );
-}
+$leaderboard = $client->get('/leaderboard');
+check(
+    'Leaderboard renders real period controls',
+    $leaderboard['status'] === 200
+        && contains($leaderboard['body'], 'Hall of adventurers')
+        && contains($leaderboard['body'], 'All time')
+        && contains($leaderboard['body'], '/leaderboard?period=weekly'),
+);
+check(
+    'Leaderboard explains its UTC windows',
+    contains($leaderboard['body'], 'UTC')
+        && (contains($leaderboard['body'], 'No ranked adventurers yet') || contains($leaderboard['body'], 'standings')),
+);
+check(
+    'Leaderboard keeps the application shell',
+    contains($leaderboard['body'], 'data-app-shell') && contains($leaderboard['body'], 'aria-current="page"'),
+);
+
+$profile = $client->get('/profile');
+check(
+    'Profile page renders the owner editor',
+    $profile['status'] === 200
+        && contains($profile['body'], 'My profile')
+        && contains($profile['body'], 'Profile details')
+        && contains($profile['body'], 'Profile picture')
+        && contains($profile['body'], e($displayName)),
+);
+check(
+    'Profile page exposes streak history and visibility',
+    contains($profile['body'], 'Streak history')
+        && contains($profile['body'], 'Show me on public leaderboards')
+        && contains($profile['body'], 'name="timezone"'),
+);
+check(
+    'Profile page keeps the application shell',
+    contains($profile['body'], 'data-app-shell') && contains($profile['body'], 'aria-current="page"'),
+);
+
+$notifications = $client->get('/notifications');
+check(
+    'Notification inbox renders its honest empty state',
+    $notifications['status'] === 200
+        && contains($notifications['body'], 'Notifications')
+        && contains($notifications['body'], 'Nothing here yet')
+        && contains($notifications['body'], 'Go to quest log'),
+);
+check(
+    'Notification inbox keeps the application shell',
+    contains($notifications['body'], 'data-app-shell') && contains($notifications['body'], 'aria-current="page"'),
+);
+
+$settings = $client->get('/settings');
+check(
+    'Settings remains an explicit Phase 5 placeholder',
+    $settings['status'] === 200
+        && contains($settings['body'], '<h1')
+        && contains($settings['body'], 'Settings')
+        && contains($settings['body'], 'Planned for Phase 5')
+        && contains($settings['body'], 'This module is not active yet'),
+);
+check(
+    'Settings still uses the application shell',
+    contains($settings['body'], 'data-app-shell') && contains($settings['body'], 'aria-current="page"'),
+);
 
 echo "\n6. Persisted sidebar preference\n";
 

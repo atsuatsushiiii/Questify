@@ -19,8 +19,12 @@
  * @var int $completedQuests
  * @var int $activeQuests
  * @var list<array{title: string, quest_id: int|null, xp: int, level_before: int, level_after: int, completed_at: string|null, iso: string|null}> $recentActivity
- * @var array<int, mixed> $achievementPreview
- * @var array<int, mixed> $leaderboardEntries
+ * @var list<array<string, mixed>> $achievementPreview
+ * @var array{total: int, unlocked: int, locked: int, percent: int} $achievementSummary
+ * @var list<array<string, mixed>> $leaderboardEntries
+ * @var int $leaderboardTotal
+ * @var int|null $viewerRank
+ * @var list<array{date: string, label: string, active: bool, today: bool}> $streakDays
  */
 $circumference = 2 * M_PI * 52;
 $ringOffset = $circumference * (1 - ((float) $progress / 100));
@@ -28,7 +32,6 @@ $timezoneLabel = str_replace('_', ' ', (string) ($user['timezone'] ?? 'UTC'));
 $nextRank = (string) ($progression['next_rank'] ?? 'Mythic');
 $nextRankLevel = $progression['next_rank_level'] ?? null;
 $atMaxLevel = $progression['next_level'] === null;
-$leaderboardInitial = mb_strtoupper(mb_substr((string) $user['display_name'], 0, 1));
 ?>
 <section class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between" data-reveal>
     <div class="min-w-0">
@@ -193,16 +196,22 @@ $leaderboardInitial = mb_strtoupper(mb_substr((string) $user['display_name'], 0,
             </p>
             <p class="mt-2 text-xs leading-relaxed text-slate-500">
                 <?php if ($streak === 0): ?>
-                    No streak yet. Daily streak tracking is not active yet, but every completed quest already earns XP.
+                    Complete a quest today to light the flame. A streak counts one qualifying quest per local day.
                 <?php else: ?>
                     Longest streak: <?= e((string) $longestStreak) ?> <?= $longestStreak === 1 ? 'day' : 'days' ?>.
+                    Complete a quest today to keep it alive.
                 <?php endif; ?>
             </p>
 
-            <div class="mt-5 flex gap-1.5" aria-hidden="true">
-                <?php for ($day = 1; $day <= 7; $day++): ?>
-                    <span class="h-1.5 flex-1 rounded-full <?= $day <= min($streak, 7) ? 'bg-gradient-to-r from-ember-400 to-gold-400' : 'bg-white/[0.06]' ?>"></span>
-                <?php endfor; ?>
+            <div class="mt-5 flex gap-1.5">
+                <?php foreach ($streakDays as $day): ?>
+                    <span
+                        class="h-1.5 flex-1 rounded-full <?= $day['active']
+                            ? 'bg-gradient-to-r from-ember-400 to-gold-400'
+                            : 'bg-white/[0.06]' ?> <?= $day['today'] ? 'ring-1 ring-gold-300/70' : '' ?>"
+                        title="<?= e($day['label']) ?><?= $day['active'] ? ' — quest completed' : ' — no quest' ?>"
+                    ></span>
+                <?php endforeach; ?>
             </div>
 
             <div class="mt-auto flex items-center justify-between gap-2 border-t border-white/[0.06] pt-4 text-[10px] text-slate-600">
@@ -353,28 +362,64 @@ $leaderboardInitial = mb_strtoupper(mb_substr((string) $user['display_name'], 0,
                     <i data-lucide="trophy" class="h-4 w-4"></i>
                 </span>
                 <div>
-                    <h2 class="font-display text-sm font-semibold text-white">Achievement preview</h2>
-                    <p class="text-[11px] text-slate-500">Locked slots, no invented badges.</p>
+                    <h2 class="font-display text-sm font-semibold text-white">Achievements</h2>
+                    <p class="text-[11px] text-slate-500">
+                        <?= e((string) $achievementSummary['unlocked']) ?> of <?= e((string) $achievementSummary['total']) ?> unlocked
+                    </p>
                 </div>
             </div>
-            <span class="rounded-full border border-white/10 bg-white/[0.02] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-slate-500">Phase 4</span>
+            <a href="<?= e(url('/achievements')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold-300 transition hover:text-gold-200">
+                View all
+                <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+            </a>
         </div>
 
         <div class="p-5">
             <?php if ($achievementPreview === []): ?>
-                <div class="grid grid-cols-2 gap-2.5">
-                    <?php for ($slot = 1; $slot <= 4; $slot++): ?>
-                        <div class="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-3 py-5 text-center">
-                            <span class="grid h-9 w-9 place-items-center rounded-xl bg-white/[0.03] text-slate-600">
-                                <i data-lucide="lock" class="h-4 w-4"></i>
-                            </span>
-                            <p class="text-[10px] font-medium uppercase tracking-wider text-slate-600">Locked slot</p>
-                        </div>
-                    <?php endfor; ?>
+                <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.01] px-5 py-8 text-center">
+                    <span class="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.03] text-slate-600">
+                        <i data-lucide="trophy" class="h-4 w-4"></i>
+                    </span>
+                    <p class="mt-3 text-xs font-semibold text-slate-300">No achievement definitions</p>
+                    <p class="mt-1 text-[11px] text-slate-500">Definitions are seeded with the database.</p>
                 </div>
-                <p class="mt-3 text-center text-[11px] leading-relaxed text-slate-600">
-                    No achievements are defined yet. The trophy hall opens in Phase 4.
-                </p>
+            <?php else: ?>
+                <ul class="space-y-2">
+                    <?php foreach ($achievementPreview as $achievement): ?>
+                        <?php
+                        $isUnlocked = (bool) ($achievement['unlocked'] ?? false);
+                        $percent = (int) ($achievement['percent'] ?? 0);
+                        ?>
+                        <li class="rounded-xl border px-3 py-2.5 <?= $isUnlocked
+                            ? 'border-gold-400/20 bg-gold-400/[0.05]'
+                            : 'border-white/[0.06] bg-white/[0.015]' ?>">
+                            <div class="flex items-center gap-2.5">
+                                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg border <?= $isUnlocked
+                                    ? 'border-gold-400/25 bg-gold-400/10 text-gold-300'
+                                    : 'border-white/10 bg-white/[0.03] text-slate-500' ?>">
+                                    <i data-lucide="<?= e((string) ($achievement['icon'] ?? 'trophy')) ?>" class="h-3.5 w-3.5"></i>
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-xs font-semibold text-slate-200"><?= e((string) $achievement['name']) ?></p>
+                                    <p class="truncate text-[10px] text-slate-600"><?= e((string) $achievement['description']) ?></p>
+                                </div>
+                                <span class="shrink-0 text-[10px] font-semibold tabular-nums <?= $isUnlocked ? 'text-gold-300' : 'text-slate-500' ?>">
+                                    <?= $isUnlocked ? 'Earned' : e((string) $percent) . '%' ?>
+                                </span>
+                            </div>
+                            <div class="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
+                                <div
+                                    class="h-full rounded-full <?= $isUnlocked ? 'bg-gold-400' : 'bg-gradient-to-r from-ember-500 to-gold-400' ?>"
+                                    style="width: <?= e((string) $percent) ?>%"
+                                ></div>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+                <a href="<?= e(url('/achievements')) ?>" class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-gold-300">
+                    <?= e((string) $achievementSummary['locked']) ?> still locked
+                    <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                </a>
             <?php endif; ?>
         </div>
     </article>
@@ -388,46 +433,49 @@ $leaderboardInitial = mb_strtoupper(mb_substr((string) $user['display_name'], 0,
                     <i data-lucide="crown" class="h-4 w-4"></i>
                 </span>
                 <div>
-                    <h2 class="font-display text-sm font-semibold text-white">Leaderboard preview</h2>
-                    <p class="text-[11px] text-slate-500">Your row, before rankings exist.</p>
+                    <h2 class="font-display text-sm font-semibold text-white">Leaderboard</h2>
+                    <p class="text-[11px] text-slate-500">All-time XP · public adventurers only.</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
-                <span class="rounded-full border border-white/10 bg-white/[0.02] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-slate-500">Phase 5</span>
-                <a href="<?= e(url('/leaderboard')) ?>" class="text-[11px] font-semibold text-gold-300 transition hover:text-gold-200">Learn more</a>
+            <div class="flex items-center gap-3">
+                <?php if ($viewerRank !== null): ?>
+                    <span class="hidden rounded-full border border-gold-400/20 bg-gold-400/[0.08] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-gold-300 sm:inline-flex">
+                        You are #<?= e((string) $viewerRank) ?>
+                    </span>
+                <?php endif; ?>
+                <a href="<?= e(url('/leaderboard')) ?>" class="text-[11px] font-semibold text-gold-300 transition hover:text-gold-200">View board</a>
             </div>
         </div>
 
-        <div class="px-5 py-5">
-            <div class="grid grid-cols-[2.5rem_1fr_auto] items-center gap-3 rounded-xl border border-white/[0.06] bg-gradient-to-r from-ember-500/[0.07] to-transparent px-3 py-3 sm:grid-cols-[3rem_1fr_5rem_5rem]">
-                <span class="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.07] bg-white/[0.03] text-[11px] font-semibold text-slate-500" aria-label="Unranked">
-                    —
-                </span>
-                <div class="flex min-w-0 items-center gap-2.5">
-                    <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-ember-500 to-gold-400 text-[11px] font-bold text-white">
-                        <?= e($leaderboardInitial) ?>
+        <div class="p-4">
+            <?php if ($leaderboardEntries === []): ?>
+                <div class="rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-5 py-8 text-center">
+                    <span class="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-white/[0.03] text-slate-600">
+                        <i data-lucide="crown" class="h-4 w-4"></i>
                     </span>
-                    <div class="min-w-0">
-                        <p class="truncate text-xs font-semibold text-slate-200">
-                            <?= e((string) $user['display_name']) ?>
-                            <span class="ml-1 rounded border border-gold-400/20 bg-gold-400/[0.08] px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-gold-300">You</span>
-                        </p>
-                        <p class="truncate text-[10px] text-slate-600">Unranked · leaderboards not calculated yet</p>
-                    </div>
+                    <p class="mt-3 text-xs font-semibold text-slate-300">No ranked adventurers yet</p>
+                    <p class="mt-1 text-[11px] text-slate-500">
+                        <?= $viewerRank === null
+                            ? 'Complete a quest to claim the first spot on the board.'
+                            : 'Your row will appear as soon as another public adventurer earns XP.' ?>
+                    </p>
                 </div>
-                <div class="hidden text-right sm:block">
-                    <p class="text-[9px] uppercase tracking-wider text-slate-600">Level</p>
-                    <p class="text-xs font-semibold text-slate-300"><?= e((string) $level) ?></p>
+            <?php else: ?>
+                <div class="space-y-2">
+                    <?php foreach ($leaderboardEntries as $entry): ?>
+                        <?php
+                        $isViewer = (int) $entry['id'] === (int) $user['id'];
+                        $metricLabel = 'Total XP';
+                        require __DIR__ . '/../partials/leaderboard-row.php';
+                        ?>
+                    <?php endforeach; ?>
                 </div>
-                <div class="text-right">
-                    <p class="text-[9px] uppercase tracking-wider text-slate-600">XP</p>
-                    <p class="text-xs font-semibold text-slate-300"><?= e(number_format((int) $progression['xp'])) ?></p>
-                </div>
-            </div>
+            <?php endif; ?>
 
             <p class="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-slate-600">
                 <i data-lucide="info" class="mt-0.5 h-3.5 w-3.5 shrink-0"></i>
-                No other adventurers are shown because ranking calculations do not exist yet. This is your own account row only.
+                <?= e(number_format($leaderboardTotal)) ?> public <?= $leaderboardTotal === 1 ? 'adventurer is' : 'adventurers are' ?> currently ranked.
+                Update visibility from your profile at any time.
             </p>
         </div>
     </article>
