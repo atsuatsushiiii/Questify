@@ -16,6 +16,11 @@ $tone = match ($type ?? 'info') {
         'icon' => 'alert-circle',
         'iconTone' => 'text-rose-300',
     ],
+    'info' => [
+        'wrap' => 'border-gold-400/25 bg-gold-400/[0.08] text-gold-100',
+        'icon' => 'info',
+        'iconTone' => 'text-gold-300',
+    ],
     default => [
         'wrap' => 'border-aqua-400/25 bg-aqua-500/[0.08] text-aqua-100',
         'icon' => 'info',

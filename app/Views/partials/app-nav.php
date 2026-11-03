@@ -15,7 +15,7 @@ return [
         'label' => 'Adventure',
         'items' => [
             ['label' => 'Dashboard', 'href' => '/dashboard', 'icon' => 'layout-dashboard', 'phase' => null],
-            ['label' => 'My Quests', 'href' => '/quests', 'icon' => 'scroll-text', 'phase' => 3],
+            ['label' => 'My Quests', 'href' => '/quests', 'icon' => 'scroll-text', 'phase' => null],
             ['label' => 'Achievements', 'href' => '/achievements', 'icon' => 'trophy', 'phase' => 4],
             ['label' => 'Leaderboard', 'href' => '/leaderboard', 'icon' => 'crown', 'phase' => 5],
         ],

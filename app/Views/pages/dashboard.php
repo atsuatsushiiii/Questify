@@ -2,9 +2,8 @@
 /**
  * Authenticated command center.
  *
- * Only values stored on the authenticated user are presented as data. Quest,
- * achievement and leaderboard panels are explicit empty states until their
- * phases ship.
+ * Quest statistics and XP activity come from the quest tables. Achievement and
+ * leaderboard panels remain explicit empty states until their phases ship.
  *
  * @var array<string, mixed> $user
  * @var array<string, mixed> $progression
@@ -17,9 +16,9 @@
  * @var string $today
  * @var string|null $memberSince
  * @var string|null $lastLogin
- * @var int|null $completedQuests
- * @var int|null $activeQuests
- * @var array<int, mixed> $recentActivity
+ * @var int $completedQuests
+ * @var int $activeQuests
+ * @var list<array{title: string, quest_id: int|null, xp: int, level_before: int, level_after: int, completed_at: string|null, iso: string|null}> $recentActivity
  * @var array<int, mixed> $achievementPreview
  * @var array<int, mixed> $leaderboardEntries
  */
@@ -53,16 +52,9 @@ $leaderboardInitial = mb_strtoupper(mb_substr((string) $user['display_name'], 0,
     </div>
 
     <div class="flex flex-wrap items-center gap-2.5">
-        <a
-            href="<?= e(url('/quests')) ?>"
-            class="btn btn-app-primary group"
-            data-quest-open
-            aria-haspopup="dialog"
-            aria-controls="quest-dialog"
-        >
+        <a href="<?= e(url('/quests/create')) ?>" class="btn btn-app-primary group">
             <i data-lucide="plus" class="h-4 w-4 transition-transform duration-200 group-hover:rotate-90"></i>
             New quest
-            <span class="rounded-full border border-black/20 bg-black/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white/80">Preview</span>
         </a>
         <a href="<?= e(url('/quests')) ?>" class="btn btn-app-ghost">
             <i data-lucide="scroll-text" class="h-4 w-4"></i>
@@ -82,7 +74,7 @@ $leaderboardInitial = mb_strtoupper(mb_substr((string) $user['display_name'], 0,
             <div class="flex items-start justify-between gap-3">
                 <div>
                     <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Level progress</p>
-                    <h2 class="mt-1 font-display text-lg font-semibold text-white">Adventurer rank</h2>
+                    <h2 class="mt-1 font-display text-lg font-semibold text-white">Rank and level</h2>
                 </div>
                 <span class="inline-flex items-center gap-1.5 rounded-full border border-gold-400/25 bg-gold-400/[0.08] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-gold-300">
                     <i data-lucide="crown" class="h-3 w-3"></i>
@@ -201,7 +193,7 @@ $leaderboardInitial = mb_strtoupper(mb_substr((string) $user['display_name'], 0,
             </p>
             <p class="mt-2 text-xs leading-relaxed text-slate-500">
                 <?php if ($streak === 0): ?>
-                    No streak yet. Completing your first quest will start one — the streak engine arrives in Phase 3.
+                    No streak yet. Daily streak tracking is not active yet, but every completed quest already earns XP.
                 <?php else: ?>
                     Longest streak: <?= e((string) $longestStreak) ?> <?= $longestStreak === 1 ? 'day' : 'days' ?>.
                 <?php endif; ?>
@@ -248,10 +240,8 @@ $leaderboardInitial = mb_strtoupper(mb_substr((string) $user['display_name'], 0,
                 <i data-lucide="circle-check" class="h-4 w-4"></i>
             </span>
         </div>
-        <p class="app-stat-value" aria-label="Not available yet">
-            <?= $completedQuests === null ? '—' : e(number_format($completedQuests)) ?>
-        </p>
-        <p class="app-stat-note"><?= $completedQuests === null ? 'No quest data yet — Phase 3.' : 'Quests completed.' ?></p>
+        <p class="app-stat-value"><?= e(number_format($completedQuests)) ?></p>
+        <p class="app-stat-note"><?= $completedQuests === 0 ? 'Complete a quest to start your record.' : 'Quests completed and rewarded.' ?></p>
     </article>
 
     <article class="app-stat-card">
@@ -261,10 +251,8 @@ $leaderboardInitial = mb_strtoupper(mb_substr((string) $user['display_name'], 0,
                 <i data-lucide="target" class="h-4 w-4"></i>
             </span>
         </div>
-        <p class="app-stat-value" aria-label="Not available yet">
-            <?= $activeQuests === null ? '—' : e(number_format($activeQuests)) ?>
-        </p>
-        <p class="app-stat-note"><?= $activeQuests === null ? 'Quest engine arrives in Phase 3.' : 'Quests in progress.' ?></p>
+        <p class="app-stat-value"><?= e(number_format($activeQuests)) ?></p>
+        <p class="app-stat-note"><?= $activeQuests === 0 ? 'Your active log is clear.' : 'Quests in progress.' ?></p>
     </article>
 
     <article class="app-stat-card">
@@ -291,10 +279,13 @@ $leaderboardInitial = mb_strtoupper(mb_substr((string) $user['display_name'], 0,
                 </span>
                 <div>
                     <h2 class="font-display text-sm font-semibold text-white">Recent activity</h2>
-                    <p class="text-[11px] text-slate-500">Your quest feed, once it exists.</p>
+                    <p class="text-[11px] text-slate-500">XP awarded from your completed quests.</p>
                 </div>
             </div>
-            <span class="rounded-full border border-white/10 bg-white/[0.02] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-slate-500">Phase 3</span>
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-emerald-300">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                Live
+            </span>
         </div>
 
         <div class="p-5">
@@ -305,14 +296,52 @@ $leaderboardInitial = mb_strtoupper(mb_substr((string) $user['display_name'], 0,
                     </span>
                     <p class="mt-4 font-display text-sm font-semibold text-slate-200">No activity yet</p>
                     <p class="mt-1.5 max-w-sm text-xs leading-relaxed text-slate-500">
-                        Completed quests, level-ups and streak milestones will appear here after the quest engine ships.
-                        Nothing is being recorded today.
+                        Complete a quest and its XP award will appear here with the time it was claimed.
+                        Nothing is fabricated while your log is empty.
                     </p>
-                    <a href="<?= e(url('/quests')) ?>" class="mt-4 inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold-300 transition hover:text-gold-200">
-                        See what Phase 3 adds
+                    <a href="<?= e(url('/quests/create')) ?>" class="mt-4 inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold-300 transition hover:text-gold-200">
+                        Create your first quest
                         <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
                     </a>
                 </div>
+            <?php else: ?>
+                <ol class="space-y-2">
+                    <?php foreach ($recentActivity as $entry): ?>
+                        <li class="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.015] px-3 py-3 transition hover:border-gold-400/20 hover:bg-white/[0.03]">
+                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-emerald-400/20 bg-emerald-500/10 text-emerald-300">
+                                <i data-lucide="circle-check" class="h-4 w-4"></i>
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <?php if ($entry['quest_id'] !== null): ?>
+                                    <a href="<?= e(url('/quests/' . $entry['quest_id'])) ?>" class="block truncate text-xs font-semibold text-slate-200 transition hover:text-gold-200">
+                                        <?= e($entry['title']) ?>
+                                    </a>
+                                <?php else: ?>
+                                    <p class="truncate text-xs font-semibold text-slate-200"><?= e($entry['title']) ?></p>
+                                <?php endif; ?>
+                                <p class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-slate-600">
+                                    <?php if ($entry['completed_at'] !== null): ?>
+                                        <?php if ($entry['iso'] !== null): ?>
+                                            <time datetime="<?= e($entry['iso']) ?>"><?= e($entry['completed_at']) ?></time>
+                                        <?php else: ?>
+                                            <span><?= e($entry['completed_at']) ?></span>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                    <?php if ($entry['level_after'] > $entry['level_before']): ?>
+                                        <span class="text-gold-300/90">· Level <?= e((string) $entry['level_before']) ?> → <?= e((string) $entry['level_after']) ?></span>
+                                    <?php endif; ?>
+                                </p>
+                            </div>
+                            <span class="shrink-0 rounded-full border border-gold-400/20 bg-gold-400/[0.08] px-2 py-1 text-[10px] font-bold text-gold-300">
+                                +<?= e((string) $entry['xp']) ?> XP
+                            </span>
+                        </li>
+                    <?php endforeach; ?>
+                </ol>
+                <a href="<?= e(url('/quests?status=completed')) ?>" class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-gold-300">
+                    View completed quests
+                    <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                </a>
             <?php endif; ?>
         </div>
     </article>
@@ -403,69 +432,3 @@ $leaderboardInitial = mb_strtoupper(mb_substr((string) $user['display_name'], 0,
         </div>
     </article>
 </section>
-
-<dialog
-    id="quest-dialog"
-    data-quest-dialog
-    class="app-dialog"
-    aria-labelledby="quest-dialog-title"
-    aria-describedby="quest-dialog-description"
->
-    <div class="app-dialog-panel" data-dialog-panel>
-        <div class="flex items-start justify-between gap-4 border-b border-white/[0.06] px-5 py-4">
-            <div class="flex items-center gap-3">
-                <span class="grid h-10 w-10 place-items-center rounded-xl border border-ember-400/25 bg-ember-500/10 text-gold-300">
-                    <i data-lucide="swords" class="h-5 w-5"></i>
-                </span>
-                <div>
-                    <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <h2 id="quest-dialog-title" class="whitespace-nowrap font-display text-[15px] font-semibold text-white sm:text-base">Create a quest</h2>
-                        <span class="rounded-full border border-gold-400/25 bg-gold-400/[0.08] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-gold-300">Preview</span>
-                    </div>
-                    <p class="text-[11px] text-slate-500">Quest creation is a Phase 3 feature.</p>
-                </div>
-            </div>
-
-            <form method="dialog">
-                <button type="submit" class="grid h-9 w-9 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.06] hover:text-white" aria-label="Close dialog">
-                    <i data-lucide="x" class="h-4 w-4"></i>
-                </button>
-            </form>
-        </div>
-
-        <div class="px-5 py-5">
-            <p id="quest-dialog-description" class="rounded-xl border border-gold-400/20 bg-gold-400/[0.05] px-3.5 py-3 text-xs leading-relaxed text-slate-400">
-                This is a non-functional preview. Nothing you type is saved, and no XP is awarded until the quest engine ships.
-            </p>
-
-            <div class="mt-4 space-y-3">
-                <div>
-                    <label for="preview-quest-title" class="field-label">Quest title</label>
-                    <input id="preview-quest-title" type="text" class="field-input" placeholder="e.g. Finish the launch outline" disabled>
-                </div>
-                <div class="grid gap-3 sm:grid-cols-2">
-                    <div>
-                        <label for="preview-quest-difficulty" class="field-label">Difficulty</label>
-                        <select id="preview-quest-difficulty" class="field-input appearance-none" disabled>
-                            <option>Easy · 10 XP</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="preview-quest-due" class="field-label">Due</label>
-                        <input id="preview-quest-due" type="text" class="field-input" placeholder="Today" disabled>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex flex-col gap-2 border-t border-white/[0.06] px-5 py-4 sm:flex-row sm:justify-end">
-            <form method="dialog">
-                <button type="submit" class="btn btn-app-ghost w-full sm:w-auto">Got it</button>
-            </form>
-            <a href="<?= e(url('/quests')) ?>" class="btn btn-app-primary w-full sm:w-auto">
-                See the Phase 3 plan
-                <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
-            </a>
-        </div>
-    </div>
-</dialog>

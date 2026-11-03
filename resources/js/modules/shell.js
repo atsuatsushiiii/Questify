@@ -145,39 +145,6 @@ function initUserMenu() {
   });
 }
 
-function initQuestDialog() {
-  const dialog = document.querySelector('[data-quest-dialog]');
-
-  if (!dialog || typeof dialog.showModal !== 'function') {
-    return;
-  }
-
-  const triggers = document.querySelectorAll('[data-quest-open]');
-
-  triggers.forEach((trigger) => {
-    trigger.addEventListener('click', (event) => {
-      event.preventDefault();
-
-      if (dialog.open) {
-        return;
-      }
-
-      dialog.showModal();
-      document.body.classList.add('app-scroll-lock');
-    });
-  });
-
-  dialog.addEventListener('close', () => {
-    document.body.classList.remove('app-scroll-lock');
-  });
-
-  dialog.addEventListener('click', (event) => {
-    if (event.target === dialog) {
-      dialog.close();
-    }
-  });
-}
-
 export function initShell() {
   const shell = document.querySelector('[data-app-shell]');
 
@@ -187,5 +154,4 @@ export function initShell() {
 
   initSidebar(shell);
   initUserMenu();
-  initQuestDialog();
 }

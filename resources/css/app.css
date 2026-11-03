@@ -157,6 +157,46 @@
   }
 
   /*
+   * Quest journal controls use the authenticated red/gold identity. The
+   * original .field-input stays violet for the public auth pages.
+   */
+  .app-field {
+    @apply w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder:text-slate-600 transition focus:border-ember-400/60 focus:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-ember-500/20;
+  }
+
+  .app-field.is-invalid {
+    @apply border-rose-400/50 bg-rose-500/[0.04] focus:border-rose-400 focus:ring-rose-500/20;
+  }
+
+  .app-select {
+    @apply w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white transition focus:border-ember-400/60 focus:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-ember-500/20;
+  }
+
+  .app-shell :focus-visible {
+    @apply outline-none ring-2 ring-gold-400/70 ring-offset-2 ring-offset-[#07060B];
+  }
+
+  .quest-tabs {
+    @apply flex flex-wrap items-center gap-1.5 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-1.5;
+  }
+
+  .quest-tab {
+    @apply inline-flex items-center gap-1.5 rounded-xl border border-transparent px-3 py-2 text-xs font-medium text-slate-400 transition-all duration-200 hover:bg-white/[0.04] hover:text-slate-200;
+  }
+
+  .quest-tab.is-active {
+    @apply border-ember-400/25 bg-gradient-to-r from-ember-500/[0.16] via-ember-500/[0.06] to-gold-400/[0.06] text-white shadow-[0_10px_30px_-18px_rgba(239,68,68,0.8)];
+  }
+
+  .quest-tab-count {
+    @apply ml-0.5 rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-slate-400;
+  }
+
+  .quest-tab.is-active .quest-tab-count {
+    @apply border border-gold-400/20 bg-gold-400/[0.10] text-gold-300;
+  }
+
+  /*
    * Password visibility toggles ship with the hidden attribute so no-JS users
    * never see a dead control. The attribute has to outweigh the grid utility
    * class; the auth module unhides the button once it binds.

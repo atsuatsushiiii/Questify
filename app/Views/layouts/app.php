@@ -97,7 +97,7 @@ $sidebarState = ($_COOKIE['questify_sidebar'] ?? '') === 'collapsed' ? 'collapse
 
             <footer class="mt-auto hidden border-t border-white/[0.05] px-8 py-5 lg:block">
                 <div class="mx-auto flex w-full max-w-[92rem] items-center justify-between gap-4 text-[10px] text-slate-600">
-                    <p>&copy; <?= e(date('Y')) ?> Questify · Phase 2 application shell</p>
+                    <p>&copy; <?= e(date('Y')) ?> Questify · Phase 3 quest journal</p>
                     <p class="inline-flex items-center gap-1.5">
                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
                         Signed in as <?= e($username) ?>

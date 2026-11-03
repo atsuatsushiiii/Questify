@@ -124,6 +124,23 @@ export function initAnimations() {
     });
   });
 
+  const questCards = gsap.utils.toArray('[data-quest-card]');
+
+  if (questCards.length > 0) {
+    gsap.from(questCards, {
+      y: 18,
+      autoAlpha: 0,
+      duration: 0.5,
+      stagger: 0.05,
+      ease: 'power2.out',
+      scrollTrigger: {
+        trigger: questCards[0],
+        start: 'top 90%',
+        once: true,
+      },
+    });
+  }
+
   const orbs = document.querySelectorAll('[data-orb]');
 
   if (orbs.length > 0) {

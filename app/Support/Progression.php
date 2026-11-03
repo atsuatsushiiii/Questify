@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Support;
 
 /**
- * Read-only level and rank calculations for display.
+ * Level and rank calculations shared by the interface, the quest XP awarder
+ * and the tests.
  *
- * Awarding XP, recalculating levels and streak transitions belong to Phase 3.
- * This class only turns the stored values on the users row into the numbers the
- * interface renders, using the same curve defined in config/game.php.
+ * The curve is defined once in config/game.php:
+ * total XP required to reach level L = base * (L - 1)^2.
+ * Ranks are derived from the level, so a user can never store an arbitrary
+ * rank separately from their XP.
  */
 final class Progression
 {
@@ -29,8 +31,8 @@ final class Progression
     public static function snapshot(array $user): array
     {
         $maxLevel = max(1, (int) config('game.max_level', 100));
-        $level = min($maxLevel, max(1, (int) ($user['level'] ?? 1)));
         $xp = max(0, (int) ($user['xp_total'] ?? 0));
+        $level = self::levelForXp($xp);
         $base = max(1, (int) config('game.level_curve_base', 100));
 
         $currentFloor = $base * ($level - 1) ** 2;
@@ -52,6 +54,35 @@ final class Progression
             'xp_to_next' => $atMaxLevel ? 0 : max(0, $nextFloor - $xp),
             'next_level' => $atMaxLevel ? null : $level + 1,
         ];
+    }
+
+    /**
+     * The highest level whose XP floor has been reached, capped by config.
+     */
+    public static function levelForXp(int $xp): int
+    {
+        $maxLevel = max(1, (int) config('game.max_level', 100));
+        $base = max(1, (int) config('game.level_curve_base', 100));
+        $xp = max(0, $xp);
+
+        if ($xp === 0) {
+            return 1;
+        }
+
+        $level = (int) floor(sqrt($xp / $base)) + 1;
+
+        return min($maxLevel, max(1, $level));
+    }
+
+    /**
+     * Total XP required to reach a given level.
+     */
+    public static function xpForLevel(int $level): int
+    {
+        $base = max(1, (int) config('game.level_curve_base', 100));
+        $level = max(1, $level);
+
+        return $base * ($level - 1) ** 2;
     }
 
     public static function rank(int $level): string

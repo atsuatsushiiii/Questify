@@ -7,6 +7,7 @@ use App\Controllers\Web\DashboardController;
 use App\Controllers\Web\LandingController;
 use App\Controllers\Web\PasswordResetController;
 use App\Controllers\Web\PlaceholderController;
+use App\Controllers\Web\QuestController;
 use App\Core\Router;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\GuestMiddleware;
@@ -31,8 +32,19 @@ $router->post('/reset-password', [PasswordResetController::class, 'reset'], [Gue
 // Authenticated routes.
 $router->get('/dashboard', [DashboardController::class, 'index'], [AuthMiddleware::class]);
 
-// Phase 3–5 destinations. The pages are intentionally explicit about scope.
-$router->get('/quests', [PlaceholderController::class, 'quests'], [AuthMiddleware::class]);
+// Quest log. Every read and write is scoped to the authenticated owner.
+$router->get('/quests', [QuestController::class, 'index'], [AuthMiddleware::class]);
+$router->get('/quests/create', [QuestController::class, 'create'], [AuthMiddleware::class]);
+$router->post('/quests', [QuestController::class, 'store'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->get('/quests/{id}', [QuestController::class, 'show'], [AuthMiddleware::class]);
+$router->get('/quests/{id}/edit', [QuestController::class, 'edit'], [AuthMiddleware::class]);
+$router->put('/quests/{id}', [QuestController::class, 'update'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/quests/{id}/complete', [QuestController::class, 'complete'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/quests/{id}/archive', [QuestController::class, 'archive'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/quests/{id}/restore', [QuestController::class, 'restore'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/quests/{id}/delete', [QuestController::class, 'destroy'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+
+// Phase 4–5 destinations. The pages are intentionally explicit about scope.
 $router->get('/achievements', [PlaceholderController::class, 'achievements'], [AuthMiddleware::class]);
 $router->get('/leaderboard', [PlaceholderController::class, 'leaderboard'], [AuthMiddleware::class]);
 $router->get('/profile', [PlaceholderController::class, 'profile'], [AuthMiddleware::class]);

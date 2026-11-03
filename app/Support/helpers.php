@@ -138,6 +138,47 @@ if (!function_exists('auth_check')) {
     }
 }
 
+if (!function_exists('format_datetime')) {
+    /**
+     * Convert a stored UTC datetime to the viewer's timezone.
+     */
+    function format_datetime(?string $value, string $timezone = 'UTC', string $format = 'j M Y'): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        try {
+            $date = new DateTimeImmutable($value, new DateTimeZone('UTC'));
+            $date = $date->setTimezone(new DateTimeZone($timezone));
+
+            return $date->format($format);
+        } catch (Throwable) {
+            return null;
+        }
+    }
+}
+
+if (!function_exists('iso_datetime')) {
+    /**
+     * Render a stored UTC datetime as an ISO-8601 UTC timestamp.
+     */
+    function iso_datetime(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        try {
+            return (new DateTimeImmutable($value, new DateTimeZone('UTC')))
+                ->setTimezone(new DateTimeZone('UTC'))
+                ->format('Y-m-d\TH:i:s\Z');
+        } catch (Throwable) {
+            return null;
+        }
+    }
+}
+
 if (!function_exists('csrf_token')) {
     function csrf_token(): string
     {

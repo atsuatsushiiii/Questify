@@ -146,7 +146,7 @@
 
             <p data-sidebar-label class="mt-2.5 flex items-center gap-1.5 px-1 text-[9px] text-slate-700">
                 <i data-lucide="info" class="h-3 w-3 shrink-0"></i>
-                Phase 2 shell · quests unlock in Phase 3
+                Phase 3 · quest log live
             </p>
         </div>
     </div>

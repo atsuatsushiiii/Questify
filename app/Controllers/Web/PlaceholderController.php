@@ -17,24 +17,6 @@ use App\Core\Response;
  */
 final class PlaceholderController
 {
-    public function quests(Request $request): Response
-    {
-        return $this->page([
-            'title' => 'My Quests — Questify',
-            'eyebrow' => 'Quest log',
-            'heading' => 'My Quests',
-            'description' => 'Your quest board will live here. Create objectives, choose a difficulty, and turn completed work into XP.',
-            'phase' => 'Phase 3',
-            'icon' => 'scroll-text',
-            'features' => [
-                'Create one-off, daily, and weekly quests',
-                'Set a difficulty and see the XP reward before you commit',
-                'Complete quests to build streaks and level up',
-                'Filter and sort by status, category, and due date',
-            ],
-        ]);
-    }
-
     public function achievements(Request $request): Response
     {
         return $this->page([

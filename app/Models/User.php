@@ -75,6 +75,29 @@ final class User
         return (int) Database::connection()->lastInsertId();
     }
 
+    /**
+     * Lock the account row so concurrent XP awards serialize on the same
+     * balance instead of overwriting each other.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function findForUpdate(PDO $db, int $id): ?array
+    {
+        $statement = $db->prepare('SELECT * FROM users WHERE id = ? LIMIT 1 FOR UPDATE');
+        $statement->execute([$id]);
+        $user = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return $user === false ? null : $user;
+    }
+
+    public static function updateProgression(PDO $db, int $id, int $xpTotal, int $level): void
+    {
+        $statement = $db->prepare(
+            'UPDATE users SET xp_total = ?, level = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?',
+        );
+        $statement->execute([max(0, $xpTotal), max(1, $level), $id]);
+    }
+
     public static function updatePassword(int $id, string $hash): void
     {
         $statement = Database::connection()->prepare(

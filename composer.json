@@ -34,9 +34,11 @@
         "migrate:rollback": "@php scripts/migrate.php rollback",
         "test:auth": "@php tests/auth_flow.php",
         "test:shell": "@php tests/app_shell.php",
+        "test:quests": "@php tests/quest_flow.php",
         "test": [
             "@test:auth",
-            "@test:shell"
+            "@test:shell",
+            "@test:quests"
         ]
     }
 }

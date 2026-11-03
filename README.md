@@ -3,8 +3,8 @@
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 2 — application shell and dashboard complete. Authentication
-> is live; the quest engine arrives in Phase 3, achievements in Phase 4, and
+> **Status:** Phase 3 — quest management and the XP engine are live. Authentication
+> and the application shell are complete; achievements arrive in Phase 4, and
 > leaderboard, profile, and settings in Phase 5.
 > See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full architecture,
 > schema, and roadmap.
@@ -97,7 +97,7 @@ app/Core/        Router, request/response, config, PDO, sessions, errors
 app/Controllers/ Thin HTTP layer (Web + Api)
 app/Services/    Business rules and transactions (added per phase)
 app/Models/      Explicit SQL per table (added per phase)
-app/Support/     Shared helpers and display-only progression calculations
+app/Support/     Shared helpers, level curve, rank, and formatting utilities
 app/Views/       Layouts, partials, components, pages, errors
 config/          App, database, session, security, game economy
 routes/          web.php + api.php
@@ -119,8 +119,9 @@ docs/            Architecture plan and security notes
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
 | `php tests/auth_flow.php` | End-to-end auth regression suite (55 checks) |
-| `php tests/app_shell.php` | Authenticated shell and dashboard suite (58 checks) |
-| `composer test` | Run both regression suites |
+| `php tests/app_shell.php` | Authenticated shell and dashboard suite (62 checks) |
+| `php tests/quest_flow.php` | Quest engine, ownership, XP, and locking suite (117 checks) |
+| `composer test` | Run all three regression suites |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -171,7 +172,7 @@ transport before deploying.
 
 ### Running the test suites
 
-Both suites drive the real HTTP surface, so start MySQL, migrate, build assets,
+All suites drive the real HTTP surface, so start MySQL, migrate, build assets,
 and serve the app first:
 
 ```powershell
@@ -179,18 +180,22 @@ php scripts/migrate.php
 npm run build
 php -S localhost:8000 -t public scripts/router.php
 
-composer test                 # both suites
+composer test                 # all three suites
 php tests/auth_flow.php       # auth only (55 checks)
-php tests/app_shell.php       # shell only (58 checks)
+php tests/app_shell.php       # shell/dashboard only (62 checks)
+php tests/quest_flow.php      # quests only (117 checks)
 ```
 
 The auth suite creates a throwaway account, exercises registration, CSRF
 rejection, login throttling, remember-me rotation and tampering, password reset,
 and session expiry. The shell suite checks route protection, the application
 layout, navigation, sidebar persistence, placeholder pages, and honest empty
-states. Both delete their own data.
+states. The quest suite covers creation, validation, editing, ownership, rewards
+for every difficulty, duplicate and lock-serialized completion, archive,
+restore, deletion rules, level/rank changes, dashboard statistics, and CSRF on
+every mutation. All three delete their own data.
 
-## Application shell (Phase 2)
+## Application shell and quest log (Phases 2–3)
 
 Every authenticated page renders inside `app/Views/layouts/app.php`:
 
@@ -198,27 +203,56 @@ Every authenticated page renders inside `app/Views/layouts/app.php`:
   cookie), an off-canvas drawer and bottom tab bar on mobile, and a top bar with
   the account menu.
 - Six destinations: Dashboard, My Quests, Achievements, Leaderboard, My Profile,
-  and Settings. Pages scheduled for later phases are clearly labelled previews,
-  not working features.
-- The dashboard reads only values stored on the signed-in account — level, XP,
-  streaks, timezone, and timestamps. Quest, achievement, and leaderboard panels
-  render labelled empty states because that data does not exist yet; no
-  statistics, badges, or rankings are fabricated.
-- The “New quest” control opens a non-functional `<dialog>` preview and falls
-  back to `/quests` when JavaScript is unavailable.
+  and Settings. My Quests is live; pages scheduled for later phases are clearly
+  labelled previews, not working features.
+- The dashboard reads real quest counts from the database and builds its recent
+  activity feed from the XP ledger. Achievement and leaderboard panels remain
+  labelled empty states; no statistics, badges, or rankings are fabricated.
+- “New quest” links to the real creation form. Every quest action is a normal
+  form with a CSRF token, so the journal works without JavaScript; the bundled
+  script only adds the live reward preview, character counter, confirmation
+  prompts, and double-submit feedback.
 
 | Route | Status |
 |---|---|
-| `/dashboard` | Live — account, level/XP, streak, honest empty states |
-| `/quests` | Placeholder — Phase 3 |
+| `/dashboard` | Live — level/XP, rank, quest counts, XP activity |
+| `/quests` | Live — active, completed, and archived quest tabs |
+| `/quests/create` | Live — create with server-derived XP |
+| `/quests/{id}` | Live — owner-only detail and actions |
+| `/quests/{id}/edit` | Live — edit active quests |
 | `/achievements` | Placeholder — Phase 4 |
 | `/leaderboard` | Placeholder — Phase 5 |
 | `/profile` | Placeholder — Phase 5 |
 | `/settings` | Placeholder — Phase 5 |
 
-All six routes require authentication. XP awarding, streak transitions,
-achievement unlocks, and ranking calculations are deliberately not implemented
-here; they belong to Phases 3 and 4.
+All routes require authentication. Streak transitions, achievement unlocks, and
+leaderboard ranking calculations are deliberately not implemented yet.
+
+## Quest engine (Phase 3)
+
+Rewards are centralised in [`config/game.php`](config/game.php) and assigned by
+the server; a submitted `xp_reward` field is ignored.
+
+| Difficulty | XP |
+|---|---:|
+| Easy | 10 |
+| Medium | 25 |
+| Hard | 50 |
+| Epic | 100 |
+
+- **Ownership:** every read and write includes `user_id = ?` in the SQL
+  predicate. Another user's quest returns `404`, not a hidden control.
+- **Single-use XP:** completion runs in one transaction, locks the quest row and
+  the account row with `SELECT … FOR UPDATE`, transitions `active → completed`,
+  and inserts an append-only `xp_transactions` ledger row. A unique index on
+  `quest_id` is the final guard against duplicate awards.
+- **Progression:** total XP is the only input to level and rank. The curve is
+  `100 × (level − 1)²` (max level 100), and ranks are derived from the level.
+- **Archive instead of destructive history loss:** completed quests can be
+  archived and restored, but never deleted. Quests that have never paid XP can
+  be deleted permanently.
+- **Reward changes:** editing an active quest recalculates its reward from the
+  new difficulty. Completed quests keep the XP they already paid.
 
 ## Security baseline (active)
 
@@ -231,6 +265,8 @@ here; they belong to Phases 3 and 4.
 - `.env`, `vendor/`, `node_modules/`, build output and logs are git-ignored
 - CSRF synchroniser tokens, login throttling, and route authentication
   middleware (Phase 1)
+- Quest ownership checks on every query, server-derived XP, a transactional
+  single-use award, and an append-only XP ledger (Phase 3)
 
-Authorization policies (roles, ownership) arrive with the quest engine in
-Phase 3, and account settings in Phase 5.
+Role-based admin policies and account settings remain scheduled for later
+phases.

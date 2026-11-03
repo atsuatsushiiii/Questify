@@ -2,6 +2,7 @@ import { initAnimations } from './modules/animations';
 import { initAuth } from './modules/auth';
 import { initIcons } from './modules/icons';
 import { initNav } from './modules/nav';
+import { initQuests } from './modules/quests';
 import { initShell } from './modules/shell';
 
 function boot() {
@@ -9,6 +10,7 @@ function boot() {
   initNav();
   initAuth();
   initShell();
+  initQuests();
   initAnimations();
 }
 

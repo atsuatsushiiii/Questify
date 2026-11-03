@@ -184,7 +184,7 @@ $client = new HttpClient($baseUrl);
 
 echo "\n1. Authentication protection\n";
 
-foreach (['/dashboard', '/quests', '/achievements', '/leaderboard', '/profile', '/settings'] as $route) {
+foreach (['/dashboard', '/quests', '/quests/create', '/quests/1', '/achievements', '/leaderboard', '/profile', '/settings'] as $route) {
     $response = $client->get($route);
     check(
         "{$route} requires authentication",
@@ -232,27 +232,35 @@ check('Authenticated display name is rendered', contains($html, e($displayName))
 check('Authenticated username is rendered', contains($html, '@' . e($username)));
 check('Account email is available in the profile menu', contains($html, e($email)));
 check('Profile menu is wired', contains($html, 'data-user-menu-toggle') && contains($html, 'data-user-menu-panel'));
-check('Quick action is present', contains($html, 'data-quest-open') && contains($html, 'id="quest-dialog"'));
-check('Quest preview dialog is explicitly non-functional', contains($html, 'This is a non-functional preview'));
-check('Preview fields are disabled', substr_count($html, 'disabled') >= 3);
+check('Quest creation is a real link', contains($html, 'New quest') && contains($html, '/quests/create'));
+check('Phase 2 preview dialog is gone', !contains($html, 'data-quest-dialog') && !contains($html, 'non-functional preview'));
+check('My Quests is shipped navigation', contains($html, 'Phase 3 · quest log live'));
 
 echo "\n4. Real values and honest empty states\n";
 
 check('Welcome message uses the account name', contains($html, 'Welcome back, ' . e($displayName)));
 check('Level is shown from the account', contains($html, '>Level</p>') && substr_count($html, 'Level 1') >= 1);
 check('XP is shown from the account', contains($html, 'XP total') && contains($html, 'data-counter="0"'));
-check('Completed quests is an empty state', contains($html, 'Completed quests') && contains($html, 'No quest data yet'));
-check('Active quests is an empty state', contains($html, 'Active quests') && contains($html, 'Quest engine arrives in Phase 3'));
-check('Recent activity has an empty state', contains($html, 'No activity yet'));
+check('Completed quests shows the real zero count', contains($html, 'Completed quests') && contains($html, 'Complete a quest to start your record.'));
+check('Active quests shows the real zero count', contains($html, 'Active quests') && contains($html, 'Your active log is clear.'));
+check('Recent activity has an honest empty state', contains($html, 'No activity yet'));
 check('Achievements are not fabricated', contains($html, 'No achievements are defined yet') && contains($html, 'Locked slot'));
 check('Leaderboard shows only the real account row', contains($html, 'No other adventurers are shown') && contains($html, 'Unranked'));
-check('Unfinished modules are labelled by phase', contains($html, 'Phase 3') && contains($html, 'Phase 4') && contains($html, 'Phase 5'));
+check('Unfinished modules are labelled by phase', contains($html, 'Phase 4') && contains($html, 'Phase 5'));
 check('No PHP diagnostics leaked into the page', !contains($html, 'Warning:') && !contains($html, 'Fatal error') && !contains($html, 'Undefined'));
 
 echo "\n5. Placeholder destinations\n";
 
+$questLog = $client->get('/quests');
+check('Quest log renders for the owner', $questLog['status'] === 200 && contains($questLog['body'], 'My Quests') && contains($questLog['body'], 'Quest journal'));
+check('Quest log has an honest empty state', contains($questLog['body'], 'No active quests') && contains($questLog['body'], 'Create your first quest'));
+check('Quest log keeps the application shell', contains($questLog['body'], 'data-app-shell') && contains($questLog['body'], 'aria-current="page"'));
+
+$questForm = $client->get('/quests/create');
+check('Quest creation page renders', $questForm['status'] === 200 && contains($questForm['body'], 'data-quest-form'));
+check('Difficulty rewards are visible before submission', contains($questForm['body'], 'Reward preview') && contains($questForm['body'], 'data-xp-preview'));
+
 $placeholders = [
-    '/quests' => ['My Quests', 'Phase 3', 'Create one-off, daily, and weekly quests'],
     '/achievements' => ['Achievements', 'Phase 4', 'A gallery of unlockable achievement definitions'],
     '/leaderboard' => ['Leaderboard', 'Phase 5', 'Weekly, monthly, and all-time rankings'],
     '/profile' => ['My Profile', 'Phase 5', 'A shareable public profile at your username'],

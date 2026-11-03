@@ -8,6 +8,8 @@ use App\Core\Auth;
 use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
+use App\Models\Quest;
+use App\Models\XpTransaction;
 use App\Support\Progression;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -25,10 +27,27 @@ final class DashboardController
 
         $progression = Progression::snapshot($user);
         $timezone = (string) ($user['timezone'] ?? 'UTC');
+        $userId = (int) $user['id'];
+        $counts = Quest::countsForUser($userId);
+        $recentActivity = [];
+
+        foreach (XpTransaction::recentForUser($userId, 6) as $entry) {
+            $timestamp = (string) ($entry['created_at'] ?? '');
+
+            $recentActivity[] = [
+                'title' => (string) ($entry['quest_title'] ?? 'Quest'),
+                'quest_id' => isset($entry['quest_id']) ? (int) $entry['quest_id'] : null,
+                'xp' => (int) ($entry['amount'] ?? 0),
+                'level_before' => (int) ($entry['level_before'] ?? 1),
+                'level_after' => (int) ($entry['level_after'] ?? 1),
+                'completed_at' => $this->formatDateTime($timestamp, $timezone),
+                'iso' => iso_datetime($timestamp),
+            ];
+        }
 
         return view('pages/dashboard', [
             'title' => 'Command center — Questify',
-            'description' => 'Your Questify level, XP, streak, and quest overview.',
+            'description' => 'Your Questify level, XP, quest log, and recent activity.',
             'user' => $user,
             'progression' => $progression,
             'level' => $progression['level'],
@@ -43,11 +62,9 @@ final class DashboardController
                 isset($user['last_login_at']) ? (string) $user['last_login_at'] : null,
                 $timezone,
             ),
-            // Quest tables arrive in Phase 3. Null (not zero) tells the view to
-            // render an honest empty state instead of a fabricated statistic.
-            'completedQuests' => null,
-            'activeQuests' => null,
-            'recentActivity' => [],
+            'completedQuests' => $counts['completed'],
+            'activeQuests' => $counts['active'],
+            'recentActivity' => $recentActivity,
             'achievementPreview' => [],
             'leaderboardEntries' => [],
         ], 'layouts/app');
@@ -73,6 +90,22 @@ final class DashboardController
             $date = $date->setTimezone(new DateTimeZone($timezone));
 
             return $date->format('j M Y');
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    private function formatDateTime(?string $value, string $timezone): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        try {
+            $date = new DateTimeImmutable($value, new DateTimeZone('UTC'));
+            $date = $date->setTimezone(new DateTimeZone($timezone));
+
+            return $date->format('j M Y, H:i');
         } catch (Throwable) {
             return null;
         }
