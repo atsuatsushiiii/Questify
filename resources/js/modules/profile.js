@@ -1,3 +1,5 @@
+// Code © 2026 Kevin Cyril Maraño, MIT license.
+
 /**
  * Profile editor enhancement: character counter and a local avatar preview.
  *

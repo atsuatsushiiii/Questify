@@ -1,4 +1,6 @@
 <?php
+
+// Code © 2026 Kevin Cyril Maraño, MIT license.
 /**
  * Choose a new password. The token is validated before the form renders and
  * again on submit.

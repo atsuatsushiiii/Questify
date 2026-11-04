@@ -1,4 +1,6 @@
 <?php
+
+// Code © 2026 Kevin Cyril Maraño, MIT license.
 /**
  * Authentication layout: branded panel plus a focused form column.
  *
@@ -76,7 +78,7 @@ $flash = Flash::consume();
                 </div>
             </main>
 
-            <footer class="flex flex-col items-center gap-2 px-5 pb-6 text-center text-[11px] text-slate-600 sm:flex-row sm:justify-center sm:gap-3">
+            <footer class="flex flex-col items-center gap-2 px-5 pb-6 text-center text-[11px] text-slate-600 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-3">
                 <a href="<?= e(url('/')) ?>" class="inline-flex items-center gap-1.5 transition hover:text-slate-300">
                     <i data-lucide="arrow-left" class="h-3 w-3"></i>
                     Back to Questify
@@ -86,6 +88,8 @@ $flash = Flash::consume();
                     <i data-lucide="shield-check" class="h-3 w-3 text-aqua-400/80"></i>
                     Secure sessions &amp; encrypted passwords
                 </span>
+                <span class="hidden text-slate-700 sm:inline">&middot;</span>
+                <span>Code © 2026 Kevin Cyril Maraño, MIT license.</span>
             </footer>
         </div>
     </div>

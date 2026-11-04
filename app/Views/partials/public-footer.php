@@ -1,4 +1,6 @@
 <?php
+
+// Code © 2026 Kevin Cyril Maraño, MIT license.
 $productLinks = [
     ['label' => 'Features', 'href' => '#features'],
     ['label' => 'How it works', 'href' => '#how'],
@@ -63,7 +65,7 @@ $productLinks = [
         </div>
 
         <div class="mt-12 flex flex-col gap-3 border-t border-white/[0.06] pt-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-            <p>&copy; <?= e(date('Y')) ?> Questify. Built for people who like their progress visible.</p>
+            <p>&copy; <?= e(date('Y')) ?> Questify. Code © 2026 Kevin Cyril Maraño, MIT license.</p>
             <p>PHP 8.2 &middot; MySQL &middot; Tailwind CSS &middot; GSAP</p>
         </div>
     </div>

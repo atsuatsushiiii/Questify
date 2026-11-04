@@ -1,3 +1,5 @@
+// Code © 2026 Kevin Cyril Maraño, MIT license.
+
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 

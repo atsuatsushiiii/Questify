@@ -1,4 +1,6 @@
 <?php
+
+// Code © 2026 Kevin Cyril Maraño, MIT license.
 /**
  * Notification inbox.
  *

@@ -1,3 +1,5 @@
+// Code © 2026 Kevin Cyril Maraño, MIT license.
+
 /**
  * Quest journal interactions. All behaviour is progressive: every form and
  * reward value already exists in the server-rendered HTML.

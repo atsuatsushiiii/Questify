@@ -1,4 +1,6 @@
 <?php
+
+// Code © 2026 Kevin Cyril Maraño, MIT license.
 /**
  * Authenticated application shell.
  *
@@ -87,7 +89,7 @@ $isAdminSurface = nav_active('/admin');
         <div class="app-content flex min-h-screen flex-col">
             <?php require __DIR__ . '/../partials/app-topbar.php'; ?>
 
-            <main id="main" class="app-main mx-auto w-full max-w-[92rem] flex-1 px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8"<?= $isAdminSurface ? ' data-admin-surface' : '' ?>>
+            <main id="main" data-page-transition class="app-main mx-auto w-full max-w-[92rem] flex-1 px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8"<?= $isAdminSurface ? ' data-admin-surface' : '' ?>>
                 <?php if ($flash !== null): ?>
                     <?php
                     $type = $flash['type'];
@@ -99,9 +101,9 @@ $isAdminSurface = nav_active('/admin');
                 <?= $content ?>
             </main>
 
-            <footer class="mt-auto hidden border-t border-white/[0.05] px-8 py-5 lg:block">
-                <div class="mx-auto flex w-full max-w-[92rem] items-center justify-between gap-4 text-[10px] text-slate-600">
-                    <p>&copy; <?= e(date('Y')) ?> Questify · Phase 6 administration</p>
+            <footer class="mt-auto border-t border-white/[0.05] px-4 pb-24 pt-5 sm:px-6 lg:px-8 lg:pb-5">
+                <div class="mx-auto flex w-full max-w-[92rem] flex-col items-center justify-between gap-2 text-[10px] text-slate-600 sm:flex-row sm:gap-4">
+                    <p>Code © 2026 Kevin Cyril Maraño, MIT license.</p>
                     <p class="inline-flex items-center gap-1.5">
                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
                         <?= e($displayName) ?> · <?= e($progression['rank']) ?> · Level <?= e((string) $progression['level']) ?>

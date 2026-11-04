@@ -1,4 +1,6 @@
 <?php
+
+// Code © 2026 Kevin Cyril Maraño, MIT license.
 /**
  * One leaderboard row. Mobile shows position, player and XP; larger screens add
  * level and rank title columns.

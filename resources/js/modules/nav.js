@@ -1,3 +1,5 @@
+// Code © 2026 Kevin Cyril Maraño, MIT license.
+
 /**
  * Public site navigation: scrolled state + accessible mobile menu.
  */

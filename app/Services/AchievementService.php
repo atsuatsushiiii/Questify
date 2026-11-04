@@ -1,5 +1,7 @@
 <?php
 
+// Code © 2026 Kevin Cyril Maraño, MIT license.
+
 declare(strict_types=1);
 
 namespace App\Services;

@@ -1,3 +1,5 @@
+<!-- Code © 2026 Kevin Cyril Maraño, MIT license. -->
+
 <p class="font-display text-[88px] font-bold leading-none text-brand-500 sm:text-[110px]">500</p>
 <h1 class="mt-4 font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">The server dropped the quest.</h1>
 <p class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-muted">

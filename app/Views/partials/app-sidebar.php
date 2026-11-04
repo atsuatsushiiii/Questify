@@ -1,4 +1,6 @@
 <?php
+
+// Code © 2026 Kevin Cyril Maraño, MIT license.
 /**
  * Authenticated sidebar. On desktop it collapses to an icon rail; below the lg
  * breakpoint the same element becomes an off-canvas drawer.

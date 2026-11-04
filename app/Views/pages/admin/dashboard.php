@@ -1,4 +1,6 @@
 <?php
+
+// Code © 2026 Kevin Cyril Maraño, MIT license.
 /**
  * Administrator overview.
  *
@@ -145,6 +147,13 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
 
         <div class="p-5">
             <div class="relative min-h-[260px]">
+                <div data-admin-chart-skeleton class="absolute inset-0 hidden" aria-hidden="true">
+                    <div class="flex h-full items-end gap-1.5 rounded-xl border border-white/[0.04] bg-white/[0.015] p-4 sm:gap-2">
+                        <?php foreach ([34, 52, 41, 66, 48, 74, 58, 84, 62, 70, 50, 78, 56, 88] as $barHeight): ?>
+                            <span class="skeleton flex-1 rounded-t-md" style="height: <?= e((string) $barHeight) ?>%"></span>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
                 <canvas
                     data-admin-growth-chart
                     data-endpoint="<?= e(url('/api/admin/stats')) ?>"

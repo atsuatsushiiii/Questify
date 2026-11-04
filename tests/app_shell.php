@@ -1,5 +1,7 @@
 <?php
 
+// Code © 2026 Kevin Cyril Maraño, MIT license.
+
 declare(strict_types=1);
 
 /**
@@ -195,6 +197,16 @@ foreach (['/dashboard', '/quests', '/quests/create', '/quests/1', '/achievements
 $login = $client->get('/login');
 check('Sign-in page preserves Phase 1 rendering', $login['status'] === 200 && contains($login['body'], 'Welcome back, adventurer'));
 
+$public = $client->get('/');
+check(
+    'Public site credits the project copyright',
+    $public['status'] === 200 && contains($public['body'], 'Code © 2026 Kevin Cyril Maraño, MIT license.'),
+);
+check(
+    'Auth pages credit the project copyright',
+    contains($login['body'], 'Code © 2026 Kevin Cyril Maraño, MIT license.'),
+);
+
 echo "\n2. Create an authenticated session\n";
 
 $register = $client->get('/register');
@@ -219,6 +231,10 @@ $html = $dashboard['body'];
 check('Dashboard renders for a signed-in user', $dashboard['status'] === 200);
 check('Application shell is present', contains($html, 'data-app-shell'));
 check('Sidebar is expanded by default', contains($html, 'data-sidebar="expanded"'));
+check(
+    'Authenticated footer credits the project copyright',
+    contains($html, 'Code © 2026 Kevin Cyril Maraño, MIT license.'),
+);
 check('Sidebar collapse control is present', contains($html, 'data-sidebar-collapse'));
 check('Mobile navigation is present', contains($html, 'app-bottom-nav'));
 

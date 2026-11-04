@@ -1,3 +1,5 @@
+// Code © 2026 Kevin Cyril Maraño, MIT license.
+
 /**
  * Authentication form behaviour: password visibility, strength feedback,
  * timezone detection and submit progress. Everything degrades gracefully when

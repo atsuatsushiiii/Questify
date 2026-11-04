@@ -1,4 +1,6 @@
 <?php
+
+// Code © 2026 Kevin Cyril Maraño, MIT license.
 /**
  * Public site layout.
  *
@@ -44,7 +46,7 @@ $pageDescription = $description ?? 'Questify turns everyday tasks into quests. E
 
     <?php require __DIR__ . '/../partials/public-nav.php'; ?>
 
-    <main id="main">
+    <main id="main" data-page-transition>
         <?= $content ?>
     </main>
 

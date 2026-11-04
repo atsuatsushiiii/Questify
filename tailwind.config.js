@@ -1,3 +1,5 @@
+// Code © 2026 Kevin Cyril Maraño, MIT license.
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [

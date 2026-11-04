@@ -1,4 +1,6 @@
 <?php
+
+// Code © 2026 Kevin Cyril Maraño, MIT license.
 /**
  * Authenticated top bar: mobile drawer trigger, context, XP chip and profile
  * menu.

@@ -1,3 +1,5 @@
+// Code © 2026 Kevin Cyril Maraño, MIT license.
+
 import { initAnimations } from './modules/animations';
 import { initAdmin } from './modules/admin';
 import { initAuth } from './modules/auth';
@@ -8,6 +10,7 @@ import { initProfile } from './modules/profile';
 import { initQuests } from './modules/quests';
 import { initSettings } from './modules/settings';
 import { initShell } from './modules/shell';
+import { initPageTransitions } from './modules/transitions';
 
 function boot() {
   initIcons();
@@ -20,6 +23,7 @@ function boot() {
   initSettings();
   initAdmin();
   initAnimations();
+  initPageTransitions();
 }
 
 if (document.readyState === 'loading') {

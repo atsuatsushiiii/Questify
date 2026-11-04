@@ -3,14 +3,15 @@
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 6 — administrator tooling is live: KPI dashboard and growth
-> chart, user search and moderation, category CRUD wired into the quest board,
-> achievement definition CRUD with evaluation safeguards, and an append-only
-> audit log. These sit alongside the Phase 1–5 auth, shell, quest engine,
-> achievements, streaks, profiles, notifications, leaderboards, and account
-> settings.
+> **Status:** Phase 7 — polish pass complete: full-page GSAP transitions, chart
+> skeleton loading states, site-wide copyright, and reduced-motion-safe motion.
+> These sit alongside the Phase 1–6 auth, shell, quest engine, achievements,
+> streaks, profiles, notifications, leaderboards, account settings, and
+> administrator tooling.
 > See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full architecture,
 > schema, and roadmap.
+
+**Code © 2026 Kevin Cyril Maraño, MIT license.** See [LICENSE](LICENSE).
 
 ---
 
@@ -21,7 +22,7 @@ quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 | Markup & styling | HTML5, Tailwind CSS 3.4 |
 | Behaviour | Vanilla JavaScript (ES modules, bundled with esbuild) |
 | Motion | GSAP + ScrollTrigger |
-| Charts | Chart.js (installed, wired in a later phase) |
+| Charts | Chart.js (admin growth chart) |
 | Icons | Lucide |
 | Backend | PHP 8.2 (no framework), PDO prepared statements |
 | Database | MySQL / MariaDB 10.4+ (InnoDB, utf8mb4) |
@@ -122,12 +123,12 @@ docs/            Architecture plan and security notes
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
 | `php tests/auth_flow.php` | End-to-end auth regression suite (55 checks) |
-| `php tests/app_shell.php` | Authenticated shell and Phase 4–5 pages suite (66 checks) |
+| `php tests/app_shell.php` | Authenticated shell and Phase 4-6 pages suite (69 checks) |
 | `php tests/quest_flow.php` | Quest engine, ownership, XP, and locking suite (117 checks) |
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
 | `php tests/phase6_flow.php` | Admin authorization, KPIs, moderation, catalogue CRUD, audit (111 checks) |
-| `composer test` | Run all six regression suites (523 checks) |
+| `composer test` | Run all six regression suites (526 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -188,7 +189,7 @@ php -S localhost:8000 -t public scripts/router.php
 
 composer test                 # all six suites
 php tests/auth_flow.php       # auth only (55 checks)
-php tests/app_shell.php       # shell and Phase 4–6 pages (66 checks)
+php tests/app_shell.php       # shell and Phase 4-6 pages (69 checks)
 php tests/quest_flow.php      # quests only (117 checks)
 php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leaderboard (78 checks)
 php tests/phase5_flow.php     # settings/email/sessions/export/deletion (96 checks)
@@ -381,6 +382,20 @@ account menu only render the Administration section for admins.
   action, target, summary, IP, and JSON metadata. The model exposes no update or
   delete method, and the page supports action, target, and actor filters.
 
+## Polish and motion (Phase 7)
+
+- Full-page navigations fade the primary content in with GSAP. The DOM already
+  holds the final state, so reduced-motion users and browsers without JavaScript
+  see every page immediately.
+- The admin growth chart renders a shimmering bar placeholder while
+  `/api/admin/stats` resolves. A failed request clears the placeholder and shows
+  the existing explanatory status line instead.
+- Focus rings are visible across the public and authenticated shells, and the
+  global reduced-motion rule disables transitions, animation loops, and the
+  skeleton shimmer.
+- Every layout credits **Code © 2026 Kevin Cyril Maraño, MIT license.**, and the
+  same notice heads each first-party source file.
+
 ## Quest engine (Phase 3)
 
 Rewards are centralised in [`config/game.php`](config/game.php) and assigned by
@@ -432,3 +447,7 @@ the server; a submitted `xp_reward` field is ignored.
   unlock-safe deletion, and an append-only audit trail (Phase 6)
 
 Public profiles remain scheduled for a later phase.
+
+## License
+
+MIT. **Code © 2026 Kevin Cyril Maraño, MIT license.** See [LICENSE](LICENSE).

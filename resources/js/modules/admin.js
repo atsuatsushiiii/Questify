@@ -1,3 +1,5 @@
+// Code © 2026 Kevin Cyril Maraño, MIT license.
+
 import {
   CategoryScale,
   Chart,
@@ -46,6 +48,7 @@ function initGrowthChart() {
   }
 
   const status = document.querySelector('[data-admin-chart-status]');
+  const skeleton = document.querySelector('[data-admin-chart-skeleton]');
   const endpoint = canvas.dataset.endpoint || '/api/admin/stats';
 
   const setStatus = (message) => {
@@ -56,6 +59,16 @@ function initGrowthChart() {
     status.textContent = message;
     status.classList.toggle('hidden', message === '');
   };
+
+  const setLoading = (loading) => {
+    if (!skeleton) {
+      return;
+    }
+
+    skeleton.classList.toggle('hidden', !loading);
+  };
+
+  setLoading(true);
 
   const parseSeries = (series) => {
     if (!Array.isArray(series)) {
@@ -172,9 +185,11 @@ function initGrowthChart() {
       });
 
       setStatus('');
+      setLoading(false);
     })
     .catch(() => {
       canvas.classList.add('hidden');
+      setLoading(false);
       setStatus(
         'Live chart unavailable right now. The KPI cards above are server-rendered and remain accurate.',
       );

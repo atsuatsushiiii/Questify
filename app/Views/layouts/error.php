@@ -1,4 +1,6 @@
 <?php
+
+// Code © 2026 Kevin Cyril Maraño, MIT license.
 /**
  * Standalone layout for error pages.
  *
@@ -40,6 +42,8 @@
         <main class="mt-10">
             <?= $content ?>
         </main>
+
+        <p class="mt-10 text-[11px] text-slate-600">Code © 2026 Kevin Cyril Maraño, MIT license.</p>
     </div>
 </body>
 </html>

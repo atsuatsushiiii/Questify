@@ -1,3 +1,5 @@
+/* Code © 2026 Kevin Cyril Maraño, MIT license. */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -250,6 +252,32 @@
   .mask-fade-x {
     -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
     mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  }
+
+  /*
+   * Async surfaces (starting with the admin growth chart) render a quiet
+   * placeholder instead of an empty box. The shimmer runs only while the
+   * placeholder is in the DOM and stops entirely under reduced motion.
+   */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    animation: skeleton-sweep 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-sweep {
+  to {
+    transform: translateX(100%);
   }
 }
 
