@@ -402,7 +402,7 @@ check(
     'Settings keeps the application shell and active navigation',
     contains($settings['body'], 'data-app-shell')
         && contains($settings['body'], 'aria-current="page"')
-        && contains($settings['body'], 'Phase 5 · account controls live'),
+        && contains($settings['body'], 'Phase 6 · admin controls live'),
 );
 check(
     'Settings labels the current device',

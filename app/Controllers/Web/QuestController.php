@@ -9,6 +9,7 @@ use App\Core\Flash;
 use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
+use App\Models\Category;
 use App\Models\Quest;
 use App\Models\XpTransaction;
 use App\Services\QuestService;
@@ -37,8 +38,20 @@ final class QuestController
             $difficulty = '';
         }
 
+        $categories = Category::allActive();
+        $category = $request->input('category', '');
+        $category = is_string($category) ? $category : '';
+
+        if ($category !== '') {
+            $known = array_column($categories, 'slug');
+
+            if (!in_array($category, $known, true)) {
+                $category = '';
+            }
+        }
+
         $counts = Quest::countsForUser($userId);
-        $quests = Quest::listForUser($userId, $status, $difficulty);
+        $quests = Quest::listForUser($userId, $status, $difficulty, $category);
 
         return view('pages/quests/index', [
             'title' => 'My Quests — Questify',
@@ -48,6 +61,8 @@ final class QuestController
             'counts' => $counts,
             'status' => $status,
             'difficulty' => $difficulty,
+            'category' => $category,
+            'categories' => $categories,
             'rewards' => QuestService::rewards(),
             'questXp' => XpTransaction::totalForUser($userId),
         ], 'layouts/app');
@@ -61,6 +76,7 @@ final class QuestController
             'title' => '',
             'description' => '',
             'difficulty' => 'easy',
+            'category_id' => '',
         ], [], null, 200);
     }
 
@@ -74,6 +90,7 @@ final class QuestController
                 'title' => '',
                 'description' => '',
                 'difficulty' => 'easy',
+                'category_id' => '',
             ], $result['errors'] ?? [], $result['message'] ?? null, (int) ($result['status'] ?? 422));
         }
 
@@ -111,6 +128,7 @@ final class QuestController
             'title' => (string) $quest['title'],
             'description' => (string) $quest['description'],
             'difficulty' => (string) $quest['difficulty'],
+            'category_id' => $quest['category_id'] !== null ? (string) $quest['category_id'] : '',
         ], [], null, 200);
     }
 
@@ -137,6 +155,7 @@ final class QuestController
                 'title' => (string) $quest['title'],
                 'description' => (string) $quest['description'],
                 'difficulty' => (string) $quest['difficulty'],
+                'category_id' => $quest['category_id'] !== null ? (string) $quest['category_id'] : '',
             ], $result['errors'] ?? [], $result['message'] ?? null, $status);
         }
 
@@ -294,6 +313,7 @@ final class QuestController
             'errors' => $errors,
             'message' => $message,
             'rewards' => QuestService::rewards(),
+            'categories' => Category::allActive(),
         ], 'layouts/app')->withStatus($status);
     }
 }

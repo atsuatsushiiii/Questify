@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\Database;
 use App\Core\Validator;
+use App\Models\Category;
 use App\Models\Quest;
 use App\Models\User;
 use App\Models\XpTransaction;
@@ -69,6 +70,7 @@ final class QuestService
 
         $questId = Quest::create([
             'user_id' => $userId,
+            'category_id' => $data['category_id'],
             'title' => $data['title'],
             'description' => $data['description'],
             'difficulty' => $data['difficulty'],
@@ -123,6 +125,7 @@ final class QuestService
         }
 
         $updated = Quest::updateActive($questId, $userId, [
+            'category_id' => $data['category_id'],
             'title' => $data['title'],
             'description' => $data['description'],
             'difficulty' => $data['difficulty'],
@@ -414,7 +417,7 @@ final class QuestService
 
     /**
      * @param array<string, mixed> $input
-     * @return array{ok: true, data: array{title: string, description: string, difficulty: string}, old: array<string, string>}|array{ok: false, status: int, errors: array<string, string>, old: array<string, string>}
+     * @return array{ok: true, data: array{title: string, description: string, difficulty: string, category_id: int|null}, old: array<string, string>}|array{ok: false, status: int, errors: array<string, string>, old: array<string, string>}
      */
     private function validate(array $input): array
     {
@@ -425,6 +428,7 @@ final class QuestService
             'title' => $this->scalar($input['title'] ?? null),
             'description' => $this->scalar($input['description'] ?? null),
             'difficulty' => $this->scalar($input['difficulty'] ?? null),
+            'category_id' => $this->scalar($input['category_id'] ?? null),
         ];
 
         $validator = Validator::make(
@@ -441,11 +445,29 @@ final class QuestService
             ],
         );
 
-        if (!$validator->validate()) {
+        $valid = $validator->validate();
+        $errors = $validator->errors();
+        $categoryId = null;
+
+        if ($old['category_id'] !== '') {
+            if (preg_match('/^\d+$/', $old['category_id']) !== 1) {
+                $errors['category_id'] = 'Choose a valid category.';
+            } else {
+                $category = Category::find((int) $old['category_id']);
+
+                if ($category === null || (int) $category['is_active'] !== 1) {
+                    $errors['category_id'] = 'Choose an active category.';
+                } else {
+                    $categoryId = (int) $category['id'];
+                }
+            }
+        }
+
+        if (!$valid || $errors !== []) {
             return [
                 'ok' => false,
                 'status' => 422,
-                'errors' => $validator->errors(),
+                'errors' => $errors,
                 'old' => $old,
             ];
         }
@@ -462,6 +484,7 @@ final class QuestService
                 'title' => trim((string) $validated['title']),
                 'description' => trim((string) $validated['description']),
                 'difficulty' => (string) $validated['difficulty'],
+                'category_id' => $categoryId,
             ],
             'old' => $old,
         ];

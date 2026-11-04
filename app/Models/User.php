@@ -212,4 +212,139 @@ final class User
     {
         return (int) Database::connection()->query('SELECT COUNT(*) FROM users')->fetchColumn();
     }
+
+    public static function countByStatus(string $status): int
+    {
+        $statement = Database::connection()->prepare('SELECT COUNT(*) FROM users WHERE status = ?');
+        $statement->execute([$status]);
+
+        return (int) $statement->fetchColumn();
+    }
+
+    public static function countByRole(string $role): int
+    {
+        $statement = Database::connection()->prepare('SELECT COUNT(*) FROM users WHERE role = ?');
+        $statement->execute([$role]);
+
+        return (int) $statement->fetchColumn();
+    }
+
+    /**
+     * Admin user directory with search, role/status filters, and pagination.
+     *
+     * @param array{search?: string, role?: string, status?: string} $filters
+     * @return list<array<string, mixed>>
+     */
+    public static function adminPaginate(array $filters, int $page, int $perPage = 20): array
+    {
+        [$where, $parameters] = self::adminCriteria($filters);
+        $offset = (max(1, $page) - 1) * $perPage;
+
+        $statement = Database::connection()->prepare(
+            'SELECT id, username, email, display_name, avatar_path, role, status,
+                    xp_total, level, current_streak, longest_streak, created_at, updated_at, last_login_at
+             FROM users'
+            . $where
+            . ' ORDER BY created_at DESC, id DESC LIMIT ' . $perPage . ' OFFSET ' . $offset,
+        );
+        $statement->execute($parameters);
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * @param array{search?: string, role?: string, status?: string} $filters
+     */
+    public static function adminCount(array $filters): int
+    {
+        [$where, $parameters] = self::adminCriteria($filters);
+
+        $statement = Database::connection()->prepare('SELECT COUNT(*) FROM users' . $where);
+        $statement->execute($parameters);
+
+        return (int) $statement->fetchColumn();
+    }
+
+    /**
+     * @return list<array{date: string, total: int}>
+     */
+    public static function signupSeries(int $days): array
+    {
+        $days = max(1, $days);
+        $statement = Database::connection()->prepare(
+            'SELECT DATE(created_at) AS day, COUNT(*) AS total
+             FROM users
+             WHERE created_at >= UTC_DATE() - INTERVAL ' . ($days - 1) . ' DAY
+             GROUP BY DATE(created_at)
+             ORDER BY day ASC',
+        );
+        $statement->execute();
+
+        $counts = [];
+
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $counts[(string) $row['day']] = (int) $row['total'];
+        }
+
+        $series = [];
+
+        for ($offset = $days - 1; $offset >= 0; $offset--) {
+            $date = gmdate('Y-m-d', strtotime('-' . $offset . ' days'));
+            $series[] = ['date' => $date, 'total' => $counts[$date] ?? 0];
+        }
+
+        return $series;
+    }
+
+    public static function setStatus(int $id, string $status): bool
+    {
+        $statement = Database::connection()->prepare(
+            'UPDATE users SET status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?',
+        );
+        $statement->execute([$status, $id]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    public static function setRole(int $id, string $role): bool
+    {
+        $statement = Database::connection()->prepare(
+            'UPDATE users SET role = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?',
+        );
+        $statement->execute([$role, $id]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    /**
+     * @param array{search?: string, role?: string, status?: string} $filters
+     * @return array{0: string, 1: list<string>}
+     */
+    private static function adminCriteria(array $filters): array
+    {
+        $clauses = [];
+        $parameters = [];
+
+        $search = trim((string) ($filters['search'] ?? ''));
+
+        if ($search !== '') {
+            $clauses[] = '(username LIKE ? OR email LIKE ? OR display_name LIKE ?)';
+            $like = '%' . $search . '%';
+            $parameters[] = $like;
+            $parameters[] = $like;
+            $parameters[] = $like;
+        }
+
+        if (in_array($filters['role'] ?? '', ['user', 'admin'], true)) {
+            $clauses[] = 'role = ?';
+            $parameters[] = $filters['role'];
+        }
+
+        if (in_array($filters['status'] ?? '', ['active', 'suspended'], true)) {
+            $clauses[] = 'status = ?';
+            $parameters[] = $filters['status'];
+        }
+
+        return [$clauses === [] ? '' : ' WHERE ' . implode(' AND ', $clauses), $parameters];
+    }
 }

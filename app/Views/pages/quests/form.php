@@ -8,10 +8,12 @@
  * @var array<string, string> $errors
  * @var string|null $message
  * @var array<string, int> $rewards
+ * @var list<array<string, mixed>> $categories
  */
 $isEdit = $mode === 'edit' && $quest !== null;
 $action = $isEdit ? '/quests/' . (int) $quest['id'] : '/quests';
 $selectedDifficulty = (string) ($old['difficulty'] ?? 'easy');
+$selectedCategory = (string) ($old['category_id'] ?? '');
 $selectedReward = $rewards[$selectedDifficulty] ?? ($rewards['easy'] ?? 0);
 $invalid = static fn (string $field): string => isset($errors[$field]) ? 'true' : 'false';
 $errorClass = static fn (string $field): string => isset($errors[$field]) ? ' is-invalid' : '';
@@ -125,6 +127,26 @@ $difficultyIcon = [
             ><?= e($old['description'] ?? '') ?></textarea>
             <p id="description-help" class="mt-1.5 text-[11px] text-slate-600">At least 10 characters. Plain text only.</p>
             <?php $field = 'description'; require __DIR__ . '/../../partials/field-error.php'; ?>
+        </div>
+
+        <div class="mt-5">
+            <label for="category_id" class="field-label">Category</label>
+            <select
+                id="category_id"
+                name="category_id"
+                class="app-select<?= e($errorClass('category_id')) ?>"
+                aria-invalid="<?= $invalid('category_id') ?>"
+                aria-describedby="<?= isset($errors['category_id']) ? 'category_id-error' : 'category_id-help' ?>"
+            >
+                <option value="">Uncategorised</option>
+                <?php foreach ($categories as $category): ?>
+                    <option value="<?= e((string) $category['id']) ?>" <?= $selectedCategory === (string) $category['id'] ? 'selected' : '' ?>>
+                        <?= e((string) $category['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <p id="category_id-help" class="mt-1.5 text-[11px] text-slate-600">Optional. Categories are managed by admins.</p>
+            <?php $field = 'category_id'; require __DIR__ . '/../../partials/field-error.php'; ?>
         </div>
 
         <fieldset class="mt-6">

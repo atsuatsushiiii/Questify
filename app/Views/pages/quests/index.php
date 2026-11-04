@@ -7,6 +7,8 @@
  * @var array{active: int, completed: int, archived: int} $counts
  * @var string $status
  * @var string $difficulty
+ * @var string $category
+ * @var list<array<string, mixed>> $categories
  * @var array<string, int> $rewards
  * @var int $questXp
  */
@@ -119,7 +121,9 @@ $activeTab = $tabs[$status] ?? $tabs['active'];
         <?php foreach ($tabs as $key => $tab): ?>
             <?php $isActive = $key === $status; ?>
             <a
-                href="<?= e(url('/quests?status=' . $key . ($difficulty !== '' ? '&difficulty=' . rawurlencode($difficulty) : ''))) ?>"
+                href="<?= e(url('/quests?status=' . $key
+                    . ($difficulty !== '' ? '&difficulty=' . rawurlencode($difficulty) : '')
+                    . ($category !== '' ? '&category=' . rawurlencode($category) : ''))) ?>"
                 class="quest-tab <?= $isActive ? 'is-active' : '' ?>"
                 <?= $isActive ? 'aria-current="page"' : '' ?>
             >
@@ -132,6 +136,25 @@ $activeTab = $tabs[$status] ?? $tabs['active'];
 
     <form method="GET" action="<?= e(url('/quests')) ?>" class="flex flex-wrap items-center gap-2">
         <input type="hidden" name="status" value="<?= e($status) ?>">
+        <?php if ($categories !== []): ?>
+            <label for="category-filter" class="sr-only">Filter by category</label>
+            <div class="relative">
+                <i data-lucide="folder-tree" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500"></i>
+                <select
+                    id="category-filter"
+                    name="category"
+                    class="app-select py-2 pl-9 pr-8 text-xs"
+                    data-quest-filter
+                >
+                    <option value="">All categories</option>
+                    <?php foreach ($categories as $option): ?>
+                        <option value="<?= e((string) $option['slug']) ?>" <?= $category === (string) $option['slug'] ? 'selected' : '' ?>>
+                            <?= e((string) $option['name']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        <?php endif; ?>
         <label for="difficulty-filter" class="sr-only">Filter by difficulty</label>
         <div class="relative">
             <i data-lucide="filter" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500"></i>
@@ -150,7 +173,7 @@ $activeTab = $tabs[$status] ?? $tabs['active'];
             </select>
         </div>
         <button type="submit" class="btn btn-app-ghost px-3 py-2 text-xs">Apply</button>
-        <?php if ($difficulty !== ''): ?>
+        <?php if ($difficulty !== '' || $category !== ''): ?>
             <a href="<?= e(url('/quests?status=' . $status)) ?>" class="text-[11px] font-semibold text-slate-500 transition hover:text-gold-300">
                 Clear
             </a>

@@ -37,12 +37,14 @@
         "test:quests": "@php tests/quest_flow.php",
         "test:phase4": "@php tests/phase4_flow.php",
         "test:phase5": "@php tests/phase5_flow.php",
+        "test:phase6": "@php tests/phase6_flow.php",
         "test": [
             "@test:auth",
             "@test:shell",
             "@test:quests",
             "@test:phase4",
-            "@test:phase5"
+            "@test:phase5",
+            "@test:phase6"
         ]
     }
 }

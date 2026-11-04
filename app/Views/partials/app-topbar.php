@@ -119,6 +119,13 @@
                     </div>
 
                     <div class="p-1.5">
+                        <?php if (($currentUser['role'] ?? '') === 'admin'): ?>
+                            <a href="<?= e(url('/admin')) ?>" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gold-200 transition hover:bg-gold-400/[0.08] hover:text-gold-100">
+                                <i data-lucide="shield-check" class="h-4 w-4 text-gold-400"></i>
+                                <span class="flex-1">Admin console</span>
+                                <span class="rounded-full border border-gold-400/25 bg-gold-400/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-gold-300">Admin</span>
+                            </a>
+                        <?php endif; ?>
                         <a href="<?= e(url('/profile')) ?>" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-300 transition hover:bg-white/[0.05] hover:text-white">
                             <i data-lucide="user-round" class="h-4 w-4 text-slate-500"></i>
                             <span class="flex-1">My Profile</span>

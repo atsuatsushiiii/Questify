@@ -3,11 +3,12 @@
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 5 — owner-only account settings are live: password changes,
-> verified email changes, notification preferences, active-session controls,
-> JSON data export, and account deletion. These sit alongside the Phase 1–4
-> auth, shell, quest engine, achievements, streaks, profiles, notifications, and
-> leaderboards.
+> **Status:** Phase 6 — administrator tooling is live: KPI dashboard and growth
+> chart, user search and moderation, category CRUD wired into the quest board,
+> achievement definition CRUD with evaluation safeguards, and an append-only
+> audit log. These sit alongside the Phase 1–5 auth, shell, quest engine,
+> achievements, streaks, profiles, notifications, leaderboards, and account
+> settings.
 > See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full architecture,
 > schema, and roadmap.
 
@@ -125,7 +126,8 @@ docs/            Architecture plan and security notes
 | `php tests/quest_flow.php` | Quest engine, ownership, XP, and locking suite (117 checks) |
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
-| `composer test` | Run all five regression suites (412 checks) |
+| `php tests/phase6_flow.php` | Admin authorization, KPIs, moderation, catalogue CRUD, audit (111 checks) |
+| `composer test` | Run all six regression suites (523 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -184,12 +186,13 @@ php scripts/migrate.php
 npm run build
 php -S localhost:8000 -t public scripts/router.php
 
-composer test                 # all five suites
+composer test                 # all six suites
 php tests/auth_flow.php       # auth only (55 checks)
-php tests/app_shell.php       # shell and Phase 4–5 pages (66 checks)
+php tests/app_shell.php       # shell and Phase 4–6 pages (66 checks)
 php tests/quest_flow.php      # quests only (117 checks)
 php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leaderboard (78 checks)
 php tests/phase5_flow.php     # settings/email/sessions/export/deletion (96 checks)
+php tests/phase6_flow.php     # admin authorization/moderation/catalogue/audit (111 checks)
 ```
 
 The auth suite creates a throwaway account, exercises registration, CSRF
@@ -205,17 +208,24 @@ avatar storage, notification ownership and deduplication, and leaderboard
 periods, visibility, tie-breaking, and pagination. The Phase 5 suite covers
 password rotation and credential revocation, verified email changes with hashed
 single-use tokens, preference gating, per-device session revocation, export
-redaction, and account deletion cascade. All five delete their own data.
+redaction, and account deletion cascade. The Phase 6 suite proves that guests are
+redirected and normal users receive `403` on every `/admin` route and API, then
+covers KPI data, user search/filter/pagination, suspend/activate and
+promote/demote rules, category CRUD with quest assignment and filtering,
+achievement CRUD with unlock-safe deletion, audit filters, and CSRF rejection on
+admin mutations. All six delete their own data.
 
-## Application shell, quest log, and Phase 4–5 (Phases 2–5)
+## Application shell, quest log, and Phase 4–6 (Phases 2–6)
 
 Every authenticated page renders inside `app/Views/layouts/app.php`:
 
 - Collapsible desktop sidebar with server-rendered state (the `questify_sidebar`
   cookie), an off-canvas drawer and bottom tab bar on mobile, and a top bar with
   a notification bell, unread badge, and the account menu.
-- Seven live destinations: Dashboard, My Quests, Achievements, Leaderboard, My
-  Profile, Notifications, and Settings.
+- Seven live destinations for everyone: Dashboard, My Quests, Achievements,
+  Leaderboard, My Profile, Notifications, and Settings. Administrators also see a
+  conditional Administration section (Dashboard, Users, Categories,
+  Achievements, Audit).
 - The dashboard reads real quest counts from the database and builds its recent
   activity feed from the XP ledger. It also shows live achievement progress,
   the real seven-day streak strip, and an all-time leaderboard panel.
@@ -228,7 +238,7 @@ Every authenticated page renders inside `app/Views/layouts/app.php`:
 | Route | Status |
 |---|---|
 | `/dashboard` | Live — level/XP, rank, streak, quest counts, XP activity, trophy and leaderboard panels |
-| `/quests` | Live — active, completed, and archived quest tabs |
+| `/quests` | Live — active, completed, and archived quest tabs, with difficulty and category filters |
 | `/quests/create` | Live — create with server-derived XP |
 | `/quests/{id}` | Live — owner-only detail and actions |
 | `/quests/{id}/edit` | Live — edit active quests |
@@ -327,6 +337,50 @@ Every action below is owner-only; no form accepts a target user id.
 Session rows now store their owning `user_id` when the session is written, which
 makes the device list and “revoke others” accurate for newly created sessions.
 
+## Administration (Phase 6)
+
+Admin routes are protected by both authentication and a role gate. Guests are
+redirected to sign in; any authenticated non-admin gets `403` on every page and
+on `/api/admin/stats`, before CSRF or controller code runs. The sidebar and
+account menu only render the Administration section for admins.
+
+| Route | Purpose |
+|---|---|
+| `GET /admin` | KPI cards, 14-day signup/completion chart, recent audit entries |
+| `GET /api/admin/stats` | JSON KPI + 7–30-day series for the dashboard chart |
+| `GET /admin/users` | Search, role/status filters, pagination |
+| `GET /admin/users/{id}` | Stats, recent quests, sessions, and moderation history |
+| `POST /admin/users/{id}/suspend` | Suspend an account and revoke its sessions/tokens |
+| `POST /admin/users/{id}/activate` | Restore sign-in access |
+| `POST /admin/users/{id}/promote` | Grant administrator access |
+| `POST /admin/users/{id}/demote` | Remove administrator access |
+| `GET/POST /admin/categories` | List and create categories |
+| `GET/POST /admin/categories/{id}` | Edit a category (`_method=PUT`) |
+| `POST /admin/categories/{id}/delete` | Delete a category without deleting quests |
+| `GET/POST /admin/achievements` | List and create achievement definitions |
+| `GET/POST /admin/achievements/{id}` | Edit a definition (`_method=PUT`) |
+| `POST /admin/achievements/{id}/delete` | Delete an unlocked-free definition |
+| `GET /admin/audit` | Append-only privileged action log with filters |
+
+- **Dashboard:** every KPI is a live database aggregate. The Chart.js growth chart
+  fetches `/api/admin/stats`; the KPI cards remain accurate without JavaScript.
+- **Moderation:** an admin cannot suspend or demote themselves, and the last
+  administrator cannot be demoted. Suspension revokes database sessions and
+  remember-me tokens immediately. Promotions and demotions take effect on the
+  target's next request.
+- **Categories:** CRUD validates name, slug, six-digit colour, Lucide icon, sort
+  order, and active state. Quests select an active category on create/edit and can
+  filter by category slug. Deactivating hides a category from new quests while
+  existing quests keep it; deleting a category keeps every quest and clears its
+  `category_id` via `ON DELETE SET NULL`.
+- **Achievements:** definitions validate against the evaluator's whitelist
+  (`quests_completed`, `xp_total`, `level`, `epic_quests`, `longest_streak`), so a
+  badge cannot be created that the engine ignores. Definitions with unlocks
+  cannot be deleted; an admin deactivates them to preserve trophy history.
+- **Audit log:** moderation and catalogue mutations append an entry with actor,
+  action, target, summary, IP, and JSON metadata. The model exposes no update or
+  delete method, and the page supports action, target, and actor filters.
+
 ## Quest engine (Phase 3)
 
 Rewards are centralised in [`config/game.php`](config/game.php) and assigned by
@@ -372,5 +426,9 @@ the server; a submitted `xp_reward` field is ignored.
 - Current-password checks, session rotation and revocation, hashed single-use
   email-change tokens, notification preference gating, redacted JSON export,
   and password-plus-phrase account deletion (Phase 5)
+- Role-gated `/admin` pages and JSON APIs with admin-before-CSRF ordering,
+  self-moderation and last-administrator guards, immediate session/token
+  revocation on suspension, whitelist-validated achievement definitions,
+  unlock-safe deletion, and an append-only audit trail (Phase 6)
 
-Admin roles and public profiles remain scheduled for later phases.
+Public profiles remain scheduled for a later phase.

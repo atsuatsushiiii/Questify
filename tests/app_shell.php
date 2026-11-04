@@ -234,7 +234,7 @@ check('Account email is available in the profile menu', contains($html, e($email
 check('Profile menu is wired', contains($html, 'data-user-menu-toggle') && contains($html, 'data-user-menu-panel'));
 check('Quest creation is a real link', contains($html, 'New quest') && contains($html, '/quests/create'));
 check('Phase 2 preview dialog is gone', !contains($html, 'data-quest-dialog') && !contains($html, 'non-functional preview'));
-check('Phase 5 navigation is shipped', contains($html, 'Phase 5 · account controls live'));
+check('Phase 6 navigation is shipped', contains($html, 'Phase 6 · admin controls live'));
 check('Notification bell is present', contains($html, 'aria-label="Notifications"') && contains($html, '/notifications'));
 
 echo "\n4. Real values and honest empty states\n";

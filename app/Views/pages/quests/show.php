@@ -52,6 +52,13 @@ $awardedLabel = $award !== null
                     <i data-lucide="<?= e($difficultyMeta['icon']) ?>" class="h-3 w-3"></i>
                     <?= e($difficultyMeta['label']) ?>
                 </span>
+                <?php if (($quest['category_name'] ?? null) !== null): ?>
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-300">
+                        <span class="h-1.5 w-1.5 rounded-full" style="background-color: <?= e((string) $quest['category_color']) ?>"></span>
+                        <i data-lucide="<?= e((string) $quest['category_icon']) ?>" class="h-3 w-3"></i>
+                        <?= e((string) $quest['category_name']) ?>
+                    </span>
+                <?php endif; ?>
             </div>
 
             <h1 class="mt-4 break-words font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl">
@@ -98,7 +105,7 @@ $awardedLabel = $award !== null
             <p class="whitespace-pre-line break-words text-sm leading-relaxed text-slate-300"><?= e((string) $quest['description']) ?></p>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 border-t border-white/[0.06] px-5 py-4 sm:grid-cols-3">
+        <div class="grid grid-cols-2 gap-3 border-t border-white/[0.06] px-5 py-4 sm:grid-cols-4">
             <div>
                 <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Reward</p>
                 <p class="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-gold-300">
@@ -110,7 +117,11 @@ $awardedLabel = $award !== null
                 <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Difficulty</p>
                 <p class="mt-1 text-xs font-medium text-slate-300"><?= e($difficultyMeta['label']) ?></p>
             </div>
-            <div class="col-span-2 sm:col-span-1">
+            <div>
+                <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Category</p>
+                <p class="mt-1 text-xs font-medium text-slate-300"><?= e((string) ($quest['category_name'] ?? 'Uncategorised')) ?></p>
+            </div>
+            <div>
                 <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Last updated</p>
                 <p class="mt-1 text-xs font-medium text-slate-300"><?= e($updatedAt ?? 'just now') ?></p>
             </div>

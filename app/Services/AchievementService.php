@@ -196,6 +196,17 @@ final class AchievementService
         return array_slice($items, 0, max(1, $limit));
     }
 
+    /**
+     * Criteria types the runtime evaluator understands. Admin forms use this
+     * list so a definition can never be created that the engine ignores.
+     *
+     * @return list<string>
+     */
+    public static function criteriaTypes(): array
+    {
+        return self::CRITERIA;
+    }
+
     /** @return array<string, string> */
     public static function categories(): array
     {

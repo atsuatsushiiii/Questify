@@ -86,10 +86,20 @@ $isoDate = iso_datetime($dateValue);
     </div>
 
     <div class="relative mt-3 flex-1">
-        <span class="inline-flex items-center gap-1.5 rounded-lg border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider <?= e($difficultyMeta['classes']) ?>">
-            <i data-lucide="<?= e($difficultyMeta['icon']) ?>" class="h-3 w-3"></i>
-            <?= e($difficultyMeta['label']) ?>
-        </span>
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 rounded-lg border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider <?= e($difficultyMeta['classes']) ?>">
+                <i data-lucide="<?= e($difficultyMeta['icon']) ?>" class="h-3 w-3"></i>
+                <?= e($difficultyMeta['label']) ?>
+            </span>
+
+            <?php if (($quest['category_name'] ?? null) !== null): ?>
+                <span class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-slate-300">
+                    <span class="h-1.5 w-1.5 rounded-full" style="background-color: <?= e((string) $quest['category_color']) ?>"></span>
+                    <i data-lucide="<?= e((string) $quest['category_icon']) ?>" class="h-3 w-3 text-slate-400"></i>
+                    <?= e((string) $quest['category_name']) ?>
+                </span>
+            <?php endif; ?>
+        </div>
 
         <h2 class="mt-2.5 break-words font-display text-lg font-semibold leading-snug text-white">
             <a href="<?= e(url('/quests/' . $questId)) ?>" class="transition hover:text-gold-200 focus-visible:text-gold-200">

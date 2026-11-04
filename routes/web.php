@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 use App\Controllers\Web\AchievementController;
+use App\Controllers\Web\AdminAchievementController;
+use App\Controllers\Web\AdminAuditController;
+use App\Controllers\Web\AdminCategoryController;
+use App\Controllers\Web\AdminDashboardController;
+use App\Controllers\Web\AdminUserController;
 use App\Controllers\Web\AuthController;
 use App\Controllers\Web\DashboardController;
 use App\Controllers\Web\LandingController;
@@ -13,6 +18,7 @@ use App\Controllers\Web\ProfileController;
 use App\Controllers\Web\QuestController;
 use App\Controllers\Web\SettingsController;
 use App\Core\Router;
+use App\Middleware\AdminMiddleware;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\GuestMiddleware;
 use App\Middleware\VerifyCsrfToken;
@@ -74,5 +80,32 @@ $router->post('/settings/sessions/revoke-others', [SettingsController::class, 'r
 $router->post('/settings/sessions/{id}/revoke', [SettingsController::class, 'revokeSession'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/settings/export', [SettingsController::class, 'export'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/settings/delete', [SettingsController::class, 'destroy'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+
+// Phase 6: administrator surface. Every route requires an admin role and
+// every mutation is CSRF-protected and audited.
+$router->get('/admin', [AdminDashboardController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
+
+$router->get('/admin/users', [AdminUserController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->get('/admin/users/{id}', [AdminUserController::class, 'show'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->post('/admin/users/{id}/suspend', [AdminUserController::class, 'suspend'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/users/{id}/activate', [AdminUserController::class, 'activate'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/users/{id}/promote', [AdminUserController::class, 'promote'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/users/{id}/demote', [AdminUserController::class, 'demote'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+
+$router->get('/admin/categories', [AdminCategoryController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->get('/admin/categories/create', [AdminCategoryController::class, 'create'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->post('/admin/categories', [AdminCategoryController::class, 'store'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->get('/admin/categories/{id}/edit', [AdminCategoryController::class, 'edit'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->put('/admin/categories/{id}', [AdminCategoryController::class, 'update'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/categories/{id}/delete', [AdminCategoryController::class, 'destroy'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+
+$router->get('/admin/achievements', [AdminAchievementController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->get('/admin/achievements/create', [AdminAchievementController::class, 'create'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->post('/admin/achievements', [AdminAchievementController::class, 'store'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->get('/admin/achievements/{id}/edit', [AdminAchievementController::class, 'edit'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->put('/admin/achievements/{id}', [AdminAchievementController::class, 'update'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/achievements/{id}/delete', [AdminAchievementController::class, 'destroy'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+
+$router->get('/admin/audit', [AdminAuditController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
 
 $router->post('/logout', [AuthController::class, 'logout'], [AuthMiddleware::class, VerifyCsrfToken::class]);

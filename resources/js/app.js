@@ -1,4 +1,5 @@
 import { initAnimations } from './modules/animations';
+import { initAdmin } from './modules/admin';
 import { initAuth } from './modules/auth';
 import { initIcons } from './modules/icons';
 import { initNav } from './modules/nav';
@@ -17,6 +18,7 @@ function boot() {
   initNotifications();
   initProfile();
   initSettings();
+  initAdmin();
   initAnimations();
 }
 
