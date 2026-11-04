@@ -9,9 +9,9 @@ use App\Controllers\Web\LandingController;
 use App\Controllers\Web\LeaderboardController;
 use App\Controllers\Web\NotificationController;
 use App\Controllers\Web\PasswordResetController;
-use App\Controllers\Web\PlaceholderController;
 use App\Controllers\Web\ProfileController;
 use App\Controllers\Web\QuestController;
+use App\Controllers\Web\SettingsController;
 use App\Core\Router;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\GuestMiddleware;
@@ -62,7 +62,17 @@ $router->get('/notifications', [NotificationController::class, 'index'], [AuthMi
 $router->post('/notifications/read-all', [NotificationController::class, 'markAllRead'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/notifications/{id}/read', [NotificationController::class, 'markRead'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 
-// Phase 5 destination.
-$router->get('/settings', [PlaceholderController::class, 'settings'], [AuthMiddleware::class]);
+// Phase 5: owner-only account settings. No route accepts a target user id.
+$router->get('/settings', [SettingsController::class, 'show'], [AuthMiddleware::class]);
+
+$router->post('/settings/password', [SettingsController::class, 'updatePassword'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/settings/email', [SettingsController::class, 'requestEmailChange'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->get('/settings/email/confirm', [SettingsController::class, 'showEmailConfirmation'], [AuthMiddleware::class]);
+$router->post('/settings/email/confirm', [SettingsController::class, 'confirmEmailChange'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/settings/notifications', [SettingsController::class, 'updateNotifications'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/settings/sessions/revoke-others', [SettingsController::class, 'revokeOtherSessions'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/settings/sessions/{id}/revoke', [SettingsController::class, 'revokeSession'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/settings/export', [SettingsController::class, 'export'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/settings/delete', [SettingsController::class, 'destroy'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 
 $router->post('/logout', [AuthController::class, 'logout'], [AuthMiddleware::class, VerifyCsrfToken::class]);

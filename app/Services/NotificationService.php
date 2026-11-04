@@ -97,14 +97,46 @@ final class NotificationService
         ]);
     }
 
+    public static function passwordChanged(PDO $db, int $userId): bool
+    {
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'security',
+            'title' => 'Password changed',
+            'message' => 'Your password was updated and other signed-in devices were signed out.',
+            'icon' => 'shield-check',
+            'url' => '/settings',
+            'event_key' => 'security:password:' . gmdate('YmdHis') . ':' . bin2hex(random_bytes(4)),
+        ]);
+    }
+
+    public static function emailChanged(PDO $db, int $userId, string $newEmail): bool
+    {
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'security',
+            'title' => 'Email address updated',
+            'message' => 'Your sign-in email is now ' . $newEmail . '.',
+            'icon' => 'mail',
+            'url' => '/settings',
+            'event_key' => 'security:email:' . gmdate('YmdHis') . ':' . bin2hex(random_bytes(4)),
+        ]);
+    }
+
     /**
      * @param array{user_id: int, type: string, title: string, message: string, icon: string, url?: string|null, related_type?: string|null, related_id?: int|null, event_key: string} $data
      */
     public static function create(PDO $db, array $data): bool
     {
+        $type = mb_substr((string) $data['type'], 0, 32);
+
+        if (!self::enabled($db, (int) $data['user_id'], $type)) {
+            return false;
+        }
+
         return Notification::create($db, [
             'user_id' => (int) $data['user_id'],
-            'type' => mb_substr((string) $data['type'], 0, 32),
+            'type' => $type,
             'title' => mb_substr((string) $data['title'], 0, 120),
             'message' => mb_substr((string) $data['message'], 0, 255),
             'icon' => mb_substr((string) $data['icon'], 0, 64),
@@ -113,5 +145,30 @@ final class NotificationService
             'related_id' => isset($data['related_id']) ? (int) $data['related_id'] : null,
             'event_key' => mb_substr((string) $data['event_key'], 0, 120),
         ]);
+    }
+
+    /**
+     * Achievement, level, streak, and leaderboard events can be muted from
+     * Settings. Profile and security messages are always delivered.
+     */
+    private static function enabled(PDO $db, int $userId, string $type): bool
+    {
+        $column = match ($type) {
+            'achievement' => 'notify_achievements',
+            'level' => 'notify_level_ups',
+            'streak' => 'notify_streaks',
+            'leaderboard' => 'notify_leaderboard',
+            default => null,
+        };
+
+        if ($column === null) {
+            return true;
+        }
+
+        $statement = $db->prepare('SELECT ' . $column . ' FROM users WHERE id = ? LIMIT 1');
+        $statement->execute([$userId]);
+        $value = $statement->fetchColumn();
+
+        return $value !== false && (int) $value === 1;
     }
 }

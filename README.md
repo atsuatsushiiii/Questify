@@ -3,9 +3,11 @@
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 4 — achievements, daily streaks, owner profiles, in-app
-> notifications, and leaderboards are live alongside the Phase 1–3 auth, shell,
-> and quest engine. Account settings remain scheduled for Phase 5.
+> **Status:** Phase 5 — owner-only account settings are live: password changes,
+> verified email changes, notification preferences, active-session controls,
+> JSON data export, and account deletion. These sit alongside the Phase 1–4
+> auth, shell, quest engine, achievements, streaks, profiles, notifications, and
+> leaderboards.
 > See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full architecture,
 > schema, and roadmap.
 
@@ -119,10 +121,11 @@ docs/            Architecture plan and security notes
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
 | `php tests/auth_flow.php` | End-to-end auth regression suite (55 checks) |
-| `php tests/app_shell.php` | Authenticated shell and Phase 4 pages suite (65 checks) |
+| `php tests/app_shell.php` | Authenticated shell and Phase 4–5 pages suite (66 checks) |
 | `php tests/quest_flow.php` | Quest engine, ownership, XP, and locking suite (117 checks) |
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
-| `composer test` | Run all four regression suites (315 checks) |
+| `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
+| `composer test` | Run all five regression suites (412 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -181,43 +184,46 @@ php scripts/migrate.php
 npm run build
 php -S localhost:8000 -t public scripts/router.php
 
-composer test                 # all four suites
+composer test                 # all five suites
 php tests/auth_flow.php       # auth only (55 checks)
-php tests/app_shell.php       # shell and Phase 4 pages (65 checks)
+php tests/app_shell.php       # shell and Phase 4–5 pages (66 checks)
 php tests/quest_flow.php      # quests only (117 checks)
 php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leaderboard (78 checks)
+php tests/phase5_flow.php     # settings/email/sessions/export/deletion (96 checks)
 ```
 
 The auth suite creates a throwaway account, exercises registration, CSRF
 rejection, login throttling, remember-me rotation and tampering, password reset,
 and session expiry. The shell suite checks route protection, the application
-layout, navigation, sidebar persistence, Phase 4 destinations, and honest empty
+layout, navigation, sidebar persistence, Phase 4–5 destinations, and honest empty
 states. The quest suite covers creation, validation, editing, ownership, rewards
 for every difficulty, duplicate and lock-serialized completion, archive,
 restore, deletion rules, level/rank changes, dashboard statistics, and CSRF on
 every mutation. The Phase 4 suite covers idempotent achievement evaluation,
 timezone-aware streaks and duplicate/archive behaviour, profile validation and
 avatar storage, notification ownership and deduplication, and leaderboard
-periods, visibility, tie-breaking, and pagination. All four delete their own
-data.
+periods, visibility, tie-breaking, and pagination. The Phase 5 suite covers
+password rotation and credential revocation, verified email changes with hashed
+single-use tokens, preference gating, per-device session revocation, export
+redaction, and account deletion cascade. All five delete their own data.
 
-## Application shell, quest log, and Phase 4 (Phases 2–4)
+## Application shell, quest log, and Phase 4–5 (Phases 2–5)
 
 Every authenticated page renders inside `app/Views/layouts/app.php`:
 
 - Collapsible desktop sidebar with server-rendered state (the `questify_sidebar`
   cookie), an off-canvas drawer and bottom tab bar on mobile, and a top bar with
   a notification bell, unread badge, and the account menu.
-- Seven destinations: Dashboard, My Quests, Achievements, Leaderboard, My
-  Profile, Notifications, and Settings. Settings is the only remaining preview
-  and is clearly labelled; the other six are live.
+- Seven live destinations: Dashboard, My Quests, Achievements, Leaderboard, My
+  Profile, Notifications, and Settings.
 - The dashboard reads real quest counts from the database and builds its recent
   activity feed from the XP ledger. It also shows live achievement progress,
   the real seven-day streak strip, and an all-time leaderboard panel.
 - “New quest” links to the real creation form. Every quest action is a normal
   form with a CSRF token, so the journal works without JavaScript; the bundled
   script only adds the live reward preview, character counter, confirmation
-  prompts, double-submit feedback, and the notification/profile enhancements.
+  prompts, double-submit feedback, and the notification/profile/settings
+  enhancements.
 
 | Route | Status |
 |---|---|
@@ -230,10 +236,10 @@ Every authenticated page renders inside `app/Views/layouts/app.php`:
 | `/leaderboard` | Live — all-time, weekly, and monthly boards with pagination |
 | `/profile` | Live — owner-only editor, avatar, streak history, visibility |
 | `/notifications` | Live — owner-scoped inbox with read/unread filters |
-| `/settings` | Placeholder — Phase 5 |
+| `/settings` | Live — password, verified email, preferences, sessions, export, deletion |
 
-All routes require authentication. There is no public profile route; profiles
-are owner-only in Phase 4.
+All routes require authentication. There is no public profile route; profiles are
+owner-only, and every settings action is scoped to the authenticated account.
 
 ## Adventure systems (Phase 4)
 
@@ -282,6 +288,45 @@ are owner-only in Phase 4.
 - Viewing the board records the viewer's all-time rank and creates a deduplicated
   rank-change notification; the first view records a baseline instead.
 
+## Account settings (Phase 5)
+
+Every action below is owner-only; no form accepts a target user id.
+
+| Route | Purpose |
+|---|---|
+| `GET /settings` | Account summary, security, email, notifications, sessions, export, danger zone |
+| `POST /settings/password` | Change password after verifying the current one |
+| `POST /settings/email` | Request a change; sends a confirmation link to the new address |
+| `GET/POST /settings/email/confirm` | Review and confirm a single-use email-change token |
+| `POST /settings/notifications` | Save the four adventure notification toggles |
+| `POST /settings/sessions/{id}/revoke` | Sign out one other owned session |
+| `POST /settings/sessions/revoke-others` | Sign out every session except the current one |
+| `POST /settings/export` | Download a JSON account export as an attachment |
+| `POST /settings/delete` | Permanently delete the account |
+
+- **Password changes** require the current password, reject reuse, rotate the
+  current session, revoke every other session and all remember-me tokens, and
+  create a security notification. The current device stays signed in.
+- **Email changes** require the current password and send a one-hour,
+  single-use token to the new address. Only a SHA-256 hash is stored; older
+  pending links are superseded, requests are limited to three per hour, and the
+  new address is marked verified only after confirmation.
+- **Notification preferences** gate achievement, level-up, streak, and
+  leaderboard notifications. Profile and security messages are always delivered.
+- **Active sessions** are read from the database-backed session store. The
+  hashed session id is used only for revocation and is never exposed in the
+  export. The current device is labelled and cannot revoke itself; cross-account
+  revocation returns `404`.
+- **Exports** include the account, quests, XP ledger, achievements, streak days,
+  notifications, and session metadata. Password hashes, reset/email tokens,
+  session payloads, and remember-me secrets are never included.
+- **Deletion** requires the current password plus the exact phrase
+  `DELETE MY ACCOUNT`. It is immediate, cascades through owned rows, removes the
+  avatar file, signs the account out, and cannot be undone.
+
+Session rows now store their owning `user_id` when the session is written, which
+makes the device list and “revoke others” accurate for newly created sessions.
+
 ## Quest engine (Phase 3)
 
 Rewards are centralised in [`config/game.php`](config/game.php) and assigned by
@@ -324,6 +369,8 @@ the server; a submitted `xp_reward` field is ignored.
 - Idempotent server-evaluated achievements, timezone-aware streaks, owner-only
   profile edits, content-validated avatar uploads, ownership-scoped
   deduplicated notifications, and visibility-aware leaderboards (Phase 4)
+- Current-password checks, session rotation and revocation, hashed single-use
+  email-change tokens, notification preference gating, redacted JSON export,
+  and password-plus-phrase account deletion (Phase 5)
 
-Role-based admin policies and account settings remain scheduled for later
-phases.
+Admin roles and public profiles remain scheduled for later phases.

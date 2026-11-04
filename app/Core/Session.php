@@ -75,6 +75,15 @@ final class Session
         return session_id();
     }
 
+    /**
+     * The identifier stored in the sessions table. The handler hashes the raw
+     * cookie id so a database dump cannot be replayed as a valid session.
+     */
+    public static function storageKey(): string
+    {
+        return hash('sha256', session_id());
+    }
+
     public static function get(string $key, mixed $default = null): mixed
     {
         return $_SESSION[$key] ?? $default;

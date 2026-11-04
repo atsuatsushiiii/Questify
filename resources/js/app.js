@@ -5,6 +5,7 @@ import { initNav } from './modules/nav';
 import { initNotifications } from './modules/notifications';
 import { initProfile } from './modules/profile';
 import { initQuests } from './modules/quests';
+import { initSettings } from './modules/settings';
 import { initShell } from './modules/shell';
 
 function boot() {
@@ -15,6 +16,7 @@ function boot() {
   initQuests();
   initNotifications();
   initProfile();
+  initSettings();
   initAnimations();
 }
 

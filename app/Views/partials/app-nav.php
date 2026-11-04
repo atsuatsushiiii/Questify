@@ -25,7 +25,7 @@ return [
         'items' => [
             ['label' => 'My Profile', 'href' => '/profile', 'icon' => 'user-round', 'phase' => null],
             ['label' => 'Notifications', 'href' => '/notifications', 'icon' => 'bell', 'phase' => null],
-            ['label' => 'Settings', 'href' => '/settings', 'icon' => 'settings', 'phase' => 5],
+            ['label' => 'Settings', 'href' => '/settings', 'icon' => 'settings', 'phase' => null],
         ],
     ],
 ];

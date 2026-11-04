@@ -63,10 +63,18 @@ final class DatabaseSessionHandler implements SessionHandlerInterface, SessionUp
         $key = $this->key($id);
         $now = time();
 
+        // The row is inserted on shutdown, after Auth::login() has already
+        // rotated the id. Read the identity from the live session so a new row
+        // is stored with its owner instead of NULL — otherwise active-session
+        // listing and "revoke other sessions" cannot find it.
+        $sessionUserId = $_SESSION['user_id'] ?? null;
+        $userId = is_numeric($sessionUserId) ? (int) $sessionUserId : null;
+
         $statement = $this->pdo->prepare(
             'INSERT INTO sessions (id, user_id, ip_address, user_agent, payload, last_activity, created_at, expires_at)
-             VALUES (?, NULL, ?, ?, ?, ?, ?, ?)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE
+                user_id = VALUES(user_id),
                 payload = VALUES(payload),
                 last_activity = VALUES(last_activity),
                 expires_at = VALUES(expires_at),
@@ -76,6 +84,7 @@ final class DatabaseSessionHandler implements SessionHandlerInterface, SessionUp
 
         return $statement->execute([
             $key,
+            $userId,
             $this->ipAddress,
             $this->userAgent,
             $data,

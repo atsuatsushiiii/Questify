@@ -234,7 +234,7 @@ check('Account email is available in the profile menu', contains($html, e($email
 check('Profile menu is wired', contains($html, 'data-user-menu-toggle') && contains($html, 'data-user-menu-panel'));
 check('Quest creation is a real link', contains($html, 'New quest') && contains($html, '/quests/create'));
 check('Phase 2 preview dialog is gone', !contains($html, 'data-quest-dialog') && !contains($html, 'non-functional preview'));
-check('Phase 4 navigation is shipped', contains($html, 'Phase 4 · adventure systems live'));
+check('Phase 5 navigation is shipped', contains($html, 'Phase 5 · account controls live'));
 check('Notification bell is present', contains($html, 'aria-label="Notifications"') && contains($html, '/notifications'));
 
 echo "\n4. Real values and honest empty states\n";
@@ -247,10 +247,10 @@ check('Active quests shows the real zero count', contains($html, 'Active quests'
 check('Recent activity has an honest empty state', contains($html, 'No activity yet'));
 check('Achievements are defined and shown as locked', contains($html, 'of 10 unlocked') && contains($html, 'still locked'));
 check('Leaderboard renders real ranking copy', contains($html, 'public adventurers are currently ranked') || contains($html, 'public adventurer is currently ranked'));
-check('Unfinished modules are labelled by phase', contains($html, 'Soon') && contains($html, 'Settings'));
+check('All navigation destinations are live', contains($html, 'Settings') && !contains($html, 'Soon'));
 check('No PHP diagnostics leaked into the page', !contains($html, 'Warning:') && !contains($html, 'Fatal error') && !contains($html, 'Undefined'));
 
-echo "\n5. Phase 4 destinations and the Settings placeholder\n";
+echo "\n5. Phase 4 destinations and Phase 5 settings\n";
 
 $questLog = $client->get('/quests');
 check('Quest log renders for the owner', $questLog['status'] === 200 && contains($questLog['body'], 'My Quests') && contains($questLog['body'], 'Quest journal'));
@@ -332,12 +332,20 @@ check(
 
 $settings = $client->get('/settings');
 check(
-    'Settings remains an explicit Phase 5 placeholder',
+    'Settings renders the account controls',
     $settings['status'] === 200
         && contains($settings['body'], '<h1')
-        && contains($settings['body'], 'Settings')
-        && contains($settings['body'], 'Planned for Phase 5')
-        && contains($settings['body'], 'This module is not active yet'),
+        && contains($settings['body'], 'Account controls')
+        && contains($settings['body'], 'Change password')
+        && contains($settings['body'], 'Active sessions')
+        && contains($settings['body'], 'Delete account')
+        && contains($settings['body'], e($displayName)),
+);
+check(
+    'Settings is a shipped page, not a placeholder',
+    !contains($settings['body'], 'Planned for Phase 5')
+        && !contains($settings['body'], 'This module is not active yet')
+        && contains($settings['body'], 'data-settings-page'),
 );
 check(
     'Settings still uses the application shell',

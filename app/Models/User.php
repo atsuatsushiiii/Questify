@@ -126,6 +126,41 @@ final class User
         $statement->execute([$path, $id]);
     }
 
+    public static function updateEmail(int $id, string $email): void
+    {
+        $statement = Database::connection()->prepare(
+            'UPDATE users
+             SET email = ?, email_verified_at = UTC_TIMESTAMP(), updated_at = UTC_TIMESTAMP()
+             WHERE id = ?',
+        );
+        $statement->execute([mb_strtolower($email), $id]);
+    }
+
+    public static function updateNotificationPreferences(
+        int $id,
+        bool $achievements,
+        bool $levelUps,
+        bool $streaks,
+        bool $leaderboard,
+    ): void {
+        $statement = Database::connection()->prepare(
+            'UPDATE users
+             SET notify_achievements = ?,
+                 notify_level_ups = ?,
+                 notify_streaks = ?,
+                 notify_leaderboard = ?,
+                 updated_at = UTC_TIMESTAMP()
+             WHERE id = ?',
+        );
+        $statement->execute([
+            $achievements ? 1 : 0,
+            $levelUps ? 1 : 0,
+            $streaks ? 1 : 0,
+            $leaderboard ? 1 : 0,
+            $id,
+        ]);
+    }
+
     public static function updateLeaderboardRank(PDO $db, int $id, int $rank): void
     {
         $statement = $db->prepare(
@@ -159,6 +194,18 @@ final class User
     {
         $statement = Database::connection()->prepare('DELETE FROM sessions WHERE user_id = ?');
         $statement->execute([$id]);
+    }
+
+    /**
+     * Permanently delete an account. All owned rows cascade from the foreign
+     * keys defined by the schema.
+     */
+    public static function delete(int $id): bool
+    {
+        $statement = Database::connection()->prepare('DELETE FROM users WHERE id = ?');
+        $statement->execute([$id]);
+
+        return $statement->rowCount() === 1;
     }
 
     public static function count(): int

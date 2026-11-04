@@ -256,6 +256,19 @@ final class ProfileService
         return ['ok' => true, 'message' => 'Profile picture removed.'];
     }
 
+    /**
+     * Remove the avatar file when the account itself is being deleted.
+     *
+     * @param array<string, mixed> $user
+     */
+    public function deleteAvatarFile(array $user): void
+    {
+        $this->deleteStoredAvatar(
+            isset($user['avatar_path']) ? (string) $user['avatar_path'] : null,
+            (int) $user['id'],
+        );
+    }
+
     private function deleteStoredAvatar(?string $path, int $userId): void
     {
         if ($path === null || $path === '') {

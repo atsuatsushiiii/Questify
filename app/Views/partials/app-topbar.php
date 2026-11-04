@@ -126,7 +126,6 @@
                         <a href="<?= e(url('/settings')) ?>" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-300 transition hover:bg-white/[0.05] hover:text-white">
                             <i data-lucide="settings" class="h-4 w-4 text-slate-500"></i>
                             <span class="flex-1">Settings</span>
-                            <span class="rounded-full border border-white/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-slate-500">Soon</span>
                         </a>
                     </div>
 
