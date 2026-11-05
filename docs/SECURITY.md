@@ -75,6 +75,10 @@ working exploit. Include the route, the request, and the observed behaviour.
   script execution, and the filename pattern is re-checked before rendering.
 - XP rewards are derived on the server from the difficulty; a submitted
   `xp_reward` is ignored.
+- Recurring quests award at most once per period. The period key is computed
+  server-side from the account timezone, and the unique
+  `(quest_id, period_key)` index rejects any same-period replay at the database
+  layer even if the quest-row check is bypassed.
 
 ### Transport and headers
 
@@ -170,10 +174,10 @@ periodically. Sessions can be discarded safely; users simply sign in again.
 ## Verification
 
 ```powershell
-php vendor/bin/phpunit --no-coverage   # level, streak, validation, mail, route authz
+php vendor/bin/phpunit --no-coverage   # level, streak, recurrence, validation, mail, route authz
 php tests/auth_flow.php                # authentication and throttling
 php tests/app_shell.php                # shell, navigation, copyright
-php tests/quest_flow.php               # ownership, single-use XP
+php tests/quest_flow.php               # ownership, single-use and per-period XP
 php tests/phase4_flow.php              # achievements, streaks, leaderboards
 php tests/phase5_flow.php              # account settings and deletion
 php tests/phase6_flow.php              # admin authorization and moderation

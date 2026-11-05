@@ -79,6 +79,7 @@ final class QuestController
             'description' => '',
             'difficulty' => 'easy',
             'category_id' => '',
+            'recurrence' => 'none',
         ], [], null, 200);
     }
 
@@ -93,6 +94,7 @@ final class QuestController
                 'description' => '',
                 'difficulty' => 'easy',
                 'category_id' => '',
+                'recurrence' => 'none',
             ], $result['errors'] ?? [], $result['message'] ?? null, (int) ($result['status'] ?? 422));
         }
 
@@ -131,6 +133,7 @@ final class QuestController
             'description' => (string) $quest['description'],
             'difficulty' => (string) $quest['difficulty'],
             'category_id' => $quest['category_id'] !== null ? (string) $quest['category_id'] : '',
+            'recurrence' => (string) ($quest['recurrence'] ?? 'none'),
         ], [], null, 200);
     }
 
@@ -158,6 +161,7 @@ final class QuestController
                 'description' => (string) $quest['description'],
                 'difficulty' => (string) $quest['difficulty'],
                 'category_id' => $quest['category_id'] !== null ? (string) $quest['category_id'] : '',
+                'recurrence' => (string) ($quest['recurrence'] ?? 'none'),
             ], $result['errors'] ?? [], $result['message'] ?? null, $status);
         }
 

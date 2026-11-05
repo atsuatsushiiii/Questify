@@ -10,27 +10,29 @@ use App\Core\Database;
 use PDO;
 
 /**
- * Append-only XP ledger. The unique key on quest_id is the last line of
- * defence against awarding the same quest twice; rows survive quest deletion
- * (quest_id becomes NULL) so the audit trail is never lost.
+ * Append-only XP ledger. The unique key on (quest_id, period_key) is the last
+ * line of defence against awarding the same quest twice in one period; rows
+ * survive quest deletion (quest_id becomes NULL) so the audit trail is never
+ * lost.
  */
 final class XpTransaction
 {
     /**
-     * @param array{user_id: int, quest_id: int, quest_title: string, amount: int, level_before: int, level_after: int} $data
+     * @param array{user_id: int, quest_id: int, quest_title: string, amount: int, level_before: int, level_after: int, period_key?: string} $data
      */
     public static function create(PDO $db, array $data): int
     {
         $statement = $db->prepare(
             'INSERT INTO xp_transactions
-                (user_id, quest_id, quest_title, source, amount, level_before, level_after, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())',
+                (user_id, quest_id, quest_title, source, period_key, amount, level_before, level_after, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())',
         );
         $statement->execute([
             $data['user_id'],
             $data['quest_id'],
             $data['quest_title'],
             'quest_completion',
+            $data['period_key'] ?? 'once',
             $data['amount'],
             $data['level_before'],
             $data['level_after'],
@@ -53,7 +55,7 @@ final class XpTransaction
     public static function forQuest(int $questId): ?array
     {
         $statement = Database::connection()->prepare(
-            'SELECT * FROM xp_transactions WHERE quest_id = ? LIMIT 1',
+            'SELECT * FROM xp_transactions WHERE quest_id = ? ORDER BY created_at DESC, id DESC LIMIT 1',
         );
         $statement->execute([$questId]);
         $row = $statement->fetch(PDO::FETCH_ASSOC);

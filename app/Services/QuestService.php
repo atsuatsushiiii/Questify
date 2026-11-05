@@ -13,6 +13,7 @@ use App\Models\Quest;
 use App\Models\User;
 use App\Models\XpTransaction;
 use App\Support\Progression;
+use App\Support\Recurrence;
 use PDOException;
 use RuntimeException;
 use Throwable;
@@ -77,14 +78,19 @@ final class QuestService
             'description' => $data['description'],
             'difficulty' => $data['difficulty'],
             'xp_reward' => $reward,
+            'recurrence' => $data['recurrence'],
         ]);
+
+        $cadence = Recurrence::isRecurring($data['recurrence'])
+            ? ' It repeats every ' . Recurrence::periodNoun($data['recurrence']) . '.'
+            : '';
 
         return [
             'ok' => true,
             'status' => 201,
             'quest_id' => $questId,
             'xp_reward' => $reward,
-            'message' => 'Quest added to your log. Complete it to earn ' . $reward . ' XP.',
+            'message' => 'Quest added to your log. Complete it to earn ' . $reward . ' XP.' . $cadence,
         ];
     }
 
@@ -132,6 +138,8 @@ final class QuestService
             'description' => $data['description'],
             'difficulty' => $data['difficulty'],
             'xp_reward' => $reward,
+            'recurrence' => $data['recurrence'],
+            'reset_period' => (string) ($quest['recurrence'] ?? 'none') !== $data['recurrence'],
         ]);
 
         if (!$updated) {
@@ -154,7 +162,7 @@ final class QuestService
      * the status transition and the ledger unique key make duplicate awards
      * impossible, and the whole operation is atomic.
      *
-     * @return array{ok: bool, status?: int, message?: string, reward?: int, xp?: int, level?: int, old_level?: int, level_up?: bool, rank?: string, quest_id?: int, quest_title?: string, streak?: int, streak_milestone?: int|null, achievements?: list<string>}
+     * @return array{ok: bool, status?: int, message?: string, reward?: int, xp?: int, level?: int, old_level?: int, level_up?: bool, rank?: string, quest_id?: int, quest_title?: string, streak?: int, streak_milestone?: int|null, achievements?: list<string>, recurrence?: string, recurring?: bool}
      */
     public function complete(int $questId, int $userId): array
     {
@@ -170,7 +178,10 @@ final class QuestService
                 return ['ok' => false, 'status' => 404, 'message' => 'That quest could not be found.'];
             }
 
-            if ((string) $quest['status'] === 'completed') {
+            $recurrence = (string) ($quest['recurrence'] ?? Recurrence::NONE);
+            $isRecurring = Recurrence::isRecurring($recurrence);
+
+            if (!$isRecurring && (string) $quest['status'] === 'completed') {
                 $pdo->rollBack();
 
                 return [
@@ -198,6 +209,30 @@ final class QuestService
                 return ['ok' => false, 'status' => 404, 'message' => 'Your account could not be loaded.'];
             }
 
+            $periodKey = Recurrence::periodKey(
+                $recurrence,
+                null,
+                (string) ($user['timezone'] ?? 'UTC'),
+            );
+
+            if (
+                $isRecurring
+                && (string) ($quest['last_completed_period'] ?? '') === $periodKey
+            ) {
+                $pdo->rollBack();
+
+                return [
+                    'ok' => false,
+                    'status' => 409,
+                    'message' => sprintf(
+                        'This %s quest is already complete for this %s. %s',
+                        $recurrence,
+                        Recurrence::periodNoun($recurrence),
+                        Recurrence::resetLabel($recurrence),
+                    ),
+                ];
+            }
+
             $reward = (int) $quest['xp_reward'];
 
             if ($reward < 1) {
@@ -214,13 +249,19 @@ final class QuestService
                 ];
             }
 
-            if (!Quest::complete($pdo, $questId, $userId)) {
+            $completed = $isRecurring
+                ? Quest::completeRecurring($pdo, $questId, $userId, $periodKey)
+                : Quest::complete($pdo, $questId, $userId);
+
+            if (!$completed) {
                 $pdo->rollBack();
 
                 return [
                     'ok' => false,
                     'status' => 409,
-                    'message' => 'This quest was already completed. XP is only awarded once.',
+                    'message' => $isRecurring
+                        ? 'This quest changed while you were completing it. Reload and try again.'
+                        : 'This quest was already completed. XP is only awarded once.',
                 ];
             }
 
@@ -237,6 +278,7 @@ final class QuestService
                     'amount' => $reward,
                     'level_before' => $oldLevel,
                     'level_after' => $newLevel,
+                    'period_key' => $periodKey,
                 ]);
             } catch (PDOException $exception) {
                 if (($exception->errorInfo[1] ?? null) === 1062) {
@@ -245,7 +287,9 @@ final class QuestService
                     return [
                         'ok' => false,
                         'status' => 409,
-                        'message' => 'This quest has already paid out its XP.',
+                        'message' => $isRecurring
+                            ? 'This quest has already paid out its XP for this period.'
+                            : 'This quest has already paid out its XP.',
                     ];
                 }
 
@@ -298,7 +342,16 @@ final class QuestService
                     static fn (array $achievement): string => (string) $achievement['name'],
                     $newlyUnlocked,
                 ),
-                'message' => 'Quest complete. +' . $reward . ' XP awarded.',
+                'message' => $isRecurring
+                    ? sprintf(
+                        'Quest complete for this %s. +%d XP awarded. %s',
+                        Recurrence::periodNoun($recurrence),
+                        $reward,
+                        Recurrence::resetLabel($recurrence),
+                    )
+                    : 'Quest complete. +' . $reward . ' XP awarded.',
+                'recurrence' => $recurrence,
+                'recurring' => $isRecurring,
             ];
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
@@ -348,7 +401,8 @@ final class QuestService
             return ['ok' => false, 'status' => 409, 'message' => 'Only archived quests can be restored.'];
         }
 
-        $target = $quest['completed_at'] !== null ? 'completed' : 'active';
+        $isRecurring = Recurrence::isRecurring((string) ($quest['recurrence'] ?? Recurrence::NONE));
+        $target = $isRecurring || $quest['completed_at'] === null ? 'active' : 'completed';
 
         if (!Quest::setStatus($questId, $userId, $target)) {
             return ['ok' => false, 'status' => 409, 'message' => 'That quest could not be restored.'];
@@ -419,7 +473,7 @@ final class QuestService
 
     /**
      * @param array<string, mixed> $input
-     * @return array{ok: true, data: array{title: string, description: string, difficulty: string, category_id: int|null}, old: array<string, string>}|array{ok: false, status: int, errors: array<string, string>, old: array<string, string>}
+     * @return array{ok: true, data: array{title: string, description: string, difficulty: string, category_id: int|null, recurrence: string}, old: array<string, string>}|array{ok: false, status: int, errors: array<string, string>, old: array<string, string>}
      */
     private function validate(array $input): array
     {
@@ -431,7 +485,12 @@ final class QuestService
             'description' => $this->scalar($input['description'] ?? null),
             'difficulty' => $this->scalar($input['difficulty'] ?? null),
             'category_id' => $this->scalar($input['category_id'] ?? null),
+            'recurrence' => $this->scalar($input['recurrence'] ?? null),
         ];
+
+        if ($old['recurrence'] === '') {
+            $old['recurrence'] = Recurrence::NONE;
+        }
 
         $validator = Validator::make(
             $old,
@@ -439,11 +498,13 @@ final class QuestService
                 'title' => 'required|string|min:3|max:120',
                 'description' => 'required|string|min:10|max:2000',
                 'difficulty' => 'required|string|in:' . implode(',', $difficulties),
+                'recurrence' => 'required|string|in:' . implode(',', Recurrence::values()),
             ],
             [
                 'title' => 'Quest title',
                 'description' => 'Description',
                 'difficulty' => 'Difficulty',
+                'recurrence' => 'Repeat cadence',
             ],
         );
 
@@ -487,6 +548,7 @@ final class QuestService
                 'description' => trim((string) $validated['description']),
                 'difficulty' => (string) $validated['difficulty'],
                 'category_id' => $categoryId,
+                'recurrence' => (string) $validated['recurrence'],
             ],
             'old' => $old,
         ];

@@ -107,6 +107,14 @@ $quests = [
         'category' => 'social',
         'complete' => false,
     ],
+    [
+        'title' => 'Daily tidy-up',
+        'description' => 'Spend ten minutes resetting your workspace before you log off.',
+        'difficulty' => 'easy',
+        'category' => 'personal',
+        'complete' => false,
+        'recurrence' => 'daily',
+    ],
 ];
 
 $count = $pdo->prepare('SELECT COUNT(*) FROM quests WHERE user_id = ?');
@@ -135,6 +143,7 @@ if ($existingQuests > 0) {
             'description' => $quest['description'],
             'difficulty' => $quest['difficulty'],
             'xp_reward' => QuestService::rewardFor($quest['difficulty']) ?? 10,
+            'recurrence' => $quest['recurrence'] ?? 'none',
         ]);
 
         $created++;

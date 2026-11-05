@@ -23,6 +23,7 @@ require BASE_PATH . '/vendor/autoload.php';
 use App\Core\App;
 use App\Core\Database;
 use App\Support\Progression;
+use App\Support\Recurrence;
 
 App::boot(BASE_PATH, false);
 
@@ -192,7 +193,7 @@ function ledgerSum(PDO $pdo, int $userId): int
 /**
  * @return int quest id on success
  */
-function createQuest(HttpClient $client, string $title, string $description, string $difficulty, int $xpReward = 9999): int
+function createQuest(HttpClient $client, string $title, string $description, string $difficulty, int $xpReward = 9999, string $recurrence = 'none'): int
 {
     $page = $client->get('/quests/create');
     $csrf = $client->csrf($page['body']);
@@ -202,6 +203,7 @@ function createQuest(HttpClient $client, string $title, string $description, str
         'description' => $description,
         'difficulty' => $difficulty,
         'xp_reward' => (string) $xpReward,
+        'recurrence' => $recurrence,
     ]);
 
     if ($response['status'] !== 302) {
@@ -714,6 +716,192 @@ check('A competing transaction waits for the quest row lock', $blocked);
 $lockedComplete = completeQuest($client, $lockedQuestId);
 check('The same completion succeeds after the lock is released', $lockedComplete['status'] === 302 && (string) questRow($pdo, $lockedQuestId)['status'] === 'completed');
 check('The serialized completion awards XP once', ledgerCount($pdo, $userIdA) === 20 && ledgerSum($pdo, $userIdA) === 1620);
+
+echo "\n11c. Recurring quests\n";
+
+$timezone = (string) userRow($pdo, $userIdA)['timezone'];
+$periodKey = Recurrence::periodKey('daily', null, $timezone);
+
+$recurringCreate = $client->get('/quests/create');
+$recurringCsrf = $client->csrf($recurringCreate['body']);
+check(
+    'Creation page offers every repeat cadence',
+    contains($recurringCreate['body'], 'Repeat cadence')
+        && contains($recurringCreate['body'], 'One-off')
+        && contains($recurringCreate['body'], 'Every day')
+        && contains($recurringCreate['body'], 'Every week')
+        && contains($recurringCreate['body'], 'Every month'),
+);
+
+$invalidRecurrence = $client->post('/quests', [
+    '_csrf_token' => $recurringCsrf,
+    'title' => 'Invalid cadence quest',
+    'description' => 'This quest asks for a cadence the app does not support.',
+    'difficulty' => 'easy',
+    'recurrence' => 'hourly',
+]);
+check(
+    'Unknown repeat cadence is rejected',
+    $invalidRecurrence['status'] === 422 && contains($invalidRecurrence['body'], 'Repeat cadence is not valid'),
+);
+
+$beforeRecurringLedger = ledgerCount($pdo, $userIdA);
+$beforeRecurringXp = (int) userRow($pdo, $userIdA)['xp_total'];
+
+$dailyId = createQuest(
+    $client,
+    'Daily standup notes',
+    'Write the standup summary before the morning sync.',
+    'easy',
+    999999,
+    'daily',
+);
+
+$dailyRow = questRow($pdo, $dailyId);
+check(
+    'Daily quest stores its cadence and starts unpaid',
+    is_array($dailyRow)
+        && $dailyRow['recurrence'] === 'daily'
+        && $dailyRow['status'] === 'active'
+        && $dailyRow['last_completed_period'] === null,
+);
+
+$dailyShow = $client->get('/quests/' . $dailyId);
+check(
+    'Recurring quest shows its cadence and repeat period',
+    contains($dailyShow['body'], 'Daily')
+        && contains($dailyShow['body'], 'Repeats')
+        && contains($dailyShow['body'], 'once per day'),
+);
+check(
+    'Recurring creation flash mentions the cadence',
+    contains($dailyShow['body'], 'It repeats every day.'),
+);
+
+$dailyComplete = completeQuest($client, $dailyId);
+$dailyAfter = questRow($pdo, $dailyId);
+check(
+    'Recurring completion keeps the quest active',
+    $dailyComplete['status'] === 302
+        && $dailyAfter['status'] === 'active'
+        && $dailyAfter['completed_at'] !== null,
+);
+check(
+    'Recurring completion records the current period key',
+    (string) $dailyAfter['last_completed_period'] === $periodKey,
+);
+check(
+    'Recurring completion awards XP once',
+    (int) userRow($pdo, $userIdA)['xp_total'] === $beforeRecurringXp + 10
+        && ledgerCount($pdo, $userIdA) === $beforeRecurringLedger + 1,
+);
+
+$awardStatement = $pdo->prepare('SELECT period_key FROM xp_transactions WHERE quest_id = ? ORDER BY id DESC LIMIT 1');
+$awardStatement->execute([$dailyId]);
+check('Recurring ledger row carries the period key', (string) $awardStatement->fetchColumn() === $periodKey);
+
+$dailyDoneShow = $client->get('/quests/' . $dailyId);
+check(
+    'Recurring quest shows the done-this-period state',
+    contains($dailyDoneShow['body'], 'Done today')
+        && contains($dailyDoneShow['body'], 'Resets tomorrow at midnight.'),
+);
+
+$repeatDaily = completeQuest($client, $dailyId);
+$repeatFlash = $client->get('/quests/' . $dailyId);
+$dailyRepeatRow = questRow($pdo, $dailyId);
+check(
+    'Repeating a daily quest in the same period is refused',
+    $repeatDaily['status'] === 302
+        && (string) $dailyRepeatRow['last_completed_period'] === $periodKey
+        && contains($repeatFlash['body'], 'already complete for this day'),
+);
+check(
+    'Same-period repeat did not add XP',
+    (int) userRow($pdo, $userIdA)['xp_total'] === $beforeRecurringXp + 10
+        && ledgerCount($pdo, $userIdA) === $beforeRecurringLedger + 1,
+);
+
+$duplicatePeriodInserted = false;
+
+try {
+    $duplicatePeriod = $pdo->prepare(
+        'INSERT INTO xp_transactions (user_id, quest_id, quest_title, source, period_key, amount, level_before, level_after, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())',
+    );
+    $duplicatePeriod->execute([$userIdA, $dailyId, 'Duplicate period award', 'quest_completion', $periodKey, 10, 1, 1]);
+    $duplicatePeriodInserted = true;
+} catch (\PDOException $exception) {
+    check('Unique (quest, period) index rejects a duplicate award', ($exception->errorInfo[1] ?? null) === 1062);
+}
+
+check('Duplicate period award was not persisted', $duplicatePeriodInserted === false);
+
+$archiveDaily = $client->post('/quests/' . $dailyId . '/archive', ['_csrf_token' => $recurringCsrf]);
+$archivedDailyRow = questRow($pdo, $dailyId);
+check('Recurring quest can be archived', $archiveDaily['status'] === 302 && $archivedDailyRow['status'] === 'archived');
+
+$archivedDailyList = $client->get('/quests?status=archived');
+$restoreDailyCsrf = $client->csrf($archivedDailyList['body']);
+$restoreDaily = $client->post('/quests/' . $dailyId . '/restore', ['_csrf_token' => $restoreDailyCsrf]);
+$restoredDailyRow = questRow($pdo, $dailyId);
+check(
+    'Restored recurring quest returns to active, not completed',
+    $restoreDaily['status'] === 302
+        && $restoredDailyRow['status'] === 'active'
+        && (string) $restoredDailyRow['last_completed_period'] === $periodKey,
+);
+
+$pdo->prepare('UPDATE quests SET last_completed_period = ? WHERE id = ?')->execute(['2020-01-01', $dailyId]);
+$pdo->prepare('UPDATE xp_transactions SET period_key = ? WHERE quest_id = ?')->execute(['2020-01-01', $dailyId]);
+$rolloverComplete = completeQuest($client, $dailyId);
+$rolloverRow = questRow($pdo, $dailyId);
+check(
+    'A new period lets the same recurring quest pay again',
+    $rolloverComplete['status'] === 302
+        && (string) $rolloverRow['last_completed_period'] === $periodKey
+        && ledgerCount($pdo, $userIdA) === $beforeRecurringLedger + 2
+        && (int) userRow($pdo, $userIdA)['xp_total'] === $beforeRecurringXp + 20,
+);
+
+$weeklyId = createQuest(
+    $client,
+    'Weekly review',
+    'Review the week and set the next three priorities.',
+    'medium',
+    999999,
+    'weekly',
+);
+$weeklyCsrf = $client->csrf($client->get('/quests/' . $weeklyId . '/edit')['body']);
+
+completeQuest($client, $weeklyId);
+$weeklyBeforeEdit = questRow($pdo, $weeklyId);
+check('Weekly quest records its weekly period', (string) $weeklyBeforeEdit['last_completed_period'] === Recurrence::periodKey('weekly', null, $timezone));
+
+$editWeekly = $client->post('/quests/' . $weeklyId, [
+    '_method' => 'PUT',
+    '_csrf_token' => $weeklyCsrf,
+    'title' => 'Monthly review',
+    'description' => 'Review the month and set the next three priorities.',
+    'difficulty' => 'medium',
+    'recurrence' => 'monthly',
+]);
+$weeklyEdited = questRow($pdo, $weeklyId);
+check(
+    'Changing the cadence clears the last completed period',
+    $editWeekly['status'] === 302
+        && $weeklyEdited['recurrence'] === 'monthly'
+        && $weeklyEdited['last_completed_period'] === null,
+);
+
+$monthlyComplete = completeQuest($client, $weeklyId);
+$monthlyRow = questRow($pdo, $weeklyId);
+check(
+    'Monthly cadence pays after the cadence change',
+    $monthlyComplete['status'] === 302
+        && (string) $monthlyRow['last_completed_period'] === Recurrence::periodKey('monthly', null, $timezone)
+        && $monthlyRow['status'] === 'active',
+);
 
 echo "\n12. Cleanup\n";
 

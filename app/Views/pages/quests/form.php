@@ -12,10 +12,13 @@
  * @var array<string, int> $rewards
  * @var list<array<string, mixed>> $categories
  */
+use App\Support\Recurrence;
+
 $isEdit = $mode === 'edit' && $quest !== null;
 $action = $isEdit ? '/quests/' . (int) $quest['id'] : '/quests';
 $selectedDifficulty = (string) ($old['difficulty'] ?? 'easy');
 $selectedCategory = (string) ($old['category_id'] ?? '');
+$selectedRecurrence = (string) ($old['recurrence'] ?? Recurrence::NONE);
 $selectedReward = $rewards[$selectedDifficulty] ?? ($rewards['easy'] ?? 0);
 $invalid = static fn (string $field): string => isset($errors[$field]) ? 'true' : 'false';
 $errorClass = static fn (string $field): string => isset($errors[$field]) ? ' is-invalid' : '';
@@ -151,6 +154,27 @@ $difficultyIcon = [
             <?php $field = 'category_id'; require __DIR__ . '/../../partials/field-error.php'; ?>
         </div>
 
+        <div class="mt-5">
+            <label for="recurrence" class="field-label">Repeat cadence</label>
+            <select
+                id="recurrence"
+                name="recurrence"
+                class="app-select<?= e($errorClass('recurrence')) ?>"
+                aria-invalid="<?= $invalid('recurrence') ?>"
+                aria-describedby="<?= isset($errors['recurrence']) ? 'recurrence-error' : 'recurrence-help' ?>"
+            >
+                <?php foreach (Recurrence::options() as $value => $label): ?>
+                    <option value="<?= e($value) ?>" <?= $selectedRecurrence === $value ? 'selected' : '' ?>>
+                        <?= e($label) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <p id="recurrence-help" class="mt-1.5 text-[11px] text-slate-600">
+                Recurring quests stay active and pay XP again each new period. One-off quests complete permanently.
+            </p>
+            <?php $field = 'recurrence'; require __DIR__ . '/../../partials/field-error.php'; ?>
+        </div>
+
         <fieldset class="mt-6">
             <legend class="field-label">Difficulty <span class="text-ember-300">*</span></legend>
             <div class="grid gap-2.5 sm:grid-cols-2">
@@ -218,7 +242,11 @@ $difficultyIcon = [
                     <span class="text-sm font-medium text-gold-300">XP</span>
                 </p>
                 <p class="mt-2 text-[11px] leading-relaxed text-slate-500">
-                    Awarded once, when you mark this quest complete. The server assigns this value from
+                    <?php if ($selectedRecurrence === Recurrence::NONE): ?>
+                        Awarded once, when you mark this quest complete. The server assigns this value from
+                    <?php else: ?>
+                        Awarded once per <?= e(Recurrence::periodNoun($selectedRecurrence)) ?> while the quest stays active. The server assigns this value from
+                    <?php endif; ?>
                     <code class="rounded bg-white/[0.05] px-1 py-0.5 text-[10px] text-slate-400">config/game.php</code>.
                 </p>
             </div>
@@ -233,7 +261,7 @@ $difficultyIcon = [
                 </li>
                 <li class="flex items-start gap-2">
                     <i data-lucide="check-circle-2" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold-400/80"></i>
-                    <span>A quest pays out exactly once, even across repeated or concurrent requests.</span>
+                    <span>A quest pays out exactly once per period, even across repeated or concurrent requests.</span>
                 </li>
                 <li class="flex items-start gap-2">
                     <i data-lucide="trending-up" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-ember-300"></i>
@@ -246,7 +274,7 @@ $difficultyIcon = [
             <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
                 <p class="flex items-start gap-2 text-[11px] leading-relaxed text-slate-500">
                     <i data-lucide="info" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-500"></i>
-                    <span>Editing an active quest changes the reward it will pay when completed. Completed quests keep the XP they already awarded.</span>
+                    <span>Editing an active quest changes the reward it will pay when completed. Changing the cadence clears the current period so the quest can be claimed again. Completed one-off quests keep the XP they already awarded.</span>
                 </p>
             </div>
         <?php endif; ?>

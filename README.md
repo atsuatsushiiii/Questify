@@ -5,12 +5,12 @@
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 8 — production readiness complete: 54 PHPUnit unit tests,
+> **Status:** Phase 8 — production readiness complete: 63 PHPUnit unit tests,
 > a repeatable demo seeder, a written security/threat review with a production
-> checklist, and documented backup/restore steps. These sit alongside the
-> Phase 7 polish pass and the Phase 1–6 auth, shell, quest engine, achievements,
-> streaks, profiles, notifications, leaderboards, account settings, and
-> administrator tooling.
+> checklist, and documented backup/restore steps. These sit alongside recurring
+> daily/weekly/monthly quests, the Phase 7 polish pass, and the Phase 1–6 auth,
+> shell, quest engine, achievements, streaks, profiles, notifications,
+> leaderboards, account settings, and administrator tooling.
 > See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full architecture,
 > schema, and roadmap.
 
@@ -125,15 +125,15 @@ docs/            Architecture plan and security notes
 | `npm run build` | Compile + minify CSS and JS |
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
-| `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, mail, route authz (54 tests) |
+| `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, recurrence, mail, route authz (63 tests) |
 | `php scripts/seed_demo.php` | Create/reuse a local demo account with realistic quests |
 | `php tests/auth_flow.php` | End-to-end auth regression suite (55 checks) |
 | `php tests/app_shell.php` | Authenticated shell and Phase 4-6 pages suite (69 checks) |
-| `php tests/quest_flow.php` | Quest engine, ownership, XP, and locking suite (117 checks) |
+| `php tests/quest_flow.php` | Quest engine, ownership, XP, recurring cadences, and locking suite (137 checks) |
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
 | `php tests/phase6_flow.php` | Admin authorization, KPIs, moderation, catalogue CRUD, audit (111 checks) |
-| `composer test` | Run the unit suite and all six HTTP suites (580 checks) |
+| `composer test` | Run the unit suite and all six HTTP suites (609 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -188,7 +188,7 @@ dropping the message.
 The unit suite is database-free and runs without a server:
 
 ```powershell
-php vendor/bin/phpunit --no-coverage   # 54 tests, 233 assertions
+php vendor/bin/phpunit --no-coverage   # 63 tests, 258 assertions
 ```
 
 The remaining suites drive the real HTTP surface, so start MySQL, migrate, build
@@ -202,14 +202,15 @@ php -S localhost:8000 -t public scripts/router.php
 composer test                 # unit suite + all six HTTP suites
 php tests/auth_flow.php       # auth only (55 checks)
 php tests/app_shell.php       # shell and Phase 4-6 pages (69 checks)
-php tests/quest_flow.php      # quests only (117 checks)
+php tests/quest_flow.php      # quests only (137 checks)
 php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leaderboard (78 checks)
 php tests/phase5_flow.php     # settings/email/sessions/export/deletion (96 checks)
 php tests/phase6_flow.php     # admin authorization/moderation/catalogue/audit (111 checks)
 ```
 
 The unit suite pins the level curve and rank ladder, validator edge cases,
-timezone-aware streak boundaries, and the route table’s authorization ordering:
+timezone-aware streak boundaries, recurring period keys, and the route table’s
+authorization ordering:
 every `/admin` page and API must carry `AuthMiddleware` then `AdminMiddleware`,
 and admin mutations must check the role before CSRF.
 
@@ -218,9 +219,10 @@ rejection, login throttling, remember-me rotation and tampering, password reset,
 and session expiry. The shell suite checks route protection, the application
 layout, navigation, sidebar persistence, Phase 4–5 destinations, and honest empty
 states. The quest suite covers creation, validation, editing, ownership, rewards
-for every difficulty, duplicate and lock-serialized completion, archive,
-restore, deletion rules, level/rank changes, dashboard statistics, and CSRF on
-every mutation. The Phase 4 suite covers idempotent achievement evaluation,
+for every difficulty, duplicate and lock-serialized completion, recurring
+daily/weekly/monthly cadences, per-period rollover and duplicate rejection,
+archive, restore, deletion rules, level/rank changes, dashboard statistics, and
+CSRF on every mutation. The Phase 4 suite covers idempotent achievement evaluation,
 timezone-aware streaks and duplicate/archive behaviour, profile validation and
 avatar storage, notification ownership and deduplication, and leaderboard
 periods, visibility, tie-breaking, and pagination. The Phase 5 suite covers
@@ -426,8 +428,8 @@ php scripts/seed_demo.php
 
 - Account: `demo@questify.local` / `Questify123` (display name “Demo Adventurer”,
   `Europe/London`).
-- Seven quests across five categories, four of them completed, which yields
-  185 XP and level 2.
+- Eight quests across five categories, four of them completed, including one
+  daily recurring quest, which yields 185 XP and level 2.
 - Safe to re-run: the account is reused and quests are only created when the
   demo account has none. Completion still runs through `QuestService`, so the
   XP ledger, streaks, and achievements are consistent with real usage.
@@ -436,11 +438,11 @@ php scripts/seed_demo.php
 
 ### Tests
 
-- `phpunit.xml` + `tests/Unit` provide 54 DB-free tests / 233 assertions over
-  `Progression`, `Validator`, `StreakService`, `MailService`, and the route
-  authorization table.
+- `phpunit.xml` + `tests/Unit` provide 63 DB-free tests / 258 assertions over
+  `Progression`, `Validator`, `StreakService`, `Recurrence`, `MailService`, and
+  the route authorization table.
 - `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
-  before the six HTTP suites (580 checks total).
+  before the six HTTP suites (609 checks total).
 - `tests/bootstrap.php` boots configuration and autoloading without starting a
   session or opening a database connection.
 - `.github/workflows/ci.yml` runs Composer/npm installs, the asset build, PHP
@@ -492,9 +494,15 @@ the server; a submitted `xp_reward` field is ignored.
 - **Ownership:** every read and write includes `user_id = ?` in the SQL
   predicate. Another user's quest returns `404`, not a hidden control.
 - **Single-use XP:** completion runs in one transaction, locks the quest row and
-  the account row with `SELECT … FOR UPDATE`, transitions `active → completed`,
-  and inserts an append-only `xp_transactions` ledger row. A unique index on
-  `quest_id` is the final guard against duplicate awards.
+  the account row with `SELECT … FOR UPDATE`, transitions the quest, and inserts
+  an append-only `xp_transactions` ledger row. A unique index on
+  `(quest_id, period_key)` is the final guard against duplicate awards.
+- **Recurring quests:** each quest has a `recurrence` of `none`, `daily`,
+  `weekly`, or `monthly`. Recurring quests stay `active` and record
+  `last_completed_period`; the period key is derived from the account timezone
+  (`Y-m-d`, `o-\WW`, or `Y-m`), so a daily quest resets at the user’s local
+  midnight. Changing the cadence clears the stored period, and restoring an
+  archived recurring quest returns it to `active`.
 - **Progression:** total XP is the only input to level and rank. The curve is
   `100 × (level − 1)²` (max level 100), and ranks are derived from the level.
 - **Archive instead of destructive history loss:** completed quests can be

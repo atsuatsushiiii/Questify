@@ -55,8 +55,8 @@ $activeTab = $tabs[$status] ?? $tabs['active'];
             My Quests
         </h1>
         <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
-            Every quest is a promise to yourself. Pick a difficulty, finish the work, and claim the reward once.
-            Completed quests stay in your history with their XP.
+            Every quest is a promise to yourself. Pick a difficulty, finish the work, and claim the reward.
+            One-off quests complete permanently; recurring quests return each day, week, or month.
         </p>
     </div>
 

@@ -8,13 +8,25 @@
  * @var array<string, mixed> $user
  * @var string $timezone
  */
+use App\Support\Recurrence;
+
 $questId = (int) $quest['id'];
 $status = (string) $quest['status'];
 $difficulty = (string) $quest['difficulty'];
 $reward = (int) $quest['xp_reward'];
+$recurrence = (string) ($quest['recurrence'] ?? Recurrence::NONE);
+$isRecurring = Recurrence::isRecurring($recurrence);
 $isCompleted = $status === 'completed';
 $isArchived = $status === 'archived';
 $completedAt = isset($quest['completed_at']) ? (string) $quest['completed_at'] : null;
+$doneThisPeriod = Recurrence::isDoneForCurrentPeriod(
+    $recurrence,
+    isset($quest['last_completed_period']) ? (string) $quest['last_completed_period'] : null,
+    $timezone,
+);
+$recurrenceCopy = $doneThisPeriod
+    ? Recurrence::doneLabel($recurrence) . ' — ' . Recurrence::resetLabel($recurrence)
+    : 'Repeats ' . strtolower(Recurrence::options()[$recurrence] ?? 'once') . '.';
 
 $difficultyMeta = match ($difficulty) {
     'medium' => [
@@ -61,10 +73,24 @@ $statusMeta = match ($status) {
     ],
 };
 
-$dateLabel = $isCompleted ? 'Completed' : ($isArchived ? 'Updated' : 'Created');
+if ($isRecurring && $status === 'active' && $doneThisPeriod) {
+    $statusMeta = [
+        'label' => Recurrence::doneLabel($recurrence),
+        'icon' => 'circle-check',
+        'classes' => 'border-emerald-400/25 bg-emerald-500/[0.08] text-emerald-300',
+    ];
+}
+
+$dateLabel = $isCompleted
+    ? 'Completed'
+    : ($isArchived
+        ? 'Updated'
+        : ($isRecurring && $completedAt !== null ? 'Last completed' : 'Created'));
 $dateValue = $isCompleted
     ? $completedAt
-    : ($isArchived ? (string) ($quest['updated_at'] ?? null) : (string) ($quest['created_at'] ?? null));
+    : ($isArchived
+        ? (string) ($quest['updated_at'] ?? null)
+        : ($isRecurring && $completedAt !== null ? $completedAt : (string) ($quest['created_at'] ?? null)));
 $formattedDate = format_datetime($dateValue, $timezone);
 $isoDate = iso_datetime($dateValue);
 ?>
@@ -83,7 +109,7 @@ $isoDate = iso_datetime($dateValue);
 
         <span class="inline-flex items-center gap-1.5 rounded-full border border-gold-400/25 bg-gold-400/[0.08] px-2.5 py-1 text-[10px] font-bold text-gold-300">
             <i data-lucide="zap" class="h-3 w-3"></i>
-            <?= $isCompleted ? 'Earned' : 'Reward' ?> <?= e((string) $reward) ?> XP
+            <?= $isCompleted || $doneThisPeriod ? 'Earned' : 'Reward' ?> <?= e((string) $reward) ?> XP
         </span>
     </div>
 
@@ -93,6 +119,13 @@ $isoDate = iso_datetime($dateValue);
                 <i data-lucide="<?= e($difficultyMeta['icon']) ?>" class="h-3 w-3"></i>
                 <?= e($difficultyMeta['label']) ?>
             </span>
+
+            <?php if ($isRecurring): ?>
+                <span class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/20 bg-emerald-500/[0.06] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-300">
+                    <i data-lucide="repeat" class="h-3 w-3"></i>
+                    <?= e(Recurrence::label($recurrence)) ?>
+                </span>
+            <?php endif; ?>
 
             <?php if (($quest['category_name'] ?? null) !== null): ?>
                 <span class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-slate-300">
@@ -127,13 +160,25 @@ $isoDate = iso_datetime($dateValue);
             </p>
         <?php endif; ?>
 
+        <?php if ($isRecurring && $status === 'active'): ?>
+            <p class="mt-1.5 flex items-center gap-1.5 text-[10px] <?= $doneThisPeriod ? 'text-emerald-400/80' : 'text-slate-600' ?>">
+                <i data-lucide="<?= $doneThisPeriod ? 'circle-check' : 'rotate-ccw' ?>" class="h-3 w-3"></i>
+                <?= e($recurrenceCopy) ?>
+            </p>
+        <?php endif; ?>
+
         <div class="mt-3 flex flex-wrap items-center gap-2">
             <a href="<?= e(url('/quests/' . $questId)) ?>" class="btn btn-app-ghost px-2.5 py-1.5 text-[11px]">
                 <i data-lucide="eye" class="h-3.5 w-3.5"></i>
                 View
             </a>
 
-            <?php if ($status === 'active'): ?>
+            <?php if ($status === 'active' && $doneThisPeriod): ?>
+                <button type="button" class="btn btn-app-ghost ml-auto cursor-default px-2.5 py-1.5 text-[11px] opacity-70" disabled>
+                    <i data-lucide="circle-check" class="h-3.5 w-3.5"></i>
+                    <?= e(Recurrence::doneLabel($recurrence)) ?>
+                </button>
+            <?php elseif ($status === 'active'): ?>
                 <a href="<?= e(url('/quests/' . $questId . '/edit')) ?>" class="btn btn-app-ghost px-2.5 py-1.5 text-[11px]">
                     <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
                     Edit

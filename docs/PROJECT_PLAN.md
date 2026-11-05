@@ -254,10 +254,11 @@ Seeded: Work, Study, Health, Fitness, Personal, Chores, Creative, Social.
 | difficulty | ENUM('easy','medium','hard','epic') | maps to XP server-side |
 | xp_reward | SMALLINT UNSIGNED | snapshot of difficulty value at creation |
 | priority | ENUM('low','medium','high') | default `medium` |
-| recurrence | ENUM('once','daily','weekly') | |
+| recurrence | ENUM('none','daily','weekly','monthly') | shipped as `quests.recurrence` |
 | due_date | DATE NULL | |
-| status | ENUM('active','completed','archived') | one-off lifecycle |
-| completed_at | DATETIME NULL | one-off only |
+| status | ENUM('active','completed','archived') | recurring quests stay `active` |
+| completed_at | DATETIME NULL | last completion; recurring quests keep it set |
+| last_completed_period | VARCHAR(16) NULL | timezone-derived period key for recurring quests |
 | created_at / updated_at | DATETIME | |
 
 Indexes: `(user_id, status, due_date)`, `(user_id, recurrence)`,
@@ -271,13 +272,15 @@ Indexes: `(user_id, status, due_date)`, `(user_id, recurrence)`,
 | user_id | FK users CASCADE | |
 | quest_title | VARCHAR(120) | snapshot |
 | difficulty | ENUM(...) | snapshot |
-| period_key | VARCHAR(10) | `once`, `YYYY-MM-DD`, `YYYY-Www` |
+| period_key | VARCHAR(16) | `once`, `YYYY-MM-DD`, `YYYY-Www`, or `YYYY-MM` |
 | xp_awarded | SMALLINT UNSIGNED | |
 | completed_on | DATE | user-local day; powers streak/heatmap |
 | created_at | DATETIME | |
 
 **UNIQUE `(quest_id, period_key)`** — the hard guarantee against double-claiming
-XP for the same daily/weekly quest or a one-off quest.
+XP for the same daily/weekly/monthly quest or a one-off quest. In the shipped
+implementation this ledger row lives in `xp_transactions.period_key`; there is
+no separate `quest_completions` table.
 Indexes: `(user_id, completed_on)`, `(completed_on)`.
 
 ### 2.9 `xp_transactions` (append-only ledger — source of truth)

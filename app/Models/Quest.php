@@ -17,7 +17,8 @@ final class Quest
 {
     private const SELECT_WITH_CATEGORY = <<<'SQL'
         SELECT q.id, q.user_id, q.category_id, q.title, q.description, q.difficulty,
-               q.xp_reward, q.status, q.completed_at, q.created_at, q.updated_at,
+               q.xp_reward, q.recurrence, q.status, q.completed_at, q.last_completed_period,
+               q.created_at, q.updated_at,
                c.name AS category_name, c.slug AS category_slug,
                c.color AS category_color, c.icon AS category_icon
         FROM quests q
@@ -127,13 +128,13 @@ final class Quest
     }
 
     /**
-     * @param array{user_id: int, category_id: int|null, title: string, description: string, difficulty: string, xp_reward: int} $data
+     * @param array{user_id: int, category_id: int|null, title: string, description: string, difficulty: string, xp_reward: int, recurrence?: string} $data
      */
     public static function create(array $data): int
     {
         $statement = Database::connection()->prepare(
-            'INSERT INTO quests (user_id, category_id, title, description, difficulty, xp_reward, status, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())',
+            'INSERT INTO quests (user_id, category_id, title, description, difficulty, xp_reward, recurrence, status, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())',
         );
         $statement->execute([
             $data['user_id'],
@@ -142,6 +143,7 @@ final class Quest
             $data['description'],
             $data['difficulty'],
             $data['xp_reward'],
+            $data['recurrence'] ?? 'none',
             'active',
         ]);
 
@@ -152,13 +154,15 @@ final class Quest
      * Only active quests can be edited: completed rewards must stay immutable
      * and archived quests have to be restored first.
      *
-     * @param array{category_id: int|null, title: string, description: string, difficulty: string, xp_reward: int} $data
+     * @param array{category_id: int|null, title: string, description: string, difficulty: string, xp_reward: int, recurrence: string, reset_period?: bool} $data
      */
     public static function updateActive(int $id, int $userId, array $data): bool
     {
         $statement = Database::connection()->prepare(
             'UPDATE quests
-             SET category_id = ?, title = ?, description = ?, difficulty = ?, xp_reward = ?, updated_at = UTC_TIMESTAMP()
+             SET category_id = ?, title = ?, description = ?, difficulty = ?, xp_reward = ?,
+                 recurrence = ?, last_completed_period = IF(?, NULL, last_completed_period),
+                 updated_at = UTC_TIMESTAMP()
              WHERE id = ? AND user_id = ? AND status = ?',
         );
         $statement->execute([
@@ -167,6 +171,8 @@ final class Quest
             $data['description'],
             $data['difficulty'],
             $data['xp_reward'],
+            $data['recurrence'],
+            ($data['reset_period'] ?? false) ? 1 : 0,
             $id,
             $userId,
             'active',
@@ -183,6 +189,22 @@ final class Quest
              WHERE id = ? AND user_id = ? AND status = ?',
         );
         $statement->execute(['completed', $id, $userId, 'active']);
+
+        return $statement->rowCount() === 1;
+    }
+
+    /**
+     * Recurring quests stay active; the period key records which window was
+     * paid so the next window can award again.
+     */
+    public static function completeRecurring(PDO $db, int $id, int $userId, string $periodKey): bool
+    {
+        $statement = $db->prepare(
+            'UPDATE quests
+             SET last_completed_period = ?, completed_at = UTC_TIMESTAMP(), updated_at = UTC_TIMESTAMP()
+             WHERE id = ? AND user_id = ? AND status = ?',
+        );
+        $statement->execute([$periodKey, $id, $userId, 'active']);
 
         return $statement->rowCount() === 1;
     }

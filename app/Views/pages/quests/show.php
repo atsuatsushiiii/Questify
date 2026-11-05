@@ -8,14 +8,23 @@
  * @var array<string, mixed> $quest
  * @var array<string, mixed>|null $award
  */
+use App\Support\Recurrence;
+
 $timezone = (string) ($user['timezone'] ?? 'UTC');
 $questId = (int) $quest['id'];
 $status = (string) $quest['status'];
 $difficulty = (string) $quest['difficulty'];
 $reward = (int) $quest['xp_reward'];
+$recurrence = (string) ($quest['recurrence'] ?? Recurrence::NONE);
+$isRecurring = Recurrence::isRecurring($recurrence);
 $completedAt = isset($quest['completed_at']) ? (string) $quest['completed_at'] : null;
 $isCompleted = $status === 'completed';
 $isArchived = $status === 'archived';
+$doneThisPeriod = Recurrence::isDoneForCurrentPeriod(
+    $recurrence,
+    isset($quest['last_completed_period']) ? (string) $quest['last_completed_period'] : null,
+    $timezone,
+);
 
 $difficultyMeta = match ($difficulty) {
     'medium' => ['label' => 'Medium', 'icon' => 'target', 'classes' => 'border-gold-400/25 bg-gold-400/[0.08] text-gold-300'],
@@ -29,6 +38,10 @@ $statusMeta = match ($status) {
     'archived' => ['label' => 'Archived', 'icon' => 'archive', 'classes' => 'border-slate-400/20 bg-slate-400/[0.06] text-slate-400'],
     default => ['label' => 'Active', 'icon' => 'target', 'classes' => 'border-ember-400/25 bg-ember-500/[0.08] text-ember-300'],
 };
+
+if ($isRecurring && $status === 'active' && $doneThisPeriod) {
+    $statusMeta = ['label' => Recurrence::doneLabel($recurrence), 'icon' => 'circle-check', 'classes' => 'border-emerald-400/25 bg-emerald-500/[0.08] text-emerald-300'];
+}
 
 $createdAt = format_datetime((string) ($quest['created_at'] ?? ''), $timezone, 'j M Y, H:i');
 $updatedAt = format_datetime((string) ($quest['updated_at'] ?? ''), $timezone, 'j M Y, H:i');
@@ -54,6 +67,12 @@ $awardedLabel = $award !== null
                     <i data-lucide="<?= e($difficultyMeta['icon']) ?>" class="h-3 w-3"></i>
                     <?= e($difficultyMeta['label']) ?>
                 </span>
+                <?php if ($isRecurring): ?>
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-emerald-300">
+                        <i data-lucide="repeat" class="h-3 w-3"></i>
+                        <?= e(Recurrence::label($recurrence)) ?>
+                    </span>
+                <?php endif; ?>
                 <?php if (($quest['category_name'] ?? null) !== null): ?>
                     <span class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-300">
                         <span class="h-1.5 w-1.5 rounded-full" style="background-color: <?= e((string) $quest['category_color']) ?>"></span>
@@ -74,7 +93,7 @@ $awardedLabel = $award !== null
                 <?php if ($completedLabel !== null): ?>
                     <span class="inline-flex items-center gap-1.5 text-emerald-400/80">
                         <i data-lucide="circle-check" class="h-3 w-3"></i>
-                        Completed <?= e($completedLabel) ?>
+                        <?= $isRecurring ? 'Last completed' : 'Completed' ?> <?= e($completedLabel) ?>
                     </span>
                 <?php endif; ?>
             </p>
@@ -107,7 +126,7 @@ $awardedLabel = $award !== null
             <p class="whitespace-pre-line break-words text-sm leading-relaxed text-slate-300"><?= e((string) $quest['description']) ?></p>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 border-t border-white/[0.06] px-5 py-4 sm:grid-cols-4">
+        <div class="grid grid-cols-2 gap-3 border-t border-white/[0.06] px-5 py-4 sm:grid-cols-5">
             <div>
                 <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Reward</p>
                 <p class="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-gold-300">
@@ -118,6 +137,10 @@ $awardedLabel = $award !== null
             <div>
                 <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Difficulty</p>
                 <p class="mt-1 text-xs font-medium text-slate-300"><?= e($difficultyMeta['label']) ?></p>
+            </div>
+            <div>
+                <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Repeats</p>
+                <p class="mt-1 text-xs font-medium text-slate-300"><?= e(Recurrence::label($recurrence)) ?></p>
             </div>
             <div>
                 <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Category</p>
@@ -131,7 +154,24 @@ $awardedLabel = $award !== null
     </article>
 
     <aside class="flex flex-col gap-4">
-        <?php if ($status === 'active'): ?>
+        <?php if ($status === 'active' && $doneThisPeriod): ?>
+            <div class="rounded-2xl border border-emerald-400/20 bg-emerald-500/[0.06] p-5">
+                <div class="flex items-center gap-2 text-emerald-300">
+                    <i data-lucide="circle-check" class="h-4 w-4"></i>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.16em]"><?= e(Recurrence::doneLabel($recurrence)) ?></p>
+                </div>
+                <p class="mt-3 font-display text-4xl font-bold leading-none text-white">
+                    +<?= e((string) ($award['amount'] ?? $reward)) ?> <span class="text-sm font-medium text-emerald-300">XP</span>
+                </p>
+                <?php if ($awardedLabel !== null): ?>
+                    <p class="mt-2 text-[11px] text-slate-500">Awarded <?= e($awardedLabel) ?>.</p>
+                <?php endif; ?>
+                <p class="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-slate-500">
+                    <i data-lucide="repeat" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400/80"></i>
+                    <?= e(Recurrence::resetLabel($recurrence)) ?> The quest stays active and pays again in the next period.
+                </p>
+            </div>
+        <?php elseif ($status === 'active'): ?>
             <div class="relative overflow-hidden rounded-2xl border border-gold-400/20 bg-gradient-to-br from-gold-400/[0.08] via-white/[0.02] to-transparent p-5">
                 <div class="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-gold-400/[0.12] blur-[60px]" aria-hidden="true"></div>
                 <div class="relative">
@@ -140,7 +180,11 @@ $awardedLabel = $award !== null
                         +<?= e((string) $reward) ?> <span class="text-sm font-medium text-gold-300">XP</span>
                     </p>
                     <p class="mt-2 text-[11px] leading-relaxed text-slate-500">
-                        Completing this quest awards XP exactly once and recalculates your level and rank.
+                        <?php if ($isRecurring): ?>
+                            Completing this <?= e(strtolower(Recurrence::label($recurrence))) ?> quest awards XP once per <?= e(Recurrence::periodNoun($recurrence)) ?>. <?= e(Recurrence::resetLabel($recurrence)) ?>
+                        <?php else: ?>
+                            Completing this quest awards XP exactly once and recalculates your level and rank.
+                        <?php endif; ?>
                     </p>
                     <form method="POST" action="<?= e(url('/quests/' . $questId . '/complete')) ?>" class="mt-4" data-quest-action>
                         <?= csrf_field() ?>
