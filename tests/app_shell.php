@@ -137,6 +137,9 @@ function jarWithoutComments(string $file): array
  */
 function jarWithCookie(string $file, string $name, string $value): string
 {
+    global $baseUrl;
+
+    $host = parse_url($baseUrl, PHP_URL_HOST) ?: 'localhost';
     $target = (string) tempnam(sys_get_temp_dir(), 'questify_shell_jar_');
     $lines = array_values(array_filter(
         jarWithoutComments($file),
@@ -146,7 +149,7 @@ function jarWithCookie(string $file, string $name, string $value): string
             return ($fields[5] ?? '') !== $name;
         },
     ));
-    $lines[] = implode("\t", ['localhost', 'FALSE', '/', 'FALSE', '0', $name, $value]);
+    $lines[] = implode("\t", [$host, 'FALSE', '/', 'FALSE', '0', $name, $value]);
     file_put_contents($target, implode(PHP_EOL, $lines) . PHP_EOL);
 
     return $target;
