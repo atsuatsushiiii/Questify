@@ -34,20 +34,6 @@ jobs:
           --health-timeout=5s
           --health-retries=12
 
-    env:
-      APP_NAME: Questify
-      APP_ENV: local
-      APP_DEBUG: "true"
-      APP_URL: http://127.0.0.1:8000
-      DB_HOST: 127.0.0.1
-      DB_PORT: "3306"
-      DB_DATABASE: questify
-      DB_USERNAME: questify
-      DB_PASSWORD: secret
-      SESSION_COOKIE_NAME: questify_session
-      SESSION_SECURE: "false"
-      MAIL_TRANSPORT: log
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -76,7 +62,23 @@ jobs:
         run: npm run build
 
       - name: Prepare environment file
-        run: cp .env.example .env
+        run: |
+          cat > .env <<'ENV'
+          APP_NAME=Questify
+          APP_ENV=local
+          APP_DEBUG=true
+          APP_URL=http://127.0.0.1:8000
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=questify
+          DB_USERNAME=questify
+          DB_PASSWORD=secret
+          SESSION_COOKIE_NAME=questify_session
+          SESSION_SECURE=false
+          MAIL_TRANSPORT=log
+          MAIL_FROM_ADDRESS=no-reply@questify.local
+          MAIL_FROM_NAME=Questify
+          ENV
 
       - name: Lint PHP
         run: |
@@ -93,13 +95,14 @@ jobs:
         run: |
           php -S 127.0.0.1:8000 -t public scripts/router.php > storage/logs/server.log 2>&1 &
           for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:8000/api/health; then
+            if curl -fs http://127.0.0.1:8000/api/health >/dev/null; then
               exit 0
             fi
             sleep 1
           done
           echo "Server did not become healthy" >&2
           cat storage/logs/server.log >&2
+          cat storage/logs/app.log >&2 || true
           exit 1
 
       - name: Run HTTP suites
