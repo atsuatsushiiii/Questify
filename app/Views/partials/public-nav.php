@@ -5,9 +5,9 @@
  * Public navigation. Anchor links only target sections on the landing page.
  */
 $links = [
-    ['label' => 'Features', 'href' => '#features'],
-    ['label' => 'How it works', 'href' => '#how'],
-    ['label' => 'Preview', 'href' => '#preview'],
+    ['label' => 'Features', 'href' => url('/') . '#features'],
+    ['label' => 'How it works', 'href' => url('/') . '#how'],
+    ['label' => 'Preview', 'href' => url('/') . '#preview'],
 ];
 $navUser = auth_user();
 $navName = $navUser !== null

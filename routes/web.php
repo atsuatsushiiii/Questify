@@ -17,6 +17,7 @@ use App\Controllers\Web\LeaderboardController;
 use App\Controllers\Web\NotificationController;
 use App\Controllers\Web\PasswordResetController;
 use App\Controllers\Web\ProfileController;
+use App\Controllers\Web\PublicProfileController;
 use App\Controllers\Web\QuestController;
 use App\Controllers\Web\SettingsController;
 use App\Core\Router;
@@ -40,6 +41,9 @@ $router->post('/forgot-password', [PasswordResetController::class, 'send'], [Gue
 
 $router->get('/reset-password', [PasswordResetController::class, 'showReset'], [GuestMiddleware::class]);
 $router->post('/reset-password', [PasswordResetController::class, 'reset'], [GuestMiddleware::class, VerifyCsrfToken::class]);
+
+// Public, opt-in profile pages. Hidden and suspended accounts resolve as 404.
+$router->get('/u/{username}', [PublicProfileController::class, 'show']);
 
 // Authenticated routes.
 $router->get('/dashboard', [DashboardController::class, 'index'], [AuthMiddleware::class]);

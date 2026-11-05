@@ -54,6 +54,20 @@ working exploit. Include the route, the request, and the observed behaviour.
   without `AuthMiddleware` + `AdminMiddleware`, or if CSRF is checked before the
   role gate.
 
+### Public profiles
+
+- `GET /u/{username}` is public by design, but resolves only when
+  `users.status = 'active'` **and** `users.show_profile = 1`.
+- Hidden profiles, suspended accounts, and unknown usernames all return the same
+  `404` response, so the route cannot be used to enumerate accounts.
+- The public view renders only display name, username, avatar, level/rank,
+  lifetime XP, completed-quest count, current/longest streak, unlocked
+  achievements, and the member-since month. Email, timezone, quest titles,
+  sessions, login metadata, and settings are never rendered; timezone is selected
+  only to compute the current streak correctly.
+- `show_profile` is separate from `show_on_leaderboard`; leaderboard links to a
+  profile render only when `show_profile = 1`.
+
 ### CSRF
 
 - All state-changing forms embed a synchronizer token (`csrf_field()`), and
@@ -181,11 +195,14 @@ php tests/quest_flow.php               # ownership, single-use and per-period XP
 php tests/phase4_flow.php              # achievements, streaks, leaderboards
 php tests/phase5_flow.php              # account settings and deletion
 php tests/phase6_flow.php              # admin authorization and moderation
+php tests/public_profile_flow.php      # public profiles, privacy, 404s
 ```
 
 The Phase 6 suite is the executable form of the completion criterion: a normal
-user gets `403` on every `/admin` route and API.
+user gets `403` on every `/admin` route and API. The public profile suite proves
+that hidden and suspended accounts resolve as `404` and that emails/timezones
+never leak.
 
-`.github/workflows/ci.yml` runs the unit suite and all six HTTP suites against a
-MariaDB service on every push and pull request, so the verification above is not
-manual-only.
+`.github/workflows/ci.yml` runs the unit suite and all seven HTTP suites against
+a MariaDB service on every push and pull request, so the verification above is
+not manual-only.

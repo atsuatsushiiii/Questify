@@ -8,9 +8,9 @@ quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 > **Status:** Phase 8 — production readiness complete: 63 PHPUnit unit tests,
 > a repeatable demo seeder, a written security/threat review with a production
 > checklist, and documented backup/restore steps. These sit alongside recurring
-> daily/weekly/monthly quests, the Phase 7 polish pass, and the Phase 1–6 auth,
-> shell, quest engine, achievements, streaks, profiles, notifications,
-> leaderboards, account settings, and administrator tooling.
+> daily/weekly/monthly quests, public opt-in profiles, the Phase 7 polish pass,
+> and the Phase 1–6 auth, shell, quest engine, achievements, streaks, profiles,
+> notifications, leaderboards, account settings, and administrator tooling.
 > See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full architecture,
 > schema, and roadmap.
 
@@ -133,7 +133,8 @@ docs/            Architecture plan and security notes
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
 | `php tests/phase6_flow.php` | Admin authorization, KPIs, moderation, catalogue CRUD, audit (111 checks) |
-| `composer test` | Run the unit suite and all six HTTP suites (609 checks) |
+| `php tests/public_profile_flow.php` | Public profile rendering, privacy, 404s, leaderboard links (39 checks) |
+| `composer test` | Run the unit suite and all seven HTTP suites (648 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -199,13 +200,14 @@ php scripts/migrate.php
 npm run build
 php -S localhost:8000 -t public scripts/router.php
 
-composer test                 # unit suite + all six HTTP suites
+composer test                 # unit suite + all seven HTTP suites
 php tests/auth_flow.php       # auth only (55 checks)
 php tests/app_shell.php       # shell and Phase 4-6 pages (69 checks)
 php tests/quest_flow.php      # quests only (137 checks)
 php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leaderboard (78 checks)
 php tests/phase5_flow.php     # settings/email/sessions/export/deletion (96 checks)
 php tests/phase6_flow.php     # admin authorization/moderation/catalogue/audit (111 checks)
+php tests/public_profile_flow.php  # public profiles/privacy/leaderboard links (39 checks)
 ```
 
 The unit suite pins the level curve and rank ladder, validator edge cases,
@@ -233,7 +235,9 @@ redirected and normal users receive `403` on every `/admin` route and API, then
 covers KPI data, user search/filter/pagination, suspend/activate and
 promote/demote rules, category CRUD with quest assignment and filtering,
 achievement CRUD with unlock-safe deletion, audit filters, and CSRF rejection on
-admin mutations. All six delete their own data.
+admin mutations. The public profile suite covers guest rendering, completed
+stats and achievements, dedicated privacy opt-out, suspended-account 404s,
+leaderboard links, and hidden-profile 404s. All seven delete their own data.
 
 ## Application shell, quest log, and Phase 4–6 (Phases 2–6)
 
@@ -268,8 +272,9 @@ Every authenticated page renders inside `app/Views/layouts/app.php`:
 | `/notifications` | Live — owner-scoped inbox with read/unread filters |
 | `/settings` | Live — password, verified email, preferences, sessions, export, deletion |
 
-All routes require authentication. There is no public profile route; profiles are
-owner-only, and every settings action is scoped to the authenticated account.
+Authenticated routes require authentication. Public profiles live at
+`GET /u/{username}` and require no session; every settings action is scoped to
+the authenticated account.
 
 ## Adventure systems (Phase 4)
 
@@ -292,13 +297,22 @@ owner-only, and every settings action is scoped to the authenticated account.
 
 ### Profiles
 
-- Owner-only edits validate display name, timezone, and visibility server-side;
-  failures re-render with `422` and field errors.
+- Owner-only edits validate display name, timezone, profile visibility, and
+  leaderboard visibility server-side; failures re-render with `422` and field
+  errors.
 - Avatars accept JPEG, PNG, and WebP up to 2 MB and 64×64–4096×4096. Files are
   validated by real content, renamed with random server-generated names, and
   stored in `public/uploads/avatars`, which denies script execution. The upload
   path is verified with `realpath()` before writing.
-- Leaderboard visibility is opt-in and shown directly on the profile card.
+- Public profiles live at `GET /u/{username}` and render for guests. They show
+  display name, username, avatar, level/rank, lifetime XP, completed quests,
+  current/longest streak, unlocked achievements, and member-since month. Email,
+  timezone, quest titles, and account settings are never exposed.
+- `show_profile` is a dedicated opt-in toggle, separate from
+  `show_on_leaderboard`. Hidden profiles and suspended accounts return `404`,
+  exactly like an unknown username, so the route cannot be used for enumeration.
+- Leaderboard names, usernames, and avatars link to `/u/{username}` only when
+  that account has a public profile. Leaderboard visibility remains independent.
 
 ### Notifications
 
@@ -442,11 +456,11 @@ php scripts/seed_demo.php
   `Progression`, `Validator`, `StreakService`, `Recurrence`, `MailService`, and
   the route authorization table.
 - `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
-  before the six HTTP suites (609 checks total).
+  before the seven HTTP suites (648 checks total).
 - `tests/bootstrap.php` boots configuration and autoloading without starting a
   session or opening a database connection.
 - `.github/workflows/ci.yml` runs Composer/npm installs, the asset build, PHP
-  lint, migrations, the unit suite, and all six HTTP suites against MariaDB
+  lint, migrations, the unit suite, and all seven HTTP suites against MariaDB
   10.11 on every push and pull request.
 
 ### Email

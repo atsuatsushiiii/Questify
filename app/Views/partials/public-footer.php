@@ -2,9 +2,9 @@
 
 // Code © 2026 Kevin Cyril Maraño, MIT license.
 $productLinks = [
-    ['label' => 'Features', 'href' => '#features'],
-    ['label' => 'How it works', 'href' => '#how'],
-    ['label' => 'Preview', 'href' => '#preview'],
+    ['label' => 'Features', 'href' => url('/') . '#features'],
+    ['label' => 'How it works', 'href' => url('/') . '#how'],
+    ['label' => 'Preview', 'href' => url('/') . '#preview'],
 ];
 ?>
 <footer class="border-t border-white/[0.06] bg-ink/40">

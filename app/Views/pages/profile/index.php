@@ -23,6 +23,7 @@ $avatarPath = isset($user['avatar_path']) ? (string) $user['avatar_path'] : null
 $avatarUrl = avatar_url($avatarPath);
 $summary = $overview['summary'];
 $visible = ($old['show_on_leaderboard'] ?? '1') === '1';
+$profileVisible = ($old['show_profile'] ?? '1') === '1';
 $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
 ?>
 <section class="mx-auto max-w-6xl" data-reveal>
@@ -37,10 +38,18 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                 Your identity, public leaderboard settings, streak history, and earned trophies.
             </p>
         </div>
-        <a href="<?= e(url('/leaderboard')) ?>" class="btn-app-ghost btn inline-flex text-xs">
-            <i data-lucide="crown" class="h-3.5 w-3.5"></i>
-            View leaderboard
-        </a>
+        <div class="flex flex-wrap items-center gap-2">
+            <?php if ($profileVisible && $username !== ''): ?>
+                <a href="<?= e(url('/u/' . rawurlencode($username))) ?>" class="btn-app-ghost btn inline-flex text-xs">
+                    <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+                    Public profile
+                </a>
+            <?php endif; ?>
+            <a href="<?= e(url('/leaderboard')) ?>" class="btn-app-ghost btn inline-flex text-xs">
+                <i data-lucide="crown" class="h-3.5 w-3.5"></i>
+                View leaderboard
+            </a>
+        </div>
     </div>
 
     <?php if ($message !== null): ?>
@@ -77,15 +86,21 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                                 <i data-lucide="shield-check" class="h-3 w-3"></i>
                                 <?= e((string) $progression['rank']) ?> · Level <?= e((string) $progression['level']) ?>
                             </span>
-                            <?php if ($visible): ?>
+                            <?php if ($profileVisible): ?>
                                 <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-500/[0.08] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-emerald-300">
                                     <i data-lucide="eye" class="h-3 w-3"></i>
-                                    Public
+                                    Profile public
                                 </span>
                             <?php else: ?>
                                 <span class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-slate-400">
                                     <i data-lucide="eye-off" class="h-3 w-3"></i>
-                                    Hidden
+                                    Profile hidden
+                                </span>
+                            <?php endif; ?>
+                            <?php if (!$visible): ?>
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-slate-500">
+                                    <i data-lucide="eye-off" class="h-3 w-3"></i>
+                                    Leaderboard hidden
                                 </span>
                             <?php endif; ?>
                         </div>
@@ -234,6 +249,29 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                         </div>
                         <p id="timezone-help" class="mt-1.5 text-[11px] text-slate-600">Used for streak days and daily quest timing. Past streak history is not rewritten.</p>
                         <?php $field = 'timezone'; require __DIR__ . '/../../partials/field-error.php'; ?>
+                    </div>
+
+                    <div>
+                        <span class="field-label">Public profile</span>
+                        <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3.5 transition hover:border-gold-400/20 hover:bg-white/[0.03]">
+                            <input
+                                type="checkbox"
+                                name="show_profile"
+                                value="1"
+                                class="mt-0.5 h-4 w-4 rounded border-white/20 bg-white/[0.03] accent-ember-500"
+                                <?= $profileVisible ? 'checked' : '' ?>
+                            >
+                            <span>
+                                <span class="block text-xs font-semibold text-slate-200">Publish my public profile</span>
+                                <span class="mt-0.5 block text-[11px] leading-relaxed text-slate-500">Your page at <span class="font-mono text-slate-400">/u/<?= e($username) ?></span> shows your level, XP, streaks, and unlocked achievements. Email, timezone, and settings stay private.</span>
+                            </span>
+                        </label>
+                        <?php if ($profileVisible && $username !== ''): ?>
+                            <a href="<?= e(url('/u/' . rawurlencode($username))) ?>" class="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold-300 transition hover:text-gold-200">
+                                <i data-lucide="external-link" class="h-3 w-3"></i>
+                                View my public profile
+                            </a>
+                        <?php endif; ?>
                     </div>
 
                     <div>

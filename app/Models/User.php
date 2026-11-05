@@ -55,6 +55,27 @@ final class User
     }
 
     /**
+     * Public profile lookup. Hidden profiles and suspended accounts return null
+     * so they are indistinguishable from a missing account.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function findPublicByUsername(string $username): ?array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT id, username, display_name, avatar_path, xp_total,
+                    current_streak, longest_streak, last_streak_date, timezone, created_at
+             FROM users
+             WHERE username = ? AND status = 'active' AND show_profile = 1
+             LIMIT 1",
+        );
+        $statement->execute([$username]);
+        $user = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return $user === false ? null : $user;
+    }
+
+    /**
      * @param array{username: string, email: string, password_hash: string, display_name: string, timezone: string} $data
      */
     public static function create(array $data): int
@@ -110,14 +131,26 @@ final class User
         $statement->execute([max(0, $current), max(0, $longest), $lastDate, $id]);
     }
 
-    public static function updateProfile(int $id, string $displayName, string $timezone, bool $visible): void
-    {
+    public static function updateProfile(
+        int $id,
+        string $displayName,
+        string $timezone,
+        bool $leaderboardVisible,
+        bool $profileVisible,
+    ): void {
         $statement = Database::connection()->prepare(
             'UPDATE users
-             SET display_name = ?, timezone = ?, show_on_leaderboard = ?, updated_at = UTC_TIMESTAMP()
+             SET display_name = ?, timezone = ?, show_on_leaderboard = ?, show_profile = ?,
+                 updated_at = UTC_TIMESTAMP()
              WHERE id = ?',
         );
-        $statement->execute([$displayName, $timezone, $visible ? 1 : 0, $id]);
+        $statement->execute([
+            $displayName,
+            $timezone,
+            $leaderboardVisible ? 1 : 0,
+            $profileVisible ? 1 : 0,
+            $id,
+        ]);
     }
 
     public static function updateAvatar(int $id, ?string $path): void

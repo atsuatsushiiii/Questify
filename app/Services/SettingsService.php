@@ -429,7 +429,7 @@ final class SettingsService
         $statement = $db->prepare(
             'SELECT id, username, email, email_verified_at, display_name, bio, timezone, role, status,
                     xp_total, level, current_streak, longest_streak, last_streak_date,
-                    show_on_leaderboard, notify_achievements, notify_level_ups, notify_streaks,
+                    show_on_leaderboard, show_profile, notify_achievements, notify_level_ups, notify_streaks,
                     notify_leaderboard, avatar_path, created_at, updated_at, last_login_at
              FROM users WHERE id = ? LIMIT 1',
         );

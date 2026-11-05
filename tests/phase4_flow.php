@@ -370,6 +370,7 @@ $updated = $client->post('/profile', [
     'display_name' => $newDisplayName,
     'timezone' => 'America/New_York',
     'show_on_leaderboard' => '1',
+    'show_profile' => '1',
 ]);
 check('Valid profile update redirects', $updated['status'] === 302 && str_ends_with($updated['headers']['location'] ?? '', '/profile'));
 
@@ -394,16 +395,18 @@ $hiddenProfile = $client->post('/profile', [
     '_csrf_token' => $csrf,
     'display_name' => $newDisplayName,
     'timezone' => 'America/New_York',
+    'show_profile' => '1',
 ]);
 check('Profile can be hidden from leaderboards', $hiddenProfile['status'] === 302);
 check('Hidden visibility is persisted', (int) row($pdo, 'SELECT show_on_leaderboard FROM users WHERE id = ?', [$userId])['show_on_leaderboard'] === 0);
-check('Hidden state renders on profile', contains($client->get('/profile')['body'], 'eye-off') && contains($client->get('/profile')['body'], 'Hidden'));
+check('Hidden state renders on profile', contains($client->get('/profile')['body'], 'eye-off') && contains($client->get('/profile')['body'], 'Leaderboard hidden'));
 
 $visibleProfile = $client->post('/profile', [
     '_csrf_token' => $csrf,
     'display_name' => $newDisplayName,
     'timezone' => 'America/New_York',
     'show_on_leaderboard' => '1',
+    'show_profile' => '1',
 ]);
 check('Profile can be public again', $visibleProfile['status'] === 302);
 

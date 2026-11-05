@@ -274,6 +274,10 @@ $timezone = (string) ($account['timezone'] ?? 'UTC');
                 <dd class="mt-1 text-slate-300"><?= (int) ($account['show_on_leaderboard'] ?? 0) === 1 ? 'Public' : 'Hidden' ?></dd>
             </div>
             <div>
+                <dt class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Public profile</dt>
+                <dd class="mt-1 text-slate-300"><?= (int) ($account['show_profile'] ?? 1) === 1 ? 'Published' : 'Hidden' ?></dd>
+            </div>
+            <div>
                 <dt class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Streak</dt>
                 <dd class="mt-1 text-slate-300"><?= e((string) $account['current_streak']) ?> current · <?= e((string) $account['longest_streak']) ?> best</dd>
             </div>

@@ -44,6 +44,7 @@
         "test:phase4": "@php tests/phase4_flow.php",
         "test:phase5": "@php tests/phase5_flow.php",
         "test:phase6": "@php tests/phase6_flow.php",
+        "test:profiles": "@php tests/public_profile_flow.php",
         "test": [
             "@test:unit",
             "@test:auth",
@@ -51,7 +52,8 @@
             "@test:quests",
             "@test:phase4",
             "@test:phase5",
-            "@test:phase6"
+            "@test:phase6",
+            "@test:profiles"
         ]
     }
 }

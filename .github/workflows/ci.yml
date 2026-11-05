@@ -113,6 +113,7 @@ jobs:
           php tests/phase4_flow.php
           php tests/phase5_flow.php
           php tests/phase6_flow.php
+          php tests/public_profile_flow.php
 
       - name: Upload server log on failure
         if: failure()

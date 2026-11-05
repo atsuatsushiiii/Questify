@@ -124,6 +124,7 @@ final class ProfileController
             'display_name' => (string) ($user['display_name'] ?? ''),
             'timezone' => (string) ($user['timezone'] ?? 'UTC'),
             'show_on_leaderboard' => (int) ($user['show_on_leaderboard'] ?? 1) === 1 ? '1' : '0',
+            'show_profile' => (int) ($user['show_profile'] ?? 1) === 1 ? '1' : '0',
         ];
     }
 

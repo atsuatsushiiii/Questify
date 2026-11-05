@@ -91,6 +91,10 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
                 <?php
                 $position = (int) $entry['rank_position'];
                 $entryName = (string) ($entry['display_name'] ?? $entry['username'] ?? 'Adventurer');
+                $entryUsername = (string) ($entry['username'] ?? '');
+                $entryProfileUrl = (int) ($entry['show_profile'] ?? 0) === 1 && $entryUsername !== ''
+                    ? url('/u/' . rawurlencode($entryUsername))
+                    : null;
                 $isViewer = (int) $entry['id'] === (int) $user['id'];
                 ?>
                 <article class="relative overflow-hidden rounded-2xl border p-5 <?= e($podiumTones[$position] ?? $podiumTones[3]) ?> <?= e($podiumHeights[$position] ?? '') ?>">
@@ -101,12 +105,23 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
                         </span>
                         <div class="min-w-0 flex-1">
                             <p class="truncate text-sm font-semibold text-white">
-                                <?= e($entryName) ?>
+                                <?php if ($entryProfileUrl !== null): ?>
+                                    <a href="<?= e($entryProfileUrl) ?>" class="underline-offset-2 hover:underline"><?= e($entryName) ?></a>
+                                <?php else: ?>
+                                    <?= e($entryName) ?>
+                                <?php endif; ?>
                                 <?php if ($isViewer): ?>
                                     <span class="ml-1 rounded border border-gold-400/25 bg-gold-400/[0.12] px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-gold-200">You</span>
                                 <?php endif; ?>
                             </p>
-                            <p class="truncate text-[10px] text-slate-400">@<?= e((string) $entry['username']) ?> · Lv <?= e((string) $entry['level']) ?> <?= e((string) $entry['rank_title']) ?></p>
+                            <p class="truncate text-[10px] text-slate-400">
+                                <?php if ($entryProfileUrl !== null): ?>
+                                    <a href="<?= e($entryProfileUrl) ?>" class="underline-offset-2 hover:text-gold-300 hover:underline">@<?= e($entryUsername) ?></a>
+                                <?php else: ?>
+                                    @<?= e($entryUsername) ?>
+                                <?php endif; ?>
+                                · Lv <?= e((string) $entry['level']) ?> <?= e((string) $entry['rank_title']) ?>
+                            </p>
                         </div>
                     </div>
                     <p class="relative mt-4 font-display text-2xl font-bold tabular-nums text-white">

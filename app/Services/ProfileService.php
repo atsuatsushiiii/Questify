@@ -37,16 +37,19 @@ final class ProfileService
         $rawTimezone = is_string($input['timezone'] ?? null) ? (string) $input['timezone'] : '';
         $displayName = preg_replace('/\s+/u', ' ', trim($rawName)) ?? '';
         $timezone = trim($rawTimezone);
-        $visible = in_array(
-            strtolower(is_string($input['show_on_leaderboard'] ?? null) ? (string) $input['show_on_leaderboard'] : ''),
+        $flag = static fn (string $field): bool => in_array(
+            strtolower(is_string($input[$field] ?? null) ? (string) $input[$field] : ''),
             ['1', 'on', 'yes', 'true'],
             true,
         );
+        $leaderboardVisible = $flag('show_on_leaderboard');
+        $profileVisible = $flag('show_profile');
 
         $old = [
             'display_name' => $rawName,
             'timezone' => $rawTimezone,
-            'show_on_leaderboard' => $visible ? '1' : '0',
+            'show_on_leaderboard' => $leaderboardVisible ? '1' : '0',
+            'show_profile' => $profileVisible ? '1' : '0',
         ];
         $errors = [];
 
@@ -74,7 +77,13 @@ final class ProfileService
         $db->beginTransaction();
 
         try {
-            User::updateProfile($userId, $displayName, $timezone, $visible);
+            User::updateProfile(
+                $userId,
+                $displayName,
+                $timezone,
+                $leaderboardVisible,
+                $profileVisible,
+            );
             NotificationService::profileUpdated($db, $userId);
             $db->commit();
         } catch (Throwable $exception) {
@@ -91,7 +100,8 @@ final class ProfileService
             'old' => [
                 'display_name' => $displayName,
                 'timezone' => $timezone,
-                'show_on_leaderboard' => $visible ? '1' : '0',
+                'show_on_leaderboard' => $leaderboardVisible ? '1' : '0',
+                'show_profile' => $profileVisible ? '1' : '0',
             ],
         ];
     }

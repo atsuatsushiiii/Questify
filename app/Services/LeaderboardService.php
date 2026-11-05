@@ -200,7 +200,7 @@ final class LeaderboardService
         if ($period === 'all') {
             $statement = $db->prepare(
                 "SELECT u.id, u.username, u.display_name, u.avatar_path, u.level, u.xp_total,
-                        u.xp_total AS period_xp,
+                        u.show_profile, u.xp_total AS period_xp,
                         ROW_NUMBER() OVER (ORDER BY u.xp_total DESC, u.id ASC) AS rank_position
                  FROM users u
                  WHERE u.status = 'active' AND u.show_on_leaderboard = 1 AND u.xp_total > 0
@@ -211,7 +211,7 @@ final class LeaderboardService
         } else {
             $statement = $db->prepare(
                 "SELECT u.id, u.username, u.display_name, u.avatar_path, u.level, u.xp_total,
-                        p.period_xp,
+                        u.show_profile, p.period_xp,
                         ROW_NUMBER() OVER (
                             ORDER BY p.period_xp DESC, u.xp_total DESC, u.id ASC
                         ) AS rank_position
@@ -236,6 +236,7 @@ final class LeaderboardService
             $row['period_xp'] = (int) $row['period_xp'];
             $row['xp_total'] = (int) $row['xp_total'];
             $row['level'] = (int) $row['level'];
+            $row['show_profile'] = (int) ($row['show_profile'] ?? 1);
             $row['rank_title'] = Progression::rank($row['level']);
 
             return $row;
@@ -344,6 +345,7 @@ final class LeaderboardService
             'xp_total' => (int) $progression['xp'],
             'period_xp' => $periodXp,
             'rank_position' => $rank,
+            'show_profile' => (int) ($viewer['show_profile'] ?? 1),
             'rank_title' => (string) $progression['rank'],
         ];
     }

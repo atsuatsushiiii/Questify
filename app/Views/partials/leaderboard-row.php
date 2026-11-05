@@ -17,6 +17,9 @@ $xp = (int) ($entry['period_xp'] ?? $entry['xp_total'] ?? 0);
 $rankTitle = (string) ($entry['rank_title'] ?? '');
 $isViewer = $isViewer ?? false;
 $metricLabel = $metricLabel ?? 'XP';
+$profileUrl = (int) ($entry['show_profile'] ?? 0) === 1 && $username !== ''
+    ? url('/u/' . rawurlencode($username))
+    : null;
 $badgeClasses = match (true) {
     $position === 1 => 'border-gold-400/35 bg-gold-400/15 text-gold-200',
     $position === 2 => 'border-slate-300/25 bg-slate-300/10 text-slate-200',
@@ -36,17 +39,33 @@ $badgeClasses = match (true) {
         $avatarPath = isset($entry['avatar_path']) ? (string) $entry['avatar_path'] : null;
         $name = $displayName;
         $size = 'sm';
-        require __DIR__ . '/avatar.php';
         ?>
+        <?php if ($profileUrl !== null): ?>
+            <a href="<?= e($profileUrl) ?>" class="shrink-0 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/60" aria-label="View <?= e($displayName) ?>'s public profile">
+                <?php require __DIR__ . '/avatar.php'; ?>
+            </a>
+        <?php else: ?>
+            <?php require __DIR__ . '/avatar.php'; ?>
+        <?php endif; ?>
         <div class="min-w-0">
             <p class="flex items-center gap-1.5 truncate text-xs font-semibold text-slate-200">
-                <span class="truncate"><?= e($displayName) ?></span>
+                <?php if ($profileUrl !== null): ?>
+                    <a href="<?= e($profileUrl) ?>" class="truncate underline-offset-2 hover:text-white hover:underline"><?= e($displayName) ?></a>
+                <?php else: ?>
+                    <span class="truncate"><?= e($displayName) ?></span>
+                <?php endif; ?>
                 <?php if ($isViewer): ?>
                     <span class="rounded border border-gold-400/20 bg-gold-400/[0.08] px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-gold-300">You</span>
                 <?php endif; ?>
             </p>
             <?php if ($username !== ''): ?>
-                <p class="truncate text-[10px] text-slate-600">@<?= e($username) ?></p>
+                <p class="truncate text-[10px] text-slate-600">
+                    <?php if ($profileUrl !== null): ?>
+                        <a href="<?= e($profileUrl) ?>" class="underline-offset-2 hover:text-gold-300 hover:underline">@<?= e($username) ?></a>
+                    <?php else: ?>
+                        @<?= e($username) ?>
+                    <?php endif; ?>
+                </p>
             <?php endif; ?>
         </div>
     </div>

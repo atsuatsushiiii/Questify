@@ -202,6 +202,7 @@ indexed, no `SELECT *` in application code.
 | last_streak_date | DATE NULL | user-local day of last completion |
 | timezone | VARCHAR(64) | default `UTC` |
 | show_on_leaderboard | TINYINT(1) | privacy |
+| show_profile | TINYINT(1) | public profile opt-in, default `1` |
 | email_verified_at | DATETIME NULL | |
 | last_login_at | DATETIME NULL | |
 | created_at / updated_at | DATETIME | |
@@ -534,7 +535,8 @@ concurrent requests.
 
 ### Phase 5 — Leaderboard & profile (2 days)
 Weekly/monthly/all-time ranking from the ledger, privacy opt-out, own-rank row,
-public profile, avatar upload, settings, session management, Chart.js visuals.
+public profile at `/u/{username}` with a dedicated `show_profile` opt-in,
+avatar upload, settings, session management, Chart.js visuals.
 **Done when:** rankings match ledger sums and suspended/hidden users are excluded.
 
 ### Phase 6 — Admin (2–3 days)
@@ -666,7 +668,7 @@ config surface for no benefit here.)
 |---|---|---|
 | 1 | Are quests private per user, or admin-assigned/global? | Private, user-owned; admin sees aggregate stats only |
 | 2 | Leaderboard periods | Weekly, monthly, all-time (from XP ledger) |
-| 3 | Public profiles | Yes, with a "hide me" setting |
+| 3 | Public profiles | Shipped at `/u/{username}` with a dedicated `show_profile` opt-out; hidden/suspended accounts return `404` |
 | 4 | Password reset email | Log file in dev, PHPMailer config in prod |
 | 5 | Admin roles | Single `admin` role (no moderator tier) |
 | 6 | Level titles | Novice → Adventurer → Champion → Legend → Mythic |
