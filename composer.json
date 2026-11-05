@@ -32,6 +32,8 @@
         "migrate": "@php scripts/migrate.php migrate",
         "migrate:status": "@php scripts/migrate.php status",
         "migrate:rollback": "@php scripts/migrate.php rollback",
+        "seed:demo": "@php scripts/seed_demo.php",
+        "test:unit": "@php vendor/bin/phpunit --no-coverage",
         "test:auth": "@php tests/auth_flow.php",
         "test:shell": "@php tests/app_shell.php",
         "test:quests": "@php tests/quest_flow.php",
@@ -39,6 +41,7 @@
         "test:phase5": "@php tests/phase5_flow.php",
         "test:phase6": "@php tests/phase6_flow.php",
         "test": [
+            "@test:unit",
             "@test:auth",
             "@test:shell",
             "@test:quests",

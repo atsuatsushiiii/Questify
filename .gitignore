@@ -15,6 +15,13 @@
 /storage/uploads/*
 !/storage/uploads/.gitkeep
 
+# User uploads (keep the directory guard)
+/public/uploads/avatars/*
+!/public/uploads/avatars/.htaccess
+
+# Test tooling
+/.phpunit.cache/
+
 # OS / editor
 .DS_Store
 Thumbs.db

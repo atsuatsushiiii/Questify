@@ -12,7 +12,7 @@ namespace App\Core;
 final class Router
 {
     /**
-     * @var list<array{method: string, regex: string, handler: array{0: class-string, 1: string}|callable, middleware: list<class-string|callable>}>
+     * @var list<array{method: string, pattern: string, regex: string, handler: array{0: class-string, 1: string}|callable, middleware: list<class-string|callable>}>
      */
     private array $routes = [];
 
@@ -59,6 +59,26 @@ final class Router
     public function delete(string $pattern, array|callable $handler, array $middleware = []): void
     {
         $this->add('DELETE', $pattern, $handler, $middleware);
+    }
+
+    /**
+     * Read-only view of the registered routes.
+     *
+     * Diagnostics and the authorization suite use this so a new admin route
+     * cannot silently skip the role gate.
+     *
+     * @return list<array{method: string, pattern: string, middleware: list<class-string|callable>}>
+     */
+    public function routes(): array
+    {
+        return array_map(
+            static fn (array $route): array => [
+                'method' => $route['method'],
+                'pattern' => $route['pattern'],
+                'middleware' => $route['middleware'],
+            ],
+            $this->routes,
+        );
     }
 
     public function dispatch(Request $request): Response
@@ -113,6 +133,7 @@ final class Router
 
         $this->routes[] = [
             'method' => $method,
+            'pattern' => $pattern,
             'regex' => '#^' . $regex . '$#',
             'handler' => $handler,
             'middleware' => $middleware,

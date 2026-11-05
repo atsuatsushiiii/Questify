@@ -3,9 +3,10 @@
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 7 — polish pass complete: full-page GSAP transitions, chart
-> skeleton loading states, site-wide copyright, and reduced-motion-safe motion.
-> These sit alongside the Phase 1–6 auth, shell, quest engine, achievements,
+> **Status:** Phase 8 — production readiness complete: 50 PHPUnit unit tests,
+> a repeatable demo seeder, a written security/threat review with a production
+> checklist, and documented backup/restore steps. These sit alongside the
+> Phase 7 polish pass and the Phase 1–6 auth, shell, quest engine, achievements,
 > streaks, profiles, notifications, leaderboards, account settings, and
 > administrator tooling.
 > See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full architecture,
@@ -122,13 +123,15 @@ docs/            Architecture plan and security notes
 | `npm run build` | Compile + minify CSS and JS |
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
+| `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, route authz (50 tests) |
+| `php scripts/seed_demo.php` | Create/reuse a local demo account with realistic quests |
 | `php tests/auth_flow.php` | End-to-end auth regression suite (55 checks) |
 | `php tests/app_shell.php` | Authenticated shell and Phase 4-6 pages suite (69 checks) |
 | `php tests/quest_flow.php` | Quest engine, ownership, XP, and locking suite (117 checks) |
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
 | `php tests/phase6_flow.php` | Admin authorization, KPIs, moderation, catalogue CRUD, audit (111 checks) |
-| `composer test` | Run all six regression suites (526 checks) |
+| `composer test` | Run the unit suite and all six HTTP suites (576 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -179,15 +182,21 @@ transport before deploying.
 
 ### Running the test suites
 
-All suites drive the real HTTP surface, so start MySQL, migrate, build assets,
-and serve the app first:
+The unit suite is database-free and runs without a server:
+
+```powershell
+php vendor/bin/phpunit --no-coverage   # 50 tests, 221 assertions
+```
+
+The remaining suites drive the real HTTP surface, so start MySQL, migrate, build
+assets, and serve the app first:
 
 ```powershell
 php scripts/migrate.php
 npm run build
 php -S localhost:8000 -t public scripts/router.php
 
-composer test                 # all six suites
+composer test                 # unit suite + all six HTTP suites
 php tests/auth_flow.php       # auth only (55 checks)
 php tests/app_shell.php       # shell and Phase 4-6 pages (69 checks)
 php tests/quest_flow.php      # quests only (117 checks)
@@ -195,6 +204,11 @@ php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leade
 php tests/phase5_flow.php     # settings/email/sessions/export/deletion (96 checks)
 php tests/phase6_flow.php     # admin authorization/moderation/catalogue/audit (111 checks)
 ```
+
+The unit suite pins the level curve and rank ladder, validator edge cases,
+timezone-aware streak boundaries, and the route table’s authorization ordering:
+every `/admin` page and API must carry `AuthMiddleware` then `AdminMiddleware`,
+and admin mutations must check the role before CSRF.
 
 The auth suite creates a throwaway account, exercises registration, CSRF
 rejection, login throttling, remember-me rotation and tampering, password reset,
@@ -396,6 +410,54 @@ account menu only render the Administration section for admins.
 - Every layout credits **Code © 2026 Kevin Cyril Maraño, MIT license.**, and the
   same notice heads each first-party source file.
 
+## Production readiness (Phase 8)
+
+### Demo data
+
+`scripts/seed_demo.php` creates a realistic local fixture without touching
+existing accounts:
+
+```powershell
+php scripts/seed_demo.php
+```
+
+- Account: `demo@questify.local` / `Questify123` (display name “Demo Adventurer”,
+  `Europe/London`).
+- Seven quests across five categories, four of them completed, which yields
+  185 XP and level 2.
+- Safe to re-run: the account is reused and quests are only created when the
+  demo account has none. Completion still runs through `QuestService`, so the
+  XP ledger, streaks, and achievements are consistent with real usage.
+- Intended for local demos and screenshots only. Do not run it against
+  production data.
+
+### Tests
+
+- `phpunit.xml` + `tests/Unit` provide 50 DB-free tests / 221 assertions over
+  `Progression`, `Validator`, `StreakService`, and the route authorization
+  table.
+- `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
+  before the six HTTP suites (576 checks total).
+- `tests/bootstrap.php` boots configuration and autoloading without starting a
+  session or opening a database connection.
+
+### Security and operations
+
+[`docs/SECURITY.md`](docs/SECURITY.md) records the implemented controls, the
+reasoning behind them, and the operational checklist:
+
+- Copy [`.env.production.example`](.env.production.example) to `.env` on the
+  host. It sets `APP_ENV=production`, `APP_DEBUG=false`, an HTTPS `APP_URL`, and
+  `SESSION_SECURE=true`.
+- Point the web server document root at `public/`, serve HTTPS only, and keep
+  the dotfile/`storage/` deny rules.
+- Create a least-privilege MySQL user, run migrations, and confirm
+  `/api/health` reports the database as `ok`.
+- Back up the database with `mysqldump --single-transaction` and archive
+  `public/uploads/avatars`; restore into an empty database and copy the avatars
+  back. Test a restore periodically and keep backups off the host.
+- Run `npm ci && npm run build` on deploy — `public/assets` is not committed.
+
 ## Quest engine (Phase 3)
 
 Rewards are centralised in [`config/game.php`](config/game.php) and assigned by
@@ -445,6 +507,9 @@ the server; a submitted `xp_reward` field is ignored.
   self-moderation and last-administrator guards, immediate session/token
   revocation on suspension, whitelist-validated achievement definitions,
   unlock-safe deletion, and an append-only audit trail (Phase 6)
+- A DB-free unit suite covering progression, validation, streaks, and route
+  authorization ordering, plus a production checklist and backup/restore
+  procedure in [`docs/SECURITY.md`](docs/SECURITY.md) (Phase 8)
 
 Public profiles remain scheduled for a later phase.
 
