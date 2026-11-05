@@ -91,6 +91,18 @@ The stylesheet policy allows `'unsafe-inline'` because server-rendered
 components use a small number of inline style attributes (category colours,
 progress widths). Scripts are never inline and Chart.js is bundled locally.
 
+### Email
+
+- Password-reset and email-change links are the only outbound messages.
+- Local development uses a `log` transport and appends to
+  `storage/logs/mail.log`; production uses PHPMailer over SMTP with STARTTLS
+  (`tls`, port 587) or implicit TLS (`ssl`, port 465).
+- SMTP credentials come from `.env` and are never logged. A missing
+  `MAIL_HOST`, unknown transport, or unknown encryption mode throws before any
+  connection is attempted, so password resets cannot be silently dropped.
+- `tests/Unit/MailServiceTest.php` asserts both message formats and the
+  misconfiguration guards.
+
 ### Audit and logging
 
 - Privileged mutations append to `audit_logs` with actor, action, target,
@@ -108,6 +120,9 @@ progress widths). Scripts are never inline and Chart.js is bundled locally.
    - `APP_URL=https://your-host` (HTTPS only)
    - `SESSION_SECURE=true`
    - Real database credentials in `.env` (copy `.env.production.example`).
+   - `MAIL_TRANSPORT=smtp` plus `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`,
+     `MAIL_PASSWORD`, `MAIL_ENCRYPTION`, and a `MAIL_FROM_ADDRESS` on a verified
+     sender domain.
 2. **Database**
    - Use a dedicated MySQL user with only `SELECT, INSERT, UPDATE, DELETE`
      (plus DDL during migrations) on the `questify` database.
@@ -127,7 +142,7 @@ progress widths). Scripts are never inline and Chart.js is bundled locally.
 6. **Post-deploy smoke test**
    - `GET /api/health` returns DB `ok`.
    - A normal account receives `403` on `/admin` and `/api/admin/stats`.
-   - Sign-in, quest completion, and password reset still work.
+   - Sign-in, quest completion, and a real password-reset email still work.
 
 ## Backups and recovery
 
@@ -155,7 +170,7 @@ periodically. Sessions can be discarded safely; users simply sign in again.
 ## Verification
 
 ```powershell
-php vendor/bin/phpunit --no-coverage   # level, streak, validation, route authz
+php vendor/bin/phpunit --no-coverage   # level, streak, validation, mail, route authz
 php tests/auth_flow.php                # authentication and throttling
 php tests/app_shell.php                # shell, navigation, copyright
 php tests/quest_flow.php               # ownership, single-use XP
@@ -166,3 +181,7 @@ php tests/phase6_flow.php              # admin authorization and moderation
 
 The Phase 6 suite is the executable form of the completion criterion: a normal
 user gets `403` on every `/admin` route and API.
+
+`.github/workflows/ci.yml` runs the unit suite and all six HTTP suites against a
+MariaDB service on every push and pull request, so the verification above is not
+manual-only.

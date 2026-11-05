@@ -1,9 +1,11 @@
 # Questify
 
+[![CI](https://github.com/atsuatsushiiii/Questify/actions/workflows/ci.yml/badge.svg)](https://github.com/atsuatsushiiii/Questify/actions/workflows/ci.yml)
+
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 8 — production readiness complete: 50 PHPUnit unit tests,
+> **Status:** Phase 8 — production readiness complete: 54 PHPUnit unit tests,
 > a repeatable demo seeder, a written security/threat review with a production
 > checklist, and documented backup/restore steps. These sit alongside the
 > Phase 7 polish pass and the Phase 1–6 auth, shell, quest engine, achievements,
@@ -123,7 +125,7 @@ docs/            Architecture plan and security notes
 | `npm run build` | Compile + minify CSS and JS |
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
-| `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, route authz (50 tests) |
+| `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, mail, route authz (54 tests) |
 | `php scripts/seed_demo.php` | Create/reuse a local demo account with realistic quests |
 | `php tests/auth_flow.php` | End-to-end auth regression suite (55 checks) |
 | `php tests/app_shell.php` | Authenticated shell and Phase 4-6 pages suite (69 checks) |
@@ -131,7 +133,7 @@ docs/            Architecture plan and security notes
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
 | `php tests/phase6_flow.php` | Admin authorization, KPIs, moderation, catalogue CRUD, audit (111 checks) |
-| `composer test` | Run the unit suite and all six HTTP suites (576 checks) |
+| `composer test` | Run the unit suite and all six HTTP suites (580 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -169,23 +171,24 @@ Tune throttling, token lifetimes, and password length limits in
 
 ### Local password-reset email
 
-No SMTP transport is configured yet. In the `local` environment, reset links are
-appended to `storage/logs/mail.log` instead of being sent. The same file can be
-watched while testing:
+No SMTP transport is needed for local work. In the `local` environment, reset
+links are appended to `storage/logs/mail.log` instead of being sent. The same
+file can be watched while testing:
 
 ```powershell
 Get-Content storage/logs/mail.log -Wait
 ```
 
-Outside `local`, `MailService` refuses to silently drop mail; wire a real
-transport before deploying.
+Set `MAIL_TRANSPORT=smtp` plus the `MAIL_*` values to send real mail; production
+defaults to SMTP and fails loudly if `MAIL_HOST` is missing rather than silently
+dropping the message.
 
 ### Running the test suites
 
 The unit suite is database-free and runs without a server:
 
 ```powershell
-php vendor/bin/phpunit --no-coverage   # 50 tests, 221 assertions
+php vendor/bin/phpunit --no-coverage   # 54 tests, 233 assertions
 ```
 
 The remaining suites drive the real HTTP surface, so start MySQL, migrate, build
@@ -433,13 +436,29 @@ php scripts/seed_demo.php
 
 ### Tests
 
-- `phpunit.xml` + `tests/Unit` provide 50 DB-free tests / 221 assertions over
-  `Progression`, `Validator`, `StreakService`, and the route authorization
-  table.
+- `phpunit.xml` + `tests/Unit` provide 54 DB-free tests / 233 assertions over
+  `Progression`, `Validator`, `StreakService`, `MailService`, and the route
+  authorization table.
 - `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
-  before the six HTTP suites (576 checks total).
+  before the six HTTP suites (580 checks total).
 - `tests/bootstrap.php` boots configuration and autoloading without starting a
   session or opening a database connection.
+- `.github/workflows/ci.yml` runs Composer/npm installs, the asset build, PHP
+  lint, migrations, the unit suite, and all six HTTP suites against MariaDB
+  10.11 on every push and pull request.
+
+### Email
+
+- Local development uses the `log` transport: reset and email-change links are
+  appended to `storage/logs/mail.log`, so the flows are testable without SMTP.
+- Production uses PHPMailer over SMTP. Configure `MAIL_HOST`, `MAIL_PORT`,
+  `MAIL_USERNAME`, `MAIL_PASSWORD`, and `MAIL_ENCRYPTION` (`tls` for STARTTLS on
+  587, `ssl` for implicit TLS on 465); see
+  [`.env.production.example`](.env.production.example).
+- A missing host or unknown transport throws before any message is sent, so a
+  misconfigured deployment fails loudly instead of dropping password resets.
+- `tests/Unit/MailServiceTest.php` covers both local message formats and the
+  misconfiguration guards.
 
 ### Security and operations
 

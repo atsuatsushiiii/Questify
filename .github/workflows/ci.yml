@@ -1,0 +1,120 @@
+# Code © 2026 Kevin Cyril Maraño, MIT license.
+
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Unit + HTTP suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: questify
+          MARIADB_USER: questify
+          MARIADB_PASSWORD: secret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
+    env:
+      APP_NAME: Questify
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://127.0.0.1:8000
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_DATABASE: questify
+      DB_USERNAME: questify
+      DB_PASSWORD: secret
+      SESSION_COOKIE_NAME: questify_session
+      SESSION_SECURE: "false"
+      MAIL_TRANSPORT: log
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: pdo_mysql, mbstring, openssl, fileinfo
+          coverage: none
+          tools: composer:v2
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Prepare environment file
+        run: cp .env.example .env
+
+      - name: Lint PHP
+        run: |
+          find app config public routes scripts tests database -name '*.php' -print0 \
+            | xargs -0 -n1 php -l
+
+      - name: Run migrations
+        run: php scripts/migrate.php migrate
+
+      - name: Run unit tests
+        run: php vendor/bin/phpunit --no-coverage
+
+      - name: Start the app
+        run: |
+          php -S 127.0.0.1:8000 -t public scripts/router.php > storage/logs/server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/api/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server did not become healthy" >&2
+          cat storage/logs/server.log >&2
+          exit 1
+
+      - name: Run HTTP suites
+        run: |
+          php tests/auth_flow.php
+          php tests/app_shell.php
+          php tests/quest_flow.php
+          php tests/phase4_flow.php
+          php tests/phase5_flow.php
+          php tests/phase6_flow.php
+
+      - name: Upload server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log
+          path: storage/logs/
+          if-no-files-found: ignore
