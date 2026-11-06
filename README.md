@@ -16,7 +16,8 @@ quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 > See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full architecture,
 > schema, and roadmap.
 
-**Code © 2026 Kevin Cyril Maraño, MIT license.** See [LICENSE](LICENSE).
+**Code © 2026 Kevin Cyril Maraño, MIT license.** See [LICENSE](LICENSE) and
+[CHANGELOG.md](CHANGELOG.md) for release notes.
 
 ---
 
