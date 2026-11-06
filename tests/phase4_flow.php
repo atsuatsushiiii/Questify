@@ -594,8 +594,19 @@ check(
 );
 check('Pagination reports a second page', contains($board['body'], 'Page 1 of 2') && contains($board['body'], 'page=2'));
 
-$tiedFirst = strpos($board['body'], $extraDisplays[5]);
-$tiedSecond = strpos($board['body'], $extraDisplays[6]);
+// Seeded accounts may push one of the tied rows onto a later page, so rank the
+// rendered rows across every page rather than assuming both fit on page one.
+$tieBodies = $board['body'];
+$boardPages = preg_match('/Page \d+ of (\d+)/', $board['body'], $pageMatch) === 1
+    ? (int) $pageMatch[1]
+    : 1;
+
+for ($page = 2; $page <= $boardPages; $page++) {
+    $tieBodies .= $client->get('/leaderboard?period=all&page=' . $page)['body'];
+}
+
+$tiedFirst = strpos($tieBodies, $extraDisplays[5]);
+$tiedSecond = strpos($tieBodies, $extraDisplays[6]);
 check(
     'Equal XP is tie-broken deterministically by account id',
     $tiedFirst !== false && $tiedSecond !== false && $tiedFirst < $tiedSecond,

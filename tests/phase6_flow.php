@@ -604,12 +604,25 @@ check(
     $userClient->get('/admin')['status'] === 403,
 );
 
-$lastAdmin = (new AdminService())->setRole(
-    ['id' => 999999, 'role' => 'admin'],
-    $adminId,
-    'user',
-    '127.0.0.1',
-);
+// Demo/seed data may include other administrators, so make the fixture the
+// only one inside a rolled-back transaction. The invariant stays isolated from
+// whatever accounts already exist on the machine.
+$pdo->beginTransaction();
+
+try {
+    $pdo->prepare("UPDATE users SET role = 'user' WHERE role = 'admin' AND id <> ?")->execute([$adminId]);
+
+    $lastAdmin = (new AdminService())->setRole(
+        ['id' => 999999, 'role' => 'admin'],
+        $adminId,
+        'user',
+        '127.0.0.1',
+    );
+} finally {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+}
 check(
     'The last administrator cannot be demoted (service invariant)',
     ($lastAdmin['ok'] ?? true) === false
