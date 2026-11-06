@@ -18,6 +18,23 @@ quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
 ---
 
+## Live showcase
+
+**https://atsuatsushiiii.github.io/Questify/**
+
+The project page is a static showcase of the real application: feature tour,
+screenshots, stack, security notes, and setup commands. GitHub Pages hosts that
+page only — it cannot run PHP or MySQL, so the application itself still runs
+locally or on any PHP-capable host (see [Local setup](#local-setup)).
+
+- Source: [`site/`](site/)
+- Deployment: [`.github/workflows/pages.yml`](.github/workflows/pages.yml)
+- One-time setup: in **Settings → Pages → Build and deployment**, set **Source**
+  to **GitHub Actions**. The workflow then publishes `site/` on every push to
+  `master` that touches it, and can also be run manually from the Actions tab.
+
+---
+
 ## Stack
 
 | Layer | Technology |
@@ -189,7 +206,7 @@ dropping the message.
 The unit suite is database-free and runs without a server:
 
 ```powershell
-php vendor/bin/phpunit --no-coverage   # 63 tests, 258 assertions
+php vendor/bin/phpunit --no-coverage   # 63 tests, 259 assertions
 ```
 
 The remaining suites drive the real HTTP surface, so start MySQL, migrate, build
@@ -452,7 +469,7 @@ php scripts/seed_demo.php
 
 ### Tests
 
-- `phpunit.xml` + `tests/Unit` provide 63 DB-free tests / 258 assertions over
+- `phpunit.xml` + `tests/Unit` provide 63 DB-free tests / 259 assertions over
   `Progression`, `Validator`, `StreakService`, `Recurrence`, `MailService`, and
   the route authorization table.
 - `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
@@ -552,7 +569,8 @@ the server; a submitted `xp_reward` field is ignored.
   authorization ordering, plus a production checklist and backup/restore
   procedure in [`docs/SECURITY.md`](docs/SECURITY.md) (Phase 8)
 
-Public profiles remain scheduled for a later phase.
+Public profiles are opt-in only; hidden, suspended, and unknown usernames are
+indistinguishable.
 
 ## License
 

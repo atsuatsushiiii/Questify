@@ -58,7 +58,7 @@
                 </span>
             </a>
 
-            <div class="relative" data-user-menu>
+            <div class="relative flex items-center gap-2 sm:gap-3" data-user-menu>
                 <a
                     href="<?= e(url('/notifications')) ?>"
                     class="relative grid h-10 w-10 place-items-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-400 transition hover:border-gold-400/25 hover:bg-white/[0.04] hover:text-gold-200"

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<!-- Code © 2026 Kevin Cyril Maraño, MIT license. -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Questify — Turn your to-do list into a legendary quest log</title>
+    <meta name="description" content="Questify is a gamified productivity platform built with PHP 8.2 and MySQL. Complete quests, earn XP, level up, unlock achievements and protect your streak. This is the static project showcase.">
+    <meta name="theme-color" content="#06060D">
+    <meta name="color-scheme" content="dark">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Questify">
+    <meta property="og:title" content="Questify — Gamified productivity, built with PHP & MySQL">
+    <meta property="og:description" content="Complete quests, earn XP, level up, unlock achievements and protect your streak. Explore the full-stack project.">
+    <meta property="og:url" content="https://atsuatsushiiii.github.io/Questify/">
+    <meta property="og:image" content="https://atsuatsushiiii.github.io/Questify/assets/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Questify showcase hero with the dashboard and project highlights.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Questify — Gamified productivity, built with PHP & MySQL">
+    <meta name="twitter:description" content="Complete quests, earn XP, level up, unlock achievements and protect your streak.">
+    <meta name="twitter:image" content="https://atsuatsushiiii.github.io/Questify/assets/og-image.jpg">
+    <meta name="twitter:image:alt" content="Questify showcase hero with the dashboard and project highlights.">
+
+    <link rel="canonical" href="https://atsuatsushiiii.github.io/Questify/">
+    <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+    <script>document.documentElement.classList.add('js');</script>
+    <script src="./main.js" defer></script>
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Questify",
+        "applicationCategory": "ProductivityApplication",
+        "operatingSystem": "Web",
+        "description": "A gamified productivity platform where everyday tasks become quests. Earn XP, level up, unlock achievements and keep daily streaks alive.",
+        "codeRepository": "https://github.com/atsuatsushiiii/Questify",
+        "license": "https://opensource.org/licenses/MIT",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+    </script>
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+        <div class="container nav">
+            <a class="brand" href="./" aria-label="Questify showcase home">
+                <span class="brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/>
+                    </svg>
+                </span>
+                <span>Questify</span>
+            </a>
+
+            <nav class="nav-links" aria-label="Primary">
+                <a href="#features">Features</a>
+                <a href="#screens">Screens</a>
+                <a href="#stack">Stack</a>
+                <a href="#security">Security</a>
+            </nav>
+
+            <div class="nav-actions">
+                <a class="nav-source" href="https://github.com/atsuatsushiiii/Questify" target="_blank" rel="noreferrer">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .5C5.73.5.75 5.48.75 11.75c0 4.97 3.22 9.18 7.69 10.67.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.68.08-.68 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.63 1.22 3.27.93.1-.73.39-1.22.71-1.5-2.5-.29-5.13-1.25-5.13-5.57 0-1.23.44-2.24 1.16-3.03-.12-.29-.5-1.44.11-3 0 0 .95-.3 3.12 1.16a10.8 10.8 0 0 1 5.68 0c2.17-1.46 3.12-1.16 3.12-1.16.61 1.56.23 2.71.11 3 .72.79 1.16 1.8 1.16 3.03 0 4.33-2.64 5.28-5.15 5.56.4.35.76 1.03.76 2.08v3.08c0 .3.2.65.78.54a11.26 11.26 0 0 0 7.68-10.67C23.25 5.48 18.27.5 12 .5Z"/></svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main id="main">
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-glow" aria-hidden="true"></div>
+            <div class="container hero-grid">
+                <div class="hero-copy">
+                    <p class="eyebrow">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+                        Gamified productivity, for real life
+                    </p>
+                    <h1>Turn your to-do list into a <span class="gradient-text">legendary</span> quest log.</h1>
+                    <p class="hero-lede">
+                        Questify is a full-stack productivity platform where everyday tasks become quests.
+                        Complete them to earn XP, level up, unlock achievements, and keep your streak alive —
+                        with privacy and security designed in from the first migration.
+                    </p>
+
+                    <div class="hero-actions">
+                        <a class="button button-primary" href="#screens">
+                            Explore the console
+                            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        </a>
+                        <a class="button button-ghost" href="https://github.com/atsuatsushiiii/Questify" target="_blank" rel="noreferrer">
+                            View the source
+                        </a>
+                    </div>
+
+                    <ul class="hero-badges" aria-label="Project highlights">
+                        <li><span class="dot dot-aqua"></span>PHP 8.2 + MySQL</li>
+                        <li><span class="dot dot-violet"></span>No framework</li>
+                        <li><span class="dot dot-gold"></span>MIT licensed</li>
+                    </ul>
+                </div>
+
+                <div class="hero-visual">
+                    <div class="browser">
+                        <div class="browser-bar">
+                            <span class="browser-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                            <span class="browser-url">questify.local/dashboard</span>
+                        </div>
+                        <img src="./assets/screenshots/dashboard.webp" width="1500" height="1000" alt="Questify dashboard showing level 12, 13,500 XP, a 44-day streak, quest counts and recent activity.">
+                    </div>
+                    <div class="float-card">
+                        <span class="float-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                        </span>
+                        <span>
+                            <strong>Achievement unlocked</strong>
+                            <small>Unstoppable · 30-day streak</small>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container hero-note">
+                <p>
+                    <strong>This is a static showcase.</strong> GitHub Pages serves the project page only —
+                    the working app is a PHP 8.2 + MySQL application you can run locally or host on any PHP-capable server.
+                </p>
+            </div>
+        </section>
+
+        <!-- Loop strip -->
+        <div class="loop-strip">
+            <div class="container loop">
+                <span>Plan the work</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                <span>Complete the quest</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                <span>Earn the XP</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                <span class="loop-end">Level up</span>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <section class="section" id="features">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="eyebrow">The system</p>
+                    <h2>Everything you need to make <span class="gradient-text">follow-through</span> feel good.</h2>
+                    <p class="lede">
+                        Not cheap dopamine. A clear loop of quest, reward, and visible progress —
+                        built to keep you moving after the novelty wears off.
+                    </p>
+                </div>
+
+                <div class="feature-grid">
+                    <article class="feature-card reveal">
+                        <span class="icon-tile tone-violet">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2"/></svg>
+                        </span>
+                        <h3>Quests that fit real life</h3>
+                        <p>Create one-off or daily, weekly, and monthly quests. Pick a difficulty and Questify assigns the XP on the server — never from the browser.</p>
+                    </article>
+
+                    <article class="feature-card reveal">
+                        <span class="icon-tile tone-aqua">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>
+                        </span>
+                        <h3>One transparent XP ledger</h3>
+                        <p>Every completion writes an append-only transaction. Levels follow <code>100 × (level − 1)²</code>, and ranks derive from the level.</p>
+                    </article>
+
+                    <article class="feature-card reveal">
+                        <span class="icon-tile tone-gold">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1.5 4 5 5.5 5 10a5 5 0 0 1-10 0c0-1.5.5-2.5 1-3.5.5 1.5 1.5 2.5 3 3 0-4 1-6.5 1-9.5Z"/></svg>
+                        </span>
+                        <h3>Streaks without the guilt</h3>
+                        <p>One qualifying quest per local day, tracked in your timezone. The current streak decays honestly; your personal best is preserved.</p>
+                    </article>
+
+                    <article class="feature-card reveal">
+                        <span class="icon-tile tone-violet">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.5 13 17 22l-5-3-5 3 1.5-9"/></svg>
+                        </span>
+                        <h3>Achievements from real progress</h3>
+                        <p>Ten typed criteria evaluated inside the quest-completion transaction. Unlocks are idempotent, so re-evaluation never duplicates a badge.</p>
+                    </article>
+
+                    <article class="feature-card reveal">
+                        <span class="icon-tile tone-aqua">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18M7 4v6M17 9v6M11 15v6"/></svg>
+                        </span>
+                        <h3>Leaderboards with an off switch</h3>
+                        <p>All-time, weekly, and monthly boards with deterministic tie-breaks. Public profiles and leaderboard visibility are independent opt-ins.</p>
+                    </article>
+
+                    <article class="feature-card reveal">
+                        <span class="icon-tile tone-gold">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+                        </span>
+                        <h3>Privacy you can see</h3>
+                        <p>Public profiles live at <code>/u/{username}</code> and are opt-in. Hidden, suspended, and unknown accounts all return 404 — no enumeration.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screens -->
+        <section class="section section-alt" id="screens">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="eyebrow">Inside the app</p>
+                    <h2>Momentum you can <span class="gradient-text">measure</span>.</h2>
+                    <p class="lede">
+                        Real screens from the working application, captured with the demo fixture:
+                        135 completed quests, 13,500 XP, and a 44-day streak.
+                    </p>
+                </div>
+
+                <div class="screen-grid">
+                    <figure class="shot-card shot-wide reveal">
+                        <button class="shot" type="button" data-full="./assets/screenshots/dashboard.webp" data-caption="Command center — level progress, streak, quest counts, XP activity and trophy progress.">
+                            <img src="./assets/screenshots/dashboard.webp" width="1500" height="1000" loading="lazy" alt="Questify dashboard with level 12, 13,500 XP, a 44-day streak, 135 completed quests and recent XP activity.">
+                        </button>
+                        <figcaption>
+                            <span><strong>Command center</strong><small>Level, rank, XP, streak, quest counts, recent activity and trophies in one view.</small></span>
+                            <span class="open-hint" aria-hidden="true">Open</span>
+                        </figcaption>
+                    </figure>
+
+                    <figure class="shot-card reveal">
+                        <button class="shot" type="button" data-full="./assets/screenshots/quests.webp" data-caption="Quest journal — active, completed and archived quests with difficulty, category and recurrence filters.">
+                            <img src="./assets/screenshots/quests.webp" width="1500" height="1000" loading="lazy" alt="Quest journal showing active daily and one-off quests with categories, difficulties and rewards.">
+                        </button>
+                        <figcaption>
+                            <span><strong>Quest journal</strong><small>Active, completed and archived quests, filtered by category and difficulty.</small></span>
+                            <span class="open-hint" aria-hidden="true">Open</span>
+                        </figcaption>
+                    </figure>
+
+                    <figure class="shot-card reveal">
+                        <button class="shot" type="button" data-full="./assets/screenshots/achievements.webp" data-caption="Trophy hall — ten server-evaluated achievements with live criteria progress.">
+                            <img src="./assets/screenshots/achievements.webp" width="1500" height="1000" loading="lazy" alt="Achievements page with ten unlocked trophies and progress bars.">
+                        </button>
+                        <figcaption>
+                            <span><strong>Trophy hall</strong><small>Ten achievements with live progress, from First Steps to Unstoppable.</small></span>
+                            <span class="open-hint" aria-hidden="true">Open</span>
+                        </figcaption>
+                    </figure>
+
+                    <figure class="shot-card reveal">
+                        <button class="shot" type="button" data-full="./assets/screenshots/leaderboard.webp" data-caption="Leaderboard — all-time, weekly and monthly standings with visibility controls.">
+                            <img src="./assets/screenshots/leaderboard.webp" width="1500" height="1000" loading="lazy" alt="Leaderboard with podium cards and an all-time standings table.">
+                        </button>
+                        <figcaption>
+                            <span><strong>Hall of adventurers</strong><small>All-time, weekly and monthly standings with deterministic tie-breaks.</small></span>
+                            <span class="open-hint" aria-hidden="true">Open</span>
+                        </figcaption>
+                    </figure>
+
+                    <figure class="shot-card reveal">
+                        <button class="shot" type="button" data-full="./assets/screenshots/public-profile.webp" data-caption="Public profile — opt-in at /u/{username}, with email, timezone and settings kept private.">
+                            <img src="./assets/screenshots/public-profile.webp" width="1500" height="1000" loading="lazy" alt="Public Questify profile with stats and unlocked achievements.">
+                        </button>
+                        <figcaption>
+                            <span><strong>Public profile</strong><small>An opt-in page at <code>/u/{username}</code>. No email, timezone, quest titles or settings.</small></span>
+                            <span class="open-hint" aria-hidden="true">Open</span>
+                        </figcaption>
+                    </figure>
+
+                    <figure class="shot-card reveal">
+                        <button class="shot" type="button" data-full="./assets/screenshots/admin.webp" data-caption="Administration — role-gated user management with moderation and an append-only audit trail.">
+                            <img src="./assets/screenshots/admin.webp" width="1500" height="1000" loading="lazy" alt="Admin user management page with account search, roles, status and review actions.">
+                        </button>
+                        <figcaption>
+                            <span><strong>Platform administration</strong><small>Role-gated user management, moderation and a full audit trail.</small></span>
+                            <span class="open-hint" aria-hidden="true">Open</span>
+                        </figcaption>
+                    </figure>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mobile -->
+        <section class="section" id="mobile">
+            <div class="container mobile-grid">
+                <div class="mobile-copy reveal">
+                    <p class="eyebrow">Every screen, every size</p>
+                    <h2>The full console, <span class="gradient-text">in your pocket</span>.</h2>
+                    <p class="lede">
+                        The authenticated shell adapts from a collapsible desktop sidebar to an off-canvas drawer
+                        and a bottom tab bar on mobile. Forms still work without JavaScript; the bundled modules
+                        only add previews, counters, and smoother transitions.
+                    </p>
+                    <ul class="check-list">
+                        <li>Collapsible sidebar with a server-rendered state cookie</li>
+                        <li>Off-canvas navigation and a five-destination bottom bar</li>
+                        <li>Visible focus rings and a global reduced-motion rule</li>
+                        <li>Progressive enhancement — every quest action is a normal form</li>
+                    </ul>
+                </div>
+
+                <div class="phone-wrap reveal">
+                    <div class="phone">
+                        <div class="phone-notch" aria-hidden="true"></div>
+                        <img src="./assets/screenshots/dashboard-mobile.webp" width="390" height="844" loading="lazy" alt="Questify dashboard on a phone with a compact top bar and bottom navigation.">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats -->
+        <section class="stats-band" aria-label="Project quality">
+            <div class="container stats-grid">
+                <div class="stat reveal"><strong>63</strong><span>PHPUnit tests</span><small>259 assertions, database-free</small></div>
+                <div class="stat reveal"><strong>648</strong><span>End-to-end checks</span><small>Unit suite + seven HTTP suites</small></div>
+                <div class="stat reveal"><strong>448</strong><span>Browser QA checks</span><small>Desktop and mobile flows</small></div>
+                <div class="stat reveal"><strong>166</strong><span>Lint-clean PHP files</span><small>Checked in CI on every push</small></div>
+            </div>
+        </section>
+
+        <!-- Stack -->
+        <section class="section" id="stack">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="eyebrow">Under the hood</p>
+                    <h2>A small stack, used <span class="gradient-text">deliberately</span>.</h2>
+                    <p class="lede">
+                        No framework and no magic. Explicit routing, thin controllers, services for business rules,
+                        and models with prepared SQL for every table.
+                    </p>
+                </div>
+
+                <div class="stack-grid">
+                    <article class="stack-card reveal">
+                        <span class="stack-label">Backend</span>
+                        <h3>PHP 8.2</h3>
+                        <p>Front controller, middleware pipeline, PDO prepared statements, and a central error handler that never leaks production traces.</p>
+                    </article>
+                    <article class="stack-card reveal">
+                        <span class="stack-label">Data</span>
+                        <h3>MySQL / MariaDB</h3>
+                        <p>InnoDB and utf8mb4 throughout. Versioned migrations, append-only XP ledger, and transactions with row locks for single-use rewards.</p>
+                    </article>
+                    <article class="stack-card reveal">
+                        <span class="stack-label">Interface</span>
+                        <h3>Tailwind CSS 3.4</h3>
+                        <p>Compiled locally — no CDN. A dark, high-contrast visual system with responsive layouts and reduced-motion support.</p>
+                    </article>
+                    <article class="stack-card reveal">
+                        <span class="stack-label">Behaviour</span>
+                        <h3>Vanilla JS + esbuild</h3>
+                        <p>ES modules bundled and minified. JavaScript enhances the server-rendered DOM; it is never required to complete a quest.</p>
+                    </article>
+                    <article class="stack-card reveal">
+                        <span class="stack-label">Motion &amp; charts</span>
+                        <h3>GSAP + Chart.js</h3>
+                        <p>Full-page transitions and scroll reveals, plus a live admin growth chart backed by a JSON endpoint.</p>
+                    </article>
+                    <article class="stack-card reveal">
+                        <span class="stack-label">Quality</span>
+                        <h3>PHPUnit + GitHub Actions</h3>
+                        <p>CI runs Composer and npm installs, the asset build, PHP lint, migrations, the unit suite, and all seven HTTP suites against MariaDB.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Security -->
+        <section class="section section-alt" id="security">
+            <div class="container security-grid">
+                <div class="reveal">
+                    <p class="eyebrow">Security &amp; privacy</p>
+                    <h2>Built like it <span class="gradient-text">handles real accounts</span>.</h2>
+                    <p class="lede">
+                        Authentication, authorization, and ownership checks are enforced on the server.
+                        The same rules are pinned by unit tests and end-to-end suites.
+                    </p>
+
+                    <ul class="security-list">
+                        <li><span>01</span><p><strong>Prepared statements everywhere.</strong> Emulation is disabled, so every query is a real server-side prepared statement.</p></li>
+                        <li><span>02</span><p><strong>CSRF on every mutation.</strong> Session synchroniser tokens rotate after sign-in; POST requests without one are rejected with 419.</p></li>
+                        <li><span>03</span><p><strong>Passwords and sessions.</strong> bcrypt hashing with transparent rehash, login throttling, hashed session IDs at rest, and idle + absolute expiry.</p></li>
+                        <li><span>04</span><p><strong>Ownership-scoped reads and writes.</strong> Another user's quest, notification, session, or profile row returns 404 — not a hidden control.</p></li>
+                        <li><span>05</span><p><strong>Single-use tokens.</strong> Password-reset and email-change tokens are random, hashed at rest, and expire. Remember-me validators rotate on every use.</p></li>
+                        <li><span>06</span><p><strong>Security headers and uploads.</strong> CSP, frame denial, nosniff, and strict referrer policy. Avatars are validated by content and stored where scripts cannot run.</p></li>
+                        <li><span>07</span><p><strong>Admin guardrails.</strong> Role checks run before CSRF, self-moderation is blocked, the last administrator cannot be demoted, and privileged actions append to an audit log.</p></li>
+                        <li><span>08</span><p><strong>Operation-ready.</strong> A production checklist covers HTTPS, least-privilege database users, backups with <code>mysqldump --single-transaction</code>, and tested restores.</p></li>
+                    </ul>
+                </div>
+
+                <aside class="privacy-card reveal">
+                    <p class="card-eyebrow">Privacy by design</p>
+                    <h3>Public only when you choose.</h3>
+                    <p>
+                        A public profile shows display name, username, avatar, level, rank, XP,
+                        completed quests, streaks, and unlocked achievements.
+                    </p>
+                    <p>
+                        Email, timezone, quest titles, and account settings are never exposed.
+                        Leaderboard visibility is a separate toggle, and hidden or suspended
+                        accounts return the same 404 as an unknown username.
+                    </p>
+                    <a class="text-link" href="https://github.com/atsuatsushiiii/Questify/blob/master/docs/SECURITY.md" target="_blank" rel="noreferrer">
+                        Read the security review
+                        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </a>
+                </aside>
+            </div>
+        </section>
+
+        <!-- Run locally -->
+        <section class="section" id="run">
+            <div class="container run-grid">
+                <div class="reveal">
+                    <p class="eyebrow">Run the real thing</p>
+                    <h2>From clone to <span class="gradient-text">level one</span> in a few commands.</h2>
+                    <p class="lede">
+                        Questify needs PHP 8.2+, MySQL 8 or MariaDB 10.4+, Composer 2, and Node.js 20+.
+                        Point the web server document root at <code>public/</code> — never the project root.
+                    </p>
+                    <div class="run-actions">
+                        <a class="button button-primary" href="https://github.com/atsuatsushiiii/Questify#local-setup" target="_blank" rel="noreferrer">
+                            Full setup guide
+                            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        </a>
+                        <a class="button button-ghost" href="https://github.com/atsuatsushiiii/Questify" target="_blank" rel="noreferrer">Browse the repository</a>
+                    </div>
+                </div>
+
+                <div class="terminal reveal">
+                    <div class="terminal-bar">
+                        <span class="browser-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                        <span>terminal</span>
+                    </div>
+                    <pre><code><span class="prompt">$</span> composer install
+<span class="prompt">$</span> npm install
+<span class="prompt">$</span> cp .env.example .env
+<span class="prompt">$</span> php scripts/migrate.php
+<span class="prompt">$</span> npm run build
+<span class="prompt">$</span> php -S localhost:8000 -t public scripts/router.php</code></pre>
+                    <p class="terminal-note">Windows: use <code>Copy-Item .env.example .env</code>. Then open <code>http://localhost:8000</code>.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="cta-section">
+            <div class="container">
+                <div class="cta-panel reveal">
+                    <p class="eyebrow">Your adventure starts now</p>
+                    <h2>Your next level is one quest away.</h2>
+                    <p>
+                        Explore the code, run the demo fixture, or read the architecture plan.
+                        Questify is MIT licensed and open to inspection.
+                    </p>
+                    <div class="cta-actions">
+                        <a class="button button-primary" href="https://github.com/atsuatsushiiii/Questify" target="_blank" rel="noreferrer">
+                            View on GitHub
+                            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        </a>
+                        <a class="button button-ghost" href="https://github.com/atsuatsushiiii/Questify/blob/master/docs/PROJECT_PLAN.md" target="_blank" rel="noreferrer">Read the project plan</a>
+                    </div>
+                    <p class="cta-note">Static showcase on GitHub Pages · The PHP application ships in the repository.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <a class="brand" href="./" aria-label="Questify showcase home">
+                    <span class="brand-mark" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/></svg>
+                    </span>
+                    <span>Questify</span>
+                </a>
+                <p>A gamified productivity platform for people who like their progress visible. Complete quests, protect your streak, and level up the work that matters.</p>
+            </div>
+
+            <div class="footer-col">
+                <h3>Project</h3>
+                <a href="#features">Features</a>
+                <a href="#screens">Screens</a>
+                <a href="#stack">Stack</a>
+                <a href="#security">Security</a>
+            </div>
+
+            <div class="footer-col">
+                <h3>Repository</h3>
+                <a href="https://github.com/atsuatsushiiii/Questify" target="_blank" rel="noreferrer">Source code</a>
+                <a href="https://github.com/atsuatsushiiii/Questify#readme" target="_blank" rel="noreferrer">Setup guide</a>
+                <a href="https://github.com/atsuatsushiiii/Questify/blob/master/docs/PROJECT_PLAN.md" target="_blank" rel="noreferrer">Architecture</a>
+                <a href="https://github.com/atsuatsushiiii/Questify/blob/master/LICENSE" target="_blank" rel="noreferrer">MIT license</a>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>Code © 2026 Kevin Cyril Maraño, MIT license.</p>
+            <p>PHP 8.2 · MySQL · Tailwind CSS · GSAP</p>
+        </div>
+    </footer>
+
+    <!-- Lightbox -->
+    <dialog class="lightbox" id="lightbox" aria-label="Screenshot preview">
+        <div class="lightbox-inner">
+            <button class="lightbox-close" type="button" data-lightbox-close aria-label="Close preview">
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+            <img alt="" id="lightbox-image" width="1500" height="1000">
+            <p id="lightbox-caption"></p>
+        </div>
+    </dialog>
+</body>
+</html>
