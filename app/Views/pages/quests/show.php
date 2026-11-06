@@ -51,7 +51,7 @@ $awardedLabel = $award !== null
     : null;
 ?>
 <section class="mx-auto max-w-5xl" data-reveal>
-    <a href="<?= e(url('/quests')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-gold-300">
+    <a href="<?= e(url('/quests')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted transition hover:text-gold-300">
         <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
         Back to quest log
     </a>
@@ -85,7 +85,7 @@ $awardedLabel = $award !== null
             <h1 class="mt-4 break-words font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl">
                 <?= e((string) $quest['title']) ?>
             </h1>
-            <p class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-slate-600">
+            <p class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-muted-dim">
                 <span class="inline-flex items-center gap-1.5">
                     <i data-lucide="clock" class="h-3 w-3"></i>
                     Created <?= e($createdAt ?? 'just now') ?>
@@ -118,7 +118,7 @@ $awardedLabel = $award !== null
             </span>
             <div>
                 <h2 class="font-display text-sm font-semibold text-white">Quest briefing</h2>
-                <p class="text-[11px] text-slate-500">The definition of done you wrote for yourself.</p>
+                <p class="text-[11px] text-muted">The definition of done you wrote for yourself.</p>
             </div>
         </div>
 
@@ -128,26 +128,26 @@ $awardedLabel = $award !== null
 
         <div class="grid grid-cols-2 gap-3 border-t border-white/[0.06] px-5 py-4 sm:grid-cols-5">
             <div>
-                <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Reward</p>
+                <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Reward</p>
                 <p class="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-gold-300">
                     <i data-lucide="zap" class="h-3.5 w-3.5"></i>
                     <?= e((string) $reward) ?> XP
                 </p>
             </div>
             <div>
-                <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Difficulty</p>
+                <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Difficulty</p>
                 <p class="mt-1 text-xs font-medium text-slate-300"><?= e($difficultyMeta['label']) ?></p>
             </div>
             <div>
-                <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Repeats</p>
+                <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Repeats</p>
                 <p class="mt-1 text-xs font-medium text-slate-300"><?= e(Recurrence::label($recurrence)) ?></p>
             </div>
             <div>
-                <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Category</p>
+                <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Category</p>
                 <p class="mt-1 text-xs font-medium text-slate-300"><?= e((string) ($quest['category_name'] ?? 'Uncategorised')) ?></p>
             </div>
             <div>
-                <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Last updated</p>
+                <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Last updated</p>
                 <p class="mt-1 text-xs font-medium text-slate-300"><?= e($updatedAt ?? 'just now') ?></p>
             </div>
         </div>
@@ -164,9 +164,9 @@ $awardedLabel = $award !== null
                     +<?= e((string) ($award['amount'] ?? $reward)) ?> <span class="text-sm font-medium text-emerald-300">XP</span>
                 </p>
                 <?php if ($awardedLabel !== null): ?>
-                    <p class="mt-2 text-[11px] text-slate-500">Awarded <?= e($awardedLabel) ?>.</p>
+                    <p class="mt-2 text-[11px] text-muted">Awarded <?= e($awardedLabel) ?>.</p>
                 <?php endif; ?>
-                <p class="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-slate-500">
+                <p class="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-muted">
                     <i data-lucide="repeat" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400/80"></i>
                     <?= e(Recurrence::resetLabel($recurrence)) ?> The quest stays active and pays again in the next period.
                 </p>
@@ -175,11 +175,11 @@ $awardedLabel = $award !== null
             <div class="relative overflow-hidden rounded-2xl border border-gold-400/20 bg-gradient-to-br from-gold-400/[0.08] via-white/[0.02] to-transparent p-5">
                 <div class="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-gold-400/[0.12] blur-[60px]" aria-hidden="true"></div>
                 <div class="relative">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Ready to claim?</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Ready to claim?</p>
                     <p class="mt-2 font-display text-4xl font-bold leading-none text-white">
                         +<?= e((string) $reward) ?> <span class="text-sm font-medium text-gold-300">XP</span>
                     </p>
-                    <p class="mt-2 text-[11px] leading-relaxed text-slate-500">
+                    <p class="mt-2 text-[11px] leading-relaxed text-muted">
                         <?php if ($isRecurring): ?>
                             Completing this <?= e(strtolower(Recurrence::label($recurrence))) ?> quest awards XP once per <?= e(Recurrence::periodNoun($recurrence)) ?>. <?= e(Recurrence::resetLabel($recurrence)) ?>
                         <?php else: ?>
@@ -205,7 +205,7 @@ $awardedLabel = $award !== null
                     +<?= e((string) ($award['amount'] ?? $reward)) ?> <span class="text-sm font-medium text-emerald-300">XP</span>
                 </p>
                 <?php if ($awardedLabel !== null): ?>
-                    <p class="mt-2 text-[11px] text-slate-500">Awarded <?= e($awardedLabel) ?>.</p>
+                    <p class="mt-2 text-[11px] text-muted">Awarded <?= e($awardedLabel) ?>.</p>
                 <?php endif; ?>
                 <?php if ($award !== null && (int) $award['level_after'] > (int) $award['level_before']): ?>
                     <p class="mt-2 inline-flex items-center gap-1.5 rounded-full border border-gold-400/20 bg-gold-400/[0.08] px-2.5 py-1 text-[10px] font-semibold text-gold-300">
@@ -213,14 +213,14 @@ $awardedLabel = $award !== null
                         Level <?= e((string) $award['level_before']) ?> → <?= e((string) $award['level_after']) ?>
                     </p>
                 <?php endif; ?>
-                <p class="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-slate-500">
+                <p class="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-muted">
                     <i data-lucide="shield-check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400/80"></i>
                     This quest has already paid out. Completing it again cannot add XP.
                 </p>
             </div>
         <?php else: ?>
             <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
-                <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Archived</p>
+                <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Archived</p>
                 <p class="mt-2 text-sm leading-relaxed text-slate-400">
                     This quest is parked outside your active log. Restore it to make it active again.
                 </p>
@@ -228,7 +228,7 @@ $awardedLabel = $award !== null
         <?php endif; ?>
 
         <div class="app-panel p-5">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Manage quest</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Manage quest</p>
             <div class="mt-3 space-y-2">
                 <?php if ($status !== 'archived'): ?>
                     <form
@@ -269,7 +269,7 @@ $awardedLabel = $award !== null
                 <?php endif; ?>
             </div>
 
-            <p class="mt-4 border-t border-white/[0.06] pt-3 text-[10px] leading-relaxed text-slate-600">
+            <p class="mt-4 border-t border-white/[0.06] pt-3 text-[10px] leading-relaxed text-muted-dim">
                 <?= $isCompleted
                     ? 'Completed quests keep their XP ledger entry and cannot be deleted.'
                     : 'Only quests that have never paid XP can be deleted permanently.' ?>

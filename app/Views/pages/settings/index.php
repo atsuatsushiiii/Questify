@@ -79,7 +79,7 @@ $deviceLabel = static function (array $session): string {
                 Account controls
             </p>
             <h1 class="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">Settings</h1>
-            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
                 Secure your sign-in, choose what Questify notifies you about, review active sessions, and control your data.
             </p>
         </div>
@@ -98,9 +98,9 @@ $deviceLabel = static function (array $session): string {
             <article id="security" class="app-panel scroll-mt-24 p-5">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Security</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Security</p>
                         <h2 class="mt-1 font-display text-lg font-semibold text-white">Change password</h2>
-                        <p class="mt-1 text-[11px] leading-relaxed text-slate-500">Updating your password signs out every other device and revokes all remember-me tokens.</p>
+                        <p class="mt-1 text-[11px] leading-relaxed text-muted">Updating your password signs out every other device and revokes all remember-me tokens.</p>
                     </div>
                     <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-ember-400/20 bg-ember-500/10 text-ember-300">
                         <i data-lucide="key-round" class="h-4 w-4"></i>
@@ -124,7 +124,7 @@ $deviceLabel = static function (array $session): string {
                                 aria-invalid="<?= $errorFor('password', 'current_password') !== null ? 'true' : 'false' ?>"
                                 aria-describedby="<?= $errorFor('password', 'current_password') !== null ? 'password_current-error' : '' ?>"
                             >
-                            <button type="button" hidden class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.06] hover:text-white" data-password-toggle="password_current" aria-label="Show password" aria-pressed="false">
+                            <button type="button" hidden class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-muted transition hover:bg-white/[0.06] hover:text-white" data-password-toggle="password_current" aria-label="Show password" aria-pressed="false">
                                 <i data-lucide="eye" class="h-4 w-4" data-eye-open></i>
                                 <i data-lucide="eye-off" class="hidden h-4 w-4" data-eye-off></i>
                             </button>
@@ -148,7 +148,7 @@ $deviceLabel = static function (array $session): string {
                                 aria-invalid="<?= $errorFor('password', 'password') !== null ? 'true' : 'false' ?>"
                                 aria-describedby="password_new-help<?= $errorFor('password', 'password') !== null ? ' password_new-error' : '' ?>"
                             >
-                            <button type="button" hidden class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.06] hover:text-white" data-password-toggle="password_new" aria-label="Show password" aria-pressed="false">
+                            <button type="button" hidden class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-muted transition hover:bg-white/[0.06] hover:text-white" data-password-toggle="password_new" aria-label="Show password" aria-pressed="false">
                                 <i data-lucide="eye" class="h-4 w-4" data-eye-open></i>
                                 <i data-lucide="eye-off" class="hidden h-4 w-4" data-eye-off></i>
                             </button>
@@ -159,9 +159,9 @@ $deviceLabel = static function (array $session): string {
                                     <span class="h-1 flex-1 rounded-full bg-white/[0.08]" data-strength-segment></span>
                                 <?php endfor; ?>
                             </div>
-                            <p class="mt-1.5 text-[11px] text-slate-500" data-strength-label>Too short</p>
+                            <p class="mt-1.5 text-[11px] text-muted" data-strength-label>Too short</p>
                         </div>
-                        <p id="password_new-help" class="mt-1.5 text-[11px] text-slate-600">At least <?= e((string) config('auth.min_password_length', 10)) ?> characters. Mix letters, numbers, and symbols.</p>
+                        <p id="password_new-help" class="mt-1.5 text-[11px] text-muted-dim">At least <?= e((string) config('auth.min_password_length', 10)) ?> characters. Mix letters, numbers, and symbols.</p>
                         <?php $renderError('password', 'password', 'password_new'); ?>
                     </div>
 
@@ -179,7 +179,7 @@ $deviceLabel = static function (array $session): string {
                                 aria-invalid="<?= $errorFor('password', 'password_confirmation') !== null ? 'true' : 'false' ?>"
                                 aria-describedby="<?= $errorFor('password', 'password_confirmation') !== null ? 'password_confirmation-error' : '' ?>"
                             >
-                            <button type="button" hidden class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.06] hover:text-white" data-password-toggle="password_confirmation" aria-label="Show password" aria-pressed="false">
+                            <button type="button" hidden class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-muted transition hover:bg-white/[0.06] hover:text-white" data-password-toggle="password_confirmation" aria-label="Show password" aria-pressed="false">
                                 <i data-lucide="eye" class="h-4 w-4" data-eye-open></i>
                                 <i data-lucide="eye-off" class="hidden h-4 w-4" data-eye-off></i>
                             </button>
@@ -198,9 +198,9 @@ $deviceLabel = static function (array $session): string {
             <article id="email" class="app-panel scroll-mt-24 p-5">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Identity</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Identity</p>
                         <h2 class="mt-1 font-display text-lg font-semibold text-white">Email address</h2>
-                        <p class="mt-1 text-[11px] leading-relaxed text-slate-500">A confirmation link is sent to the new address. The change completes only after you open it.</p>
+                        <p class="mt-1 text-[11px] leading-relaxed text-muted">A confirmation link is sent to the new address. The change completes only after you open it.</p>
                     </div>
                     <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-gold-400/20 bg-gold-400/10 text-gold-300">
                         <i data-lucide="mail" class="h-4 w-4"></i>
@@ -209,7 +209,7 @@ $deviceLabel = static function (array $session): string {
 
                 <div class="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-3">
                     <div class="min-w-0 flex-1">
-                        <p class="text-[9px] uppercase tracking-wider text-slate-600">Current email</p>
+                        <p class="text-[9px] uppercase tracking-wider text-muted-dim">Current email</p>
                         <p class="mt-0.5 truncate text-xs font-semibold text-slate-200"><?= e($email) ?></p>
                     </div>
                     <?php if ($emailVerified): ?>
@@ -256,7 +256,7 @@ $deviceLabel = static function (array $session): string {
                             aria-invalid="<?= $errorFor('email', 'new_email') !== null ? 'true' : 'false' ?>"
                             aria-describedby="<?= $errorFor('email', 'new_email') !== null ? 'email_new-error' : 'email_new-help' ?>"
                         >
-                        <p id="email_new-help" class="mt-1.5 text-[11px] text-slate-600">Use an address you control. It becomes your sign-in email after confirmation.</p>
+                        <p id="email_new-help" class="mt-1.5 text-[11px] text-muted-dim">Use an address you control. It becomes your sign-in email after confirmation.</p>
                         <?php $renderError('email', 'new_email', 'email_new'); ?>
                     </div>
 
@@ -274,7 +274,7 @@ $deviceLabel = static function (array $session): string {
                                 aria-invalid="<?= $errorFor('email', 'current_password') !== null ? 'true' : 'false' ?>"
                                 aria-describedby="<?= $errorFor('email', 'current_password') !== null ? 'email_current-error' : '' ?>"
                             >
-                            <button type="button" hidden class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.06] hover:text-white" data-password-toggle="email_current" aria-label="Show password" aria-pressed="false">
+                            <button type="button" hidden class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-muted transition hover:bg-white/[0.06] hover:text-white" data-password-toggle="email_current" aria-label="Show password" aria-pressed="false">
                                 <i data-lucide="eye" class="h-4 w-4" data-eye-open></i>
                                 <i data-lucide="eye-off" class="hidden h-4 w-4" data-eye-off></i>
                             </button>
@@ -293,9 +293,9 @@ $deviceLabel = static function (array $session): string {
             <article id="notifications" class="app-panel scroll-mt-24 p-5">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Inbox</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Inbox</p>
                         <h2 class="mt-1 font-display text-lg font-semibold text-white">Notification preferences</h2>
-                        <p class="mt-1 text-[11px] leading-relaxed text-slate-500">Choose which adventure events create in-app notifications. Security and profile messages are always delivered.</p>
+                        <p class="mt-1 text-[11px] leading-relaxed text-muted">Choose which adventure events create in-app notifications. Security and profile messages are always delivered.</p>
                     </div>
                     <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-gold-400/20 bg-gold-400/10 text-gold-300">
                         <i data-lucide="bell" class="h-4 w-4"></i>
@@ -324,7 +324,7 @@ $deviceLabel = static function (array $session): string {
                             >
                             <span class="min-w-0">
                                 <span class="block text-xs font-semibold text-slate-200"><?= e($preference['label']) ?></span>
-                                <span class="mt-0.5 block text-[11px] leading-relaxed text-slate-500"><?= e($preference['copy']) ?></span>
+                                <span class="mt-0.5 block text-[11px] leading-relaxed text-muted"><?= e($preference['copy']) ?></span>
                             </span>
                         </label>
                     <?php endforeach; ?>
@@ -343,10 +343,10 @@ $deviceLabel = static function (array $session): string {
                 <div class="relative">
                     <div class="flex items-start justify-between gap-3">
                         <div>
-                            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Signed in as</p>
+                            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Signed in as</p>
                             <h2 class="mt-1 truncate font-display text-lg font-semibold text-white"><?= e($displayName) ?></h2>
                             <?php if ($username !== ''): ?>
-                                <p class="mt-0.5 truncate text-[11px] text-slate-500">@<?= e($username) ?></p>
+                                <p class="mt-0.5 truncate text-[11px] text-muted">@<?= e($username) ?></p>
                             <?php endif; ?>
                         </div>
                         <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-gold-400/20 bg-gold-400/10 text-gold-300">
@@ -356,19 +356,19 @@ $deviceLabel = static function (array $session): string {
 
                     <dl class="mt-4 space-y-2.5 text-[11px]">
                         <div class="flex items-start justify-between gap-3">
-                            <dt class="text-slate-600">Email</dt>
+                            <dt class="text-muted-dim">Email</dt>
                             <dd class="min-w-0 break-all text-right font-medium text-slate-300"><?= e($email) ?></dd>
                         </div>
                         <div class="flex items-start justify-between gap-3">
-                            <dt class="text-slate-600">Member since</dt>
+                            <dt class="text-muted-dim">Member since</dt>
                             <dd class="text-right font-medium text-slate-300"><?= e($memberSince ?? 'Today') ?></dd>
                         </div>
                         <div class="flex items-start justify-between gap-3">
-                            <dt class="text-slate-600">Last sign-in</dt>
+                            <dt class="text-muted-dim">Last sign-in</dt>
                             <dd class="text-right font-medium text-slate-300"><?= e($lastLogin ?? 'This session') ?></dd>
                         </div>
                         <div class="flex items-start justify-between gap-3">
-                            <dt class="text-slate-600">Timezone</dt>
+                            <dt class="text-muted-dim">Timezone</dt>
                             <dd class="text-right font-medium text-slate-300"><?= e(str_replace('_', ' ', $timezone)) ?></dd>
                         </div>
                     </dl>
@@ -383,9 +383,9 @@ $deviceLabel = static function (array $session): string {
             <article id="sessions" class="app-panel scroll-mt-24 p-5">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Devices</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Devices</p>
                         <h2 class="mt-1 font-display text-lg font-semibold text-white">Active sessions</h2>
-                        <p class="mt-1 text-[11px] leading-relaxed text-slate-500">
+                        <p class="mt-1 text-[11px] leading-relaxed text-muted">
                             <?= e((string) count($sessions)) ?> active <?= count($sessions) === 1 ? 'session' : 'sessions' ?>. Signing out a device ends its session immediately.
                         </p>
                     </div>
@@ -409,7 +409,7 @@ $deviceLabel = static function (array $session): string {
                                             <span class="rounded-full border border-emerald-400/20 bg-emerald-500/[0.08] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-300">This device</span>
                                         <?php endif; ?>
                                     </div>
-                                    <p class="mt-0.5 text-[10px] text-slate-600">
+                                    <p class="mt-0.5 text-[10px] text-muted-dim">
                                         <?= e((string) ($session['ip_address'] ?: 'Unknown IP')) ?>
                                         · Last active <?= e(format_datetime((string) ($session['last_activity_at'] ?? ''), $timezone, 'j M Y, H:i') ?? 'recently') ?>
                                     </p>
@@ -417,7 +417,7 @@ $deviceLabel = static function (array $session): string {
                                 <?php if (!$isCurrent): ?>
                                     <form method="POST" action="<?= e(url('/settings/sessions/' . (string) $session['id'] . '/revoke')) ?>" class="shrink-0" data-confirm="Sign out this session?">
                                         <?= csrf_field() ?>
-                                        <button type="submit" class="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.06] text-slate-500 transition hover:border-rose-400/25 hover:bg-rose-500/10 hover:text-rose-200" title="Sign out this session" aria-label="Sign out this session">
+                                        <button type="submit" class="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.06] text-muted transition hover:border-rose-400/25 hover:bg-rose-500/10 hover:text-rose-200" title="Sign out this session" aria-label="Sign out this session">
                                             <i data-lucide="log-out" class="h-3.5 w-3.5"></i>
                                         </button>
                                     </form>
@@ -436,23 +436,23 @@ $deviceLabel = static function (array $session): string {
                         </button>
                     </form>
                 <?php else: ?>
-                    <p class="mt-3 rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-3 py-2.5 text-center text-[10px] text-slate-600">This device is the only active session.</p>
+                    <p class="mt-3 rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-3 py-2.5 text-center text-[10px] text-muted-dim">This device is the only active session.</p>
                 <?php endif; ?>
             </article>
 
             <article id="export" class="app-panel scroll-mt-24 p-5">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Your data</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Your data</p>
                         <h2 class="mt-1 font-display text-lg font-semibold text-white">Export account</h2>
-                        <p class="mt-1 text-[11px] leading-relaxed text-slate-500">Download a portable JSON copy of your Questify history.</p>
+                        <p class="mt-1 text-[11px] leading-relaxed text-muted">Download a portable JSON copy of your Questify history.</p>
                     </div>
                     <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-gold-400/20 bg-gold-400/10 text-gold-300">
                         <i data-lucide="download" class="h-4 w-4"></i>
                     </span>
                 </div>
 
-                <ul class="mt-4 grid gap-1.5 text-[11px] text-slate-500">
+                <ul class="mt-4 grid gap-1.5 text-[11px] text-muted">
                     <li class="flex items-start gap-2"><i data-lucide="check" class="mt-0.5 h-3 w-3 shrink-0 text-emerald-400"></i>Profile, quests, XP ledger, achievements, streaks, notifications, and session metadata.</li>
                     <li class="flex items-start gap-2"><i data-lucide="shield-check" class="mt-0.5 h-3 w-3 shrink-0 text-gold-400"></i>Never includes password hashes, reset tokens, session payloads, or remember-me secrets.</li>
                 </ul>
@@ -499,7 +499,7 @@ $deviceLabel = static function (array $session): string {
                         aria-invalid="<?= $errorFor('delete', 'current_password') !== null ? 'true' : 'false' ?>"
                         aria-describedby="<?= $errorFor('delete', 'current_password') !== null ? 'delete_current-error' : '' ?>"
                     >
-                    <button type="button" hidden class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.06] hover:text-white" data-password-toggle="delete_current" aria-label="Show password" aria-pressed="false">
+                    <button type="button" hidden class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-muted transition hover:bg-white/[0.06] hover:text-white" data-password-toggle="delete_current" aria-label="Show password" aria-pressed="false">
                         <i data-lucide="eye" class="h-4 w-4" data-eye-open></i>
                         <i data-lucide="eye-off" class="hidden h-4 w-4" data-eye-off></i>
                     </button>

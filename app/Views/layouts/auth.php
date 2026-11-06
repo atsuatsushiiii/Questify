@@ -61,7 +61,7 @@ $flash = Flash::consume();
                     </span>
                     <span class="font-display text-lg font-bold tracking-tight text-white">Questify</span>
                 </a>
-                <a href="<?= e(url('/')) ?>" class="text-xs font-medium text-slate-500 transition hover:text-white">Back home</a>
+                <a href="<?= e(url('/')) ?>" class="text-xs font-medium text-muted transition hover:text-white">Back home</a>
             </header>
 
             <main id="main" class="flex flex-1 items-center justify-center px-5 py-8 sm:px-8 lg:py-14">
@@ -78,17 +78,17 @@ $flash = Flash::consume();
                 </div>
             </main>
 
-            <footer class="flex flex-col items-center gap-2 px-5 pb-6 text-center text-[11px] text-slate-600 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-3">
+            <footer class="flex flex-col items-center gap-2 px-5 pb-6 text-center text-[11px] text-muted-dim sm:flex-row sm:flex-wrap sm:justify-center sm:gap-3">
                 <a href="<?= e(url('/')) ?>" class="inline-flex items-center gap-1.5 transition hover:text-slate-300">
                     <i data-lucide="arrow-left" class="h-3 w-3"></i>
                     Back to Questify
                 </a>
-                <span class="hidden text-slate-700 sm:inline">&middot;</span>
+                <span class="hidden text-muted-dim sm:inline">&middot;</span>
                 <span class="inline-flex items-center gap-1.5">
                     <i data-lucide="shield-check" class="h-3 w-3 text-aqua-400/80"></i>
                     Secure sessions &amp; encrypted passwords
                 </span>
-                <span class="hidden text-slate-700 sm:inline">&middot;</span>
+                <span class="hidden text-muted-dim sm:inline">&middot;</span>
                 <span>Code © 2026 Kevin Cyril Maraño, MIT license.</span>
             </footer>
         </div>

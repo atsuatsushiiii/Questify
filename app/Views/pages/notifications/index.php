@@ -26,7 +26,7 @@ $query = static fn (array $overrides = []): string => url('/notifications?' . ht
                 Signal log
             </p>
             <h1 class="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">Notifications</h1>
-            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
                 Achievements, level-ups, streak milestones, and profile events, newest first.
             </p>
         </div>
@@ -61,20 +61,20 @@ $query = static fn (array $overrides = []): string => url('/notifications?' . ht
                 <span class="quest-tab-count"><?= e((string) $unread) ?></span>
             </a>
         </div>
-        <p class="text-[11px] text-slate-600">
+        <p class="text-[11px] text-muted-dim">
             <?= e((string) $unread) ?> unread · times shown in <?= e(str_replace('_', ' ', $timezone)) ?>
         </p>
     </div>
 
     <?php if ($notifications === []): ?>
         <div class="mt-4 rounded-2xl border border-dashed border-white/10 bg-white/[0.01] px-5 py-16 text-center">
-            <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-slate-500">
+            <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-muted">
                 <i data-lucide="bell-off" class="h-5 w-5"></i>
             </span>
             <p class="mt-4 font-display text-sm font-semibold text-slate-200">
                 <?= $filter === 'unread' ? 'No unread notifications' : 'Nothing here yet' ?>
             </p>
-            <p class="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-slate-500">
+            <p class="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-muted">
                 <?= $filter === 'unread'
                     ? 'You are all caught up. Switch to All to review earlier events.'
                     : 'Complete a quest to start earning achievements, level-ups, and streak milestones.' ?>
@@ -94,7 +94,7 @@ $query = static fn (array $overrides = []): string => url('/notifications?' . ht
 
     <?php if ($pages > 1): ?>
         <nav class="mt-4 flex flex-wrap items-center justify-between gap-3" aria-label="Notification pagination">
-            <p class="text-[11px] text-slate-600">Page <?= e((string) $page) ?> of <?= e((string) $pages) ?></p>
+            <p class="text-[11px] text-muted-dim">Page <?= e((string) $page) ?> of <?= e((string) $pages) ?></p>
             <div class="flex items-center gap-2">
                 <?php if ($page > 1): ?>
                     <a href="<?= e($query(['page' => $page - 1])) ?>" class="btn-app-ghost btn inline-flex text-xs" rel="prev">

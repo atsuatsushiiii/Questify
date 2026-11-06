@@ -21,7 +21,7 @@ foreach ($heatmap as $week) {
 <div>
     <div class="flex items-start justify-between gap-3">
         <div>
-            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Streak history</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Streak history</p>
             <p class="mt-1 font-display text-sm font-semibold text-white">
                 <?= e((string) $activeDays) ?> active <?= $activeDays === 1 ? 'day' : 'days' ?> in 12 weeks
             </p>
@@ -55,7 +55,7 @@ foreach ($heatmap as $week) {
         <?php endforeach; ?>
     </div>
 
-    <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-600">
+    <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] text-muted-dim">
         <span class="inline-flex items-center gap-1.5">
             <span class="h-2.5 w-2.5 rounded-[3px] bg-white/[0.07]"></span>
             No quest

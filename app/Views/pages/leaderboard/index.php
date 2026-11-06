@@ -49,7 +49,7 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
                 Hall of adventurers
             </p>
             <h1 class="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">Leaderboard</h1>
-            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
                 Rankings are built from the XP ledger. Only adventurers who chose to appear publicly are listed.
             </p>
         </div>
@@ -71,7 +71,7 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
                 </a>
             <?php endforeach; ?>
         </div>
-        <p class="text-[11px] text-slate-600"><?= e((string) $board['period_note']) ?></p>
+        <p class="text-[11px] text-muted-dim"><?= e((string) $board['period_note']) ?></p>
     </div>
 
     <?php if (!$board['viewer_visible']): ?>
@@ -141,7 +141,7 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
                 </span>
                 <div>
                     <h2 class="font-display text-sm font-semibold text-white"><?= e((string) $board['period_label']) ?> standings</h2>
-                    <p class="text-[11px] text-slate-500">
+                    <p class="text-[11px] text-muted">
                         <?= e(number_format((int) $board['total'])) ?> ranked <?= (int) $board['total'] === 1 ? 'adventurer' : 'adventurers' ?>
                     </p>
                 </div>
@@ -156,11 +156,11 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
 
         <?php if ($rows === []): ?>
             <div class="px-5 py-14 text-center">
-                <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-slate-500">
+                <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-muted">
                     <i data-lucide="crown" class="h-5 w-5"></i>
                 </span>
                 <p class="mt-4 font-display text-sm font-semibold text-slate-200">No ranked adventurers yet</p>
-                <p class="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-slate-500">
+                <p class="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-muted">
                     <?= $period === 'all'
                         ? 'Complete a quest to put the first XP on the board.'
                         : 'Nobody has earned XP in this period yet. The board resets on the next UTC boundary.' ?>
@@ -183,7 +183,7 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
 
         <?php if ((int) $board['pages'] > 1): ?>
             <nav class="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] px-5 py-4" aria-label="Leaderboard pagination">
-                <p class="text-[11px] text-slate-600">
+                <p class="text-[11px] text-muted-dim">
                     Page <?= e((string) $board['page']) ?> of <?= e((string) $board['pages']) ?>
                 </p>
                 <div class="flex items-center gap-2">
@@ -208,7 +208,7 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
         <article class="app-panel mt-4 overflow-hidden">
             <div class="border-b border-white/[0.06] px-5 py-3.5">
                 <h2 class="font-display text-sm font-semibold text-white">Your standing</h2>
-                <p class="text-[11px] text-slate-500">Calculated from the same ledger as the table above.</p>
+                <p class="text-[11px] text-muted">Calculated from the same ledger as the table above.</p>
             </div>
             <div class="p-4">
                 <?php
@@ -220,7 +220,7 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
         </article>
     <?php endif; ?>
 
-    <p class="mt-4 flex items-start gap-2 text-[11px] leading-relaxed text-slate-600">
+    <p class="mt-4 flex items-start gap-2 text-[11px] leading-relaxed text-muted-dim">
         <i data-lucide="info" class="mt-0.5 h-3.5 w-3.5 shrink-0"></i>
         Weekly and monthly boards use UTC boundaries; ties are broken by lifetime XP and then by account age.
         Timestamps are shown in <?= e(str_replace('_', ' ', $timezone)) ?>.

@@ -102,7 +102,7 @@ $isAdminSurface = nav_active('/admin');
             </main>
 
             <footer class="mt-auto border-t border-white/[0.05] px-4 pb-24 pt-5 sm:px-6 lg:px-8 lg:pb-5">
-                <div class="mx-auto flex w-full max-w-[92rem] flex-col items-center justify-between gap-2 text-[10px] text-slate-600 sm:flex-row sm:gap-4">
+                <div class="mx-auto flex w-full max-w-[92rem] flex-col items-center justify-between gap-2 text-[10px] text-muted-dim sm:flex-row sm:gap-4">
                     <p>Code © 2026 Kevin Cyril Maraño, MIT license.</p>
                     <p class="inline-flex items-center gap-1.5">
                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>

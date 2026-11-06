@@ -9,7 +9,7 @@
 ?>
 <section class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between" data-reveal>
     <div class="min-w-0">
-        <a href="<?= e(url('/admin')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-gold-300">
+        <a href="<?= e(url('/admin')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted transition hover:text-gold-300">
             <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
             Admin overview
         </a>
@@ -31,17 +31,17 @@
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
             <div>
                 <h2 class="font-display text-sm font-semibold text-white">Catalogue</h2>
-                <p class="text-[11px] text-slate-500"><?= e((string) count($categories)) ?> categories</p>
+                <p class="text-[11px] text-muted"><?= e((string) count($categories)) ?> categories</p>
             </div>
         </div>
 
         <?php if ($categories === []): ?>
             <div class="px-6 py-14 text-center">
-                <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-slate-500">
+                <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-muted">
                     <i data-lucide="folder-tree" class="h-5 w-5"></i>
                 </span>
                 <p class="mt-4 font-display text-sm font-semibold text-slate-200">No categories yet</p>
-                <p class="mt-1.5 text-xs text-slate-500">Create one so quests can be grouped and filtered.</p>
+                <p class="mt-1.5 text-xs text-muted">Create one so quests can be grouped and filtered.</p>
                 <a href="<?= e(url('/admin/categories/create')) ?>" class="btn btn-app-primary mt-4 inline-flex">
                     <i data-lucide="plus" class="h-4 w-4"></i>
                     New category
@@ -51,7 +51,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[760px] text-left text-xs">
                     <thead>
-                        <tr class="border-b border-white/[0.06] text-[9px] uppercase tracking-[0.14em] text-slate-600">
+                        <tr class="border-b border-white/[0.06] text-[9px] uppercase tracking-[0.14em] text-muted-dim">
                             <th scope="col" class="px-5 py-3 font-semibold">Category</th>
                             <th scope="col" class="px-4 py-3 font-semibold">Quests</th>
                             <th scope="col" class="px-4 py-3 font-semibold">Order</th>
@@ -69,7 +69,7 @@
                                         </span>
                                         <div class="min-w-0">
                                             <p class="truncate text-xs font-semibold text-slate-200"><?= e((string) $category['name']) ?></p>
-                                            <p class="truncate text-[10px] text-slate-600">
+                                            <p class="truncate text-[10px] text-muted-dim">
                                                 /<?= e((string) $category['slug']) ?> ·
                                                 <span class="font-mono uppercase"><?= e((string) $category['color']) ?></span>
                                             </p>
@@ -77,7 +77,7 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3.5 text-slate-400"><?= e((string) $category['quest_count']) ?></td>
-                                <td class="px-4 py-3.5 tabular-nums text-slate-500"><?= e((string) $category['sort_order']) ?></td>
+                                <td class="px-4 py-3.5 tabular-nums text-muted"><?= e((string) $category['sort_order']) ?></td>
                                 <td class="px-4 py-3.5">
                                     <span class="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider <?= (int) $category['is_active'] === 1
                                         ? 'border-emerald-400/25 bg-emerald-500/[0.08] text-emerald-300'

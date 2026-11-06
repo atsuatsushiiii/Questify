@@ -34,14 +34,17 @@ $showAction = $showAction ?? true;
         <div class="flex flex-wrap items-start justify-between gap-2">
             <div class="min-w-0">
                 <p class="flex items-center gap-2 text-xs font-semibold text-slate-100">
-                    <span class="notification-dot h-1.5 w-1.5 shrink-0 rounded-full bg-gold-400" aria-label="Unread"></span>
+                    <?php if ($unread): ?>
+                        <span class="notification-dot h-1.5 w-1.5 shrink-0 rounded-full bg-gold-400" aria-hidden="true"></span>
+                        <span class="sr-only" data-unread-label>Unread: </span>
+                    <?php endif; ?>
                     <?php if ($href !== null): ?>
                         <a href="<?= e($href) ?>" class="truncate transition hover:text-gold-200"><?= e((string) $notification['title']) ?></a>
                     <?php else: ?>
                         <span class="truncate"><?= e((string) $notification['title']) ?></span>
                     <?php endif; ?>
                 </p>
-                <p class="mt-1 text-[11px] leading-relaxed text-slate-500"><?= e((string) $notification['message']) ?></p>
+                <p class="mt-1 text-[11px] leading-relaxed text-muted"><?= e((string) $notification['message']) ?></p>
             </div>
 
             <?php if ($unread && $showAction): ?>
@@ -59,7 +62,7 @@ $showAction = $showAction ?? true;
         </div>
 
         <?php if ($createdAt !== null): ?>
-            <p class="mt-2 text-[10px] text-slate-600">
+            <p class="mt-2 text-[10px] text-muted-dim">
                 <time datetime="<?= e((string) iso_datetime((string) $notification['created_at'])) ?>"><?= e($createdAt) ?></time>
             </p>
         <?php endif; ?>

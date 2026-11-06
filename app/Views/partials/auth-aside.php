@@ -47,7 +47,7 @@
                 </span>
                 <div>
                     <p class="text-sm font-semibold text-white">Quests with real rewards</p>
-                    <p class="mt-0.5 text-xs leading-relaxed text-slate-500">Every task carries an XP value before you start.</p>
+                    <p class="mt-0.5 text-xs leading-relaxed text-muted">Every task carries an XP value before you start.</p>
                 </div>
             </li>
             <li class="flex items-start gap-3">
@@ -56,7 +56,7 @@
                 </span>
                 <div>
                     <p class="text-sm font-semibold text-white">Streaks in your timezone</p>
-                    <p class="mt-0.5 text-xs leading-relaxed text-slate-500">Your day is your day — not a server&rsquo;s idea of one.</p>
+                    <p class="mt-0.5 text-xs leading-relaxed text-muted">Your day is your day — not a server&rsquo;s idea of one.</p>
                 </div>
             </li>
             <li class="flex items-start gap-3">
@@ -65,18 +65,18 @@
                 </span>
                 <div>
                     <p class="text-sm font-semibold text-white">Private by default</p>
-                    <p class="mt-0.5 text-xs leading-relaxed text-slate-500">Your quests stay yours. Leaderboards are opt-in.</p>
+                    <p class="mt-0.5 text-xs leading-relaxed text-muted">Your quests stay yours. Leaderboards are opt-in.</p>
                 </div>
             </li>
         </ul>
     </div>
 
-    <div class="relative flex items-center gap-3 text-[11px] text-slate-600">
+    <div class="relative flex items-center gap-3 text-[11px] text-muted-dim">
         <span class="inline-flex items-center gap-1.5">
             <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
             System operational
         </span>
-        <span class="text-slate-700">&middot;</span>
+        <span class="text-muted-dim">&middot;</span>
         <span>PHP 8.2 &middot; MySQL &middot; Tailwind</span>
     </div>
 </aside>

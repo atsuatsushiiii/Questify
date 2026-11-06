@@ -151,6 +151,7 @@ docs/            Architecture plan and security notes
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
 | `php tests/phase6_flow.php` | Admin authorization, KPIs, moderation, catalogue CRUD, audit (111 checks) |
 | `php tests/public_profile_flow.php` | Public profile rendering, privacy, 404s, leaderboard links (39 checks) |
+| `npm run test:browser` | Chrome browser QA for auth, quests, profiles, mobile navigation, and WCAG scans |
 | `composer test` | Run the unit suite and all seven HTTP suites (648 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
@@ -255,6 +256,48 @@ achievement CRUD with unlock-safe deletion, audit filters, and CSRF rejection on
 admin mutations. The public profile suite covers guest rendering, completed
 stats and achievements, dedicated privacy opt-out, suspended-account 404s,
 leaderboard links, and hidden-profile 404s. All seven delete their own data.
+
+### Browser QA
+
+`npm run test:browser` runs a headless Chrome pass against the served app. It
+uses Puppeteer for real interactions and axe-core for WCAG 2.0/2.1 A+AA scans.
+The suite creates one throwaway account, drives it through the complete journey,
+deletes it, and then verifies that its credentials and public profile are gone.
+
+Prerequisites are the same as the HTTP suites, plus Chrome or Chromium:
+
+```powershell
+php scripts/migrate.php
+npm ci
+npm run build
+php -S localhost:8000 -t public scripts/router.php
+npm run test:browser
+```
+
+The runner looks for Chrome in the usual platform locations and on `PATH`. Set
+`CHROME_PATH` when it cannot find your browser. Set `QA_BASE_URL` (or `APP_URL`)
+to target a different origin, and set `QA_HEADED=1` to watch the run.
+
+Coverage includes:
+
+- guest landing, login, registration, password-reset, 404, and public profile
+  pages
+- registration, sign-in, sign-out, and account deletion
+- quest creation, completion, archive, restore, and the active, completed, and
+  archived journal tabs
+- profile editing and the owner/public profile views
+- the mobile bottom navigation plus the off-canvas drawer's focus, scroll lock,
+  inert background, Escape handling, and link navigation
+- axe scans of every page reached above at desktop width, plus the dashboard and
+  open drawer at mobile width
+- notification mark-read behaviour, including the accessible label and hidden
+  unread marker
+
+Results are written to `storage/logs/browser-qa/report.json`; a failed step also
+leaves a full-page screenshot and a JSON snapshot beside it. CI runs the suite
+after the HTTP suites and uploads `storage/logs/` when anything fails. The
+intentional 404 and failed-login responses appear as console errors in the
+report and are expected.
 
 ## Application shell, quest log, and Phase 4–6 (Phases 2–6)
 

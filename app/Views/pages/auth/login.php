@@ -37,7 +37,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
     <div>
         <label for="identifier" class="field-label">Email or username</label>
         <div class="relative">
-            <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600">
+            <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-dim">
                 <i data-lucide="user" class="h-4 w-4"></i>
             </span>
             <input
@@ -65,7 +65,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
             </a>
         </div>
         <div class="relative">
-            <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600">
+            <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-dim">
                 <i data-lucide="lock" class="h-4 w-4"></i>
             </span>
             <input
@@ -81,7 +81,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
             >
             <button
                 type="button"
-                class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.05] hover:text-slate-200"
+                class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-muted transition hover:bg-white/[0.05] hover:text-slate-200"
                 data-password-toggle="password"
                 aria-controls="password"
                 aria-pressed="false"
@@ -111,14 +111,14 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
     </button>
 </form>
 
-<div class="mt-8 border-t border-white/[0.07] pt-6 text-center text-sm text-slate-500">
+<div class="mt-8 border-t border-white/[0.07] pt-6 text-center text-sm text-muted">
     New to Questify?
     <a href="<?= e(url('/register')) ?>" class="font-semibold text-brand-300 transition hover:text-brand-200">
         Create your account
     </a>
 </div>
 
-<p class="mt-6 flex items-start gap-2 text-[11px] leading-relaxed text-slate-600">
+<p class="mt-6 flex items-start gap-2 text-[11px] leading-relaxed text-muted-dim">
     <i data-lucide="shield-check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-aqua-400/70"></i>
     Sign-in attempts are rate limited. Passwords are hashed with bcrypt and never stored in plain text.
 </p>

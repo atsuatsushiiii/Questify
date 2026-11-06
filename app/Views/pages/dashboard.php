@@ -46,9 +46,9 @@ $atMaxLevel = $progression['next_level'] === null;
         </h1>
         <p class="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
             <span><?= e($today) ?></span>
-            <span class="text-slate-700">&middot;</span>
+            <span class="text-muted-dim">&middot;</span>
             <span><?= e($timezoneLabel) ?></span>
-            <span class="text-slate-700">&middot;</span>
+            <span class="text-muted-dim">&middot;</span>
             <span class="inline-flex items-center gap-1.5 text-slate-400">
                 <i data-lucide="shield-check" class="h-3.5 w-3.5 text-emerald-400/80"></i>
                 Session secure
@@ -78,7 +78,7 @@ $atMaxLevel = $progression['next_level'] === null;
         <div class="relative">
             <div class="flex items-start justify-between gap-3">
                 <div>
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Level progress</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">Level progress</p>
                     <h2 class="mt-1 font-display text-lg font-semibold text-white">Rank and level</h2>
                 </div>
                 <span class="inline-flex items-center gap-1.5 rounded-full border border-gold-400/25 bg-gold-400/[0.08] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-gold-300">
@@ -124,9 +124,9 @@ $atMaxLevel = $progression['next_level'] === null;
                     <div class="flex flex-wrap items-baseline justify-between gap-2">
                         <p class="font-display text-xl font-semibold text-white">
                             <span data-counter="<?= e((string) $progression['xp']) ?>" data-counter-format="comma"><?= e(number_format((int) $progression['xp'])) ?></span>
-                            <span class="text-sm font-medium text-slate-500">XP total</span>
+                            <span class="text-sm font-medium text-muted">XP total</span>
                         </p>
-                        <p class="text-[11px] text-slate-500"><?= $atMaxLevel ? 'Max level reached' : e((string) round((float) $progress)) . '% to level ' . e((string) ($level + 1)) ?></p>
+                        <p class="text-[11px] text-muted"><?= $atMaxLevel ? 'Max level reached' : e((string) round((float) $progress)) . '% to level ' . e((string) ($level + 1)) ?></p>
                     </div>
 
                     <div class="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.06]">
@@ -138,7 +138,7 @@ $atMaxLevel = $progression['next_level'] === null;
                         ></div>
                     </div>
 
-                    <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-slate-500">
+                    <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted">
                         <?php if ($xpToNext > 0): ?>
                             <span class="inline-flex items-center gap-1.5">
                                 <i data-lucide="zap" class="h-3 w-3 text-gold-400"></i>
@@ -163,15 +163,15 @@ $atMaxLevel = $progression['next_level'] === null;
 
             <div class="mt-5 grid grid-cols-2 gap-3 border-t border-white/[0.06] pt-4 sm:grid-cols-3">
                 <div>
-                    <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Member since</p>
+                    <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Member since</p>
                     <p class="mt-1 text-xs font-medium text-slate-300"><?= e($memberSince ?? 'Today') ?></p>
                 </div>
                 <div>
-                    <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Last sign-in</p>
+                    <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Last sign-in</p>
                     <p class="mt-1 text-xs font-medium text-slate-300"><?= e($lastLogin ?? 'This session') ?></p>
                 </div>
                 <div class="col-span-2 sm:col-span-1">
-                    <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Timezone</p>
+                    <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Timezone</p>
                     <p class="mt-1 truncate text-xs font-medium text-slate-300"><?= e($timezoneLabel) ?></p>
                 </div>
             </div>
@@ -184,7 +184,7 @@ $atMaxLevel = $progression['next_level'] === null;
         <div class="relative flex h-full flex-col">
             <div class="flex items-start justify-between gap-3">
                 <div>
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Daily streak</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">Daily streak</p>
                     <h2 class="mt-1 font-display text-lg font-semibold text-white">Keep the flame alive</h2>
                 </div>
                 <span class="grid h-10 w-10 place-items-center rounded-xl border border-gold-400/25 bg-gold-400/10 text-gold-300">
@@ -194,9 +194,9 @@ $atMaxLevel = $progression['next_level'] === null;
 
             <p class="mt-5 font-display text-5xl font-bold leading-none tracking-tight text-white">
                 <span data-counter="<?= e((string) $streak) ?>"><?= e((string) $streak) ?></span>
-                <span class="text-sm font-medium text-slate-500"><?= $streak === 1 ? 'day' : 'days' ?></span>
+                <span class="text-sm font-medium text-muted"><?= $streak === 1 ? 'day' : 'days' ?></span>
             </p>
-            <p class="mt-2 text-xs leading-relaxed text-slate-500">
+            <p class="mt-2 text-xs leading-relaxed text-muted">
                 <?php if ($streak === 0): ?>
                     Complete a quest today to light the flame. A streak counts one qualifying quest per local day.
                 <?php else: ?>
@@ -216,7 +216,7 @@ $atMaxLevel = $progression['next_level'] === null;
                 <?php endforeach; ?>
             </div>
 
-            <div class="mt-auto flex items-center justify-between gap-2 border-t border-white/[0.06] pt-4 text-[10px] text-slate-600">
+            <div class="mt-auto flex items-center justify-between gap-2 border-t border-white/[0.06] pt-4 text-[10px] text-muted-dim">
                 <span class="inline-flex items-center gap-1.5">
                     <i data-lucide="calendar-days" class="h-3 w-3"></i>
                     Tracked in <?= e($timezoneLabel) ?>
@@ -275,7 +275,7 @@ $atMaxLevel = $progression['next_level'] === null;
         </div>
         <p class="app-stat-value">
             <span data-counter="<?= e((string) $longestStreak) ?>"><?= e((string) $longestStreak) ?></span>
-            <span class="text-sm font-medium text-slate-500"><?= $longestStreak === 1 ? 'day' : 'days' ?></span>
+            <span class="text-sm font-medium text-muted"><?= $longestStreak === 1 ? 'day' : 'days' ?></span>
         </p>
         <p class="app-stat-note">Your personal best so far.</p>
     </article>
@@ -290,7 +290,7 @@ $atMaxLevel = $progression['next_level'] === null;
                 </span>
                 <div>
                     <h2 class="font-display text-sm font-semibold text-white">Recent activity</h2>
-                    <p class="text-[11px] text-slate-500">XP awarded from your completed quests.</p>
+                    <p class="text-[11px] text-muted">XP awarded from your completed quests.</p>
                 </div>
             </div>
             <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-emerald-300">
@@ -302,11 +302,11 @@ $atMaxLevel = $progression['next_level'] === null;
         <div class="p-5">
             <?php if ($recentActivity === []): ?>
                 <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.01] px-5 py-10 text-center">
-                    <span class="grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-slate-500">
+                    <span class="grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-muted">
                         <i data-lucide="list-checks" class="h-5 w-5"></i>
                     </span>
                     <p class="mt-4 font-display text-sm font-semibold text-slate-200">No activity yet</p>
-                    <p class="mt-1.5 max-w-sm text-xs leading-relaxed text-slate-500">
+                    <p class="mt-1.5 max-w-sm text-xs leading-relaxed text-muted">
                         Complete a quest and its XP award will appear here with the time it was claimed.
                         Nothing is fabricated while your log is empty.
                     </p>
@@ -330,7 +330,7 @@ $atMaxLevel = $progression['next_level'] === null;
                                 <?php else: ?>
                                     <p class="truncate text-xs font-semibold text-slate-200"><?= e($entry['title']) ?></p>
                                 <?php endif; ?>
-                                <p class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-slate-600">
+                                <p class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-dim">
                                     <?php if ($entry['completed_at'] !== null): ?>
                                         <?php if ($entry['iso'] !== null): ?>
                                             <time datetime="<?= e($entry['iso']) ?>"><?= e($entry['completed_at']) ?></time>
@@ -349,7 +349,7 @@ $atMaxLevel = $progression['next_level'] === null;
                         </li>
                     <?php endforeach; ?>
                 </ol>
-                <a href="<?= e(url('/quests?status=completed')) ?>" class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-gold-300">
+                <a href="<?= e(url('/quests?status=completed')) ?>" class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted transition hover:text-gold-300">
                     View completed quests
                     <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
                 </a>
@@ -365,7 +365,7 @@ $atMaxLevel = $progression['next_level'] === null;
                 </span>
                 <div>
                     <h2 class="font-display text-sm font-semibold text-white">Achievements</h2>
-                    <p class="text-[11px] text-slate-500">
+                    <p class="text-[11px] text-muted">
                         <?= e((string) $achievementSummary['unlocked']) ?> of <?= e((string) $achievementSummary['total']) ?> unlocked
                     </p>
                 </div>
@@ -379,11 +379,11 @@ $atMaxLevel = $progression['next_level'] === null;
         <div class="p-5">
             <?php if ($achievementPreview === []): ?>
                 <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.01] px-5 py-8 text-center">
-                    <span class="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.03] text-slate-600">
+                    <span class="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.03] text-muted-dim">
                         <i data-lucide="trophy" class="h-4 w-4"></i>
                     </span>
                     <p class="mt-3 text-xs font-semibold text-slate-300">No achievement definitions</p>
-                    <p class="mt-1 text-[11px] text-slate-500">Definitions are seeded with the database.</p>
+                    <p class="mt-1 text-[11px] text-muted">Definitions are seeded with the database.</p>
                 </div>
             <?php else: ?>
                 <ul class="space-y-2">
@@ -398,14 +398,14 @@ $atMaxLevel = $progression['next_level'] === null;
                             <div class="flex items-center gap-2.5">
                                 <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg border <?= $isUnlocked
                                     ? 'border-gold-400/25 bg-gold-400/10 text-gold-300'
-                                    : 'border-white/10 bg-white/[0.03] text-slate-500' ?>">
+                                    : 'border-white/10 bg-white/[0.03] text-muted' ?>">
                                     <i data-lucide="<?= e((string) ($achievement['icon'] ?? 'trophy')) ?>" class="h-3.5 w-3.5"></i>
                                 </span>
                                 <div class="min-w-0 flex-1">
                                     <p class="truncate text-xs font-semibold text-slate-200"><?= e((string) $achievement['name']) ?></p>
-                                    <p class="truncate text-[10px] text-slate-600"><?= e((string) $achievement['description']) ?></p>
+                                    <p class="truncate text-[10px] text-muted-dim"><?= e((string) $achievement['description']) ?></p>
                                 </div>
-                                <span class="shrink-0 text-[10px] font-semibold tabular-nums <?= $isUnlocked ? 'text-gold-300' : 'text-slate-500' ?>">
+                                <span class="shrink-0 text-[10px] font-semibold tabular-nums <?= $isUnlocked ? 'text-gold-300' : 'text-muted' ?>">
                                     <?= $isUnlocked ? 'Earned' : e((string) $percent) . '%' ?>
                                 </span>
                             </div>
@@ -418,7 +418,7 @@ $atMaxLevel = $progression['next_level'] === null;
                         </li>
                     <?php endforeach; ?>
                 </ul>
-                <a href="<?= e(url('/achievements')) ?>" class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-gold-300">
+                <a href="<?= e(url('/achievements')) ?>" class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted transition hover:text-gold-300">
                     <?= e((string) $achievementSummary['locked']) ?> still locked
                     <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
                 </a>
@@ -436,7 +436,7 @@ $atMaxLevel = $progression['next_level'] === null;
                 </span>
                 <div>
                     <h2 class="font-display text-sm font-semibold text-white">Leaderboard</h2>
-                    <p class="text-[11px] text-slate-500">All-time XP · public adventurers only.</p>
+                    <p class="text-[11px] text-muted">All-time XP · public adventurers only.</p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -452,11 +452,11 @@ $atMaxLevel = $progression['next_level'] === null;
         <div class="p-4">
             <?php if ($leaderboardEntries === []): ?>
                 <div class="rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-5 py-8 text-center">
-                    <span class="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-white/[0.03] text-slate-600">
+                    <span class="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-white/[0.03] text-muted-dim">
                         <i data-lucide="crown" class="h-4 w-4"></i>
                     </span>
                     <p class="mt-3 text-xs font-semibold text-slate-300">No ranked adventurers yet</p>
-                    <p class="mt-1 text-[11px] text-slate-500">
+                    <p class="mt-1 text-[11px] text-muted">
                         <?= $viewerRank === null
                             ? 'Complete a quest to claim the first spot on the board.'
                             : 'Your row will appear as soon as another public adventurer earns XP.' ?>
@@ -474,7 +474,7 @@ $atMaxLevel = $progression['next_level'] === null;
                 </div>
             <?php endif; ?>
 
-            <p class="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-slate-600">
+            <p class="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-muted-dim">
                 <i data-lucide="info" class="mt-0.5 h-3.5 w-3.5 shrink-0"></i>
                 <?= e(number_format($leaderboardTotal)) ?> public <?= $leaderboardTotal === 1 ? 'adventurer is' : 'adventurers are' ?> currently ranked.
                 Update visibility from your profile at any time.

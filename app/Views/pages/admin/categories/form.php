@@ -17,7 +17,7 @@ $summary = $message ?? ($errors !== [] ? 'Please fix the highlighted fields belo
 $isActive = ($old['is_active'] ?? '') !== '';
 ?>
 <section class="mx-auto max-w-4xl" data-reveal>
-    <a href="<?= e(url('/admin/categories')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-gold-300">
+    <a href="<?= e(url('/admin/categories')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted transition hover:text-gold-300">
         <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
         Back to categories
     </a>
@@ -54,7 +54,7 @@ $isActive = ($old['is_active'] ?? '') !== '';
             </span>
             <div>
                 <h2 class="font-display text-sm font-semibold text-white">Category details</h2>
-                <p class="text-[11px] text-slate-500">All fields except status are required.</p>
+                <p class="text-[11px] text-muted">All fields except status are required.</p>
             </div>
         </div>
 
@@ -86,7 +86,7 @@ $isActive = ($old['is_active'] ?? '') !== '';
                     placeholder="auto-from-name"
                     aria-invalid="<?= $invalid('slug') ?>"
                 >
-                <p class="mt-1.5 text-[11px] text-slate-600">Used in filter URLs. Leave blank to generate.</p>
+                <p class="mt-1.5 text-[11px] text-muted-dim">Used in filter URLs. Leave blank to generate.</p>
                 <?php $field = 'slug'; require __DIR__ . '/../../../partials/field-error.php'; ?>
             </div>
 
@@ -130,7 +130,7 @@ $isActive = ($old['is_active'] ?? '') !== '';
                     placeholder="briefcase"
                     aria-invalid="<?= $invalid('icon') ?>"
                 >
-                <p class="mt-1.5 text-[11px] text-slate-600">Lowercase Lucide name, e.g. briefcase, book-open.</p>
+                <p class="mt-1.5 text-[11px] text-muted-dim">Lowercase Lucide name, e.g. briefcase, book-open.</p>
                 <?php $field = 'icon'; require __DIR__ . '/../../../partials/field-error.php'; ?>
             </div>
 
@@ -154,7 +154,7 @@ $isActive = ($old['is_active'] ?? '') !== '';
                 <label class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3">
                     <span>
                         <span class="block text-xs font-semibold text-slate-200">Active</span>
-                        <span class="block text-[10px] text-slate-500">Show on the quest board.</span>
+                        <span class="block text-[10px] text-muted">Show on the quest board.</span>
                     </span>
                     <input type="hidden" name="is_active" value="0">
                     <input
@@ -179,7 +179,7 @@ $isActive = ($old['is_active'] ?? '') !== '';
 
     <aside class="flex flex-col gap-4">
         <div class="app-panel p-5">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Preview</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Preview</p>
             <div class="mt-4 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
                 <span class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-semibold text-slate-200">
                     <span
@@ -189,15 +189,15 @@ $isActive = ($old['is_active'] ?? '') !== '';
                     ></span>
                     <span data-category-preview-name><?= e(($old['name'] ?? '') !== '' ? $old['name'] : 'Category name') ?></span>
                 </span>
-                <p class="mt-3 text-[11px] text-slate-500" data-category-preview-slug>
+                <p class="mt-3 text-[11px] text-muted" data-category-preview-slug>
                     /<?= e(($old['slug'] ?? '') !== '' ? $old['slug'] : 'slug') ?>
                 </p>
             </div>
         </div>
 
         <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
-            <p class="flex items-start gap-2 text-[11px] leading-relaxed text-slate-500">
-                <i data-lucide="info" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-500"></i>
+            <p class="flex items-start gap-2 text-[11px] leading-relaxed text-muted">
+                <i data-lucide="info" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted"></i>
                 <span>Deleting a category is safe: quests keep their history and become uncategorised. Prefer deactivating if you may reuse the category.</span>
             </p>
         </div>

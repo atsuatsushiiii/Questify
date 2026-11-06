@@ -142,14 +142,14 @@ $isoDate = iso_datetime($dateValue);
             </a>
         </h2>
 
-        <p class="mt-2 line-clamp-3 text-xs leading-relaxed text-slate-500">
+        <p class="mt-2 line-clamp-3 text-xs leading-relaxed text-muted">
             <?= e((string) $quest['description']) ?>
         </p>
     </div>
 
     <div class="relative mt-4 border-t border-white/[0.06] pt-3">
         <?php if ($formattedDate !== null): ?>
-            <p class="flex items-center gap-1.5 text-[10px] text-slate-600">
+            <p class="flex items-center gap-1.5 text-[10px] text-muted-dim">
                 <i data-lucide="clock" class="h-3 w-3"></i>
                 <?= e($dateLabel) ?>
                 <?php if ($isoDate !== null): ?>
@@ -161,7 +161,7 @@ $isoDate = iso_datetime($dateValue);
         <?php endif; ?>
 
         <?php if ($isRecurring && $status === 'active'): ?>
-            <p class="mt-1.5 flex items-center gap-1.5 text-[10px] <?= $doneThisPeriod ? 'text-emerald-400/80' : 'text-slate-600' ?>">
+            <p class="mt-1.5 flex items-center gap-1.5 text-[10px] <?= $doneThisPeriod ? 'text-emerald-400/80' : 'text-muted-dim' ?>">
                 <i data-lucide="<?= $doneThisPeriod ? 'circle-check' : 'rotate-ccw' ?>" class="h-3 w-3"></i>
                 <?= e($recurrenceCopy) ?>
             </p>

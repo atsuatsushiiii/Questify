@@ -137,7 +137,7 @@ $highlights = [
                     </a>
                 </div>
 
-                <div data-hero-proof class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-slate-500">
+                <div data-hero-proof class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-muted">
                     <span class="inline-flex items-center gap-2">
                         <i data-lucide="check" class="h-3.5 w-3.5 text-aqua-400"></i>
                         Free to use
@@ -205,7 +205,7 @@ $highlights = [
                                         <p class="truncate font-display text-base font-semibold text-white">Shadow Runner</p>
                                         <p class="shrink-0 text-[11px] font-medium text-brand-300">13,500 XP</p>
                                     </div>
-                                    <p class="mt-1 text-[11px] text-slate-500">900 XP to level 13</p>
+                                    <p class="mt-1 text-[11px] text-muted">900 XP to level 13</p>
                                     <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
                                         <div data-meter="width" data-value="61" class="h-full w-[61%] rounded-full bg-gradient-to-r from-brand-500 via-brand-400 to-aqua-400"></div>
                                     </div>
@@ -217,17 +217,17 @@ $highlights = [
                                     <i data-lucide="flame" class="h-4 w-4 text-orange-400"></i>
                                     14-day streak
                                 </span>
-                                <span class="text-[10px] uppercase tracking-wider text-slate-500">Personal best</span>
+                                <span class="text-[10px] uppercase tracking-wider text-muted">Personal best</span>
                             </div>
 
-                            <p class="mt-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Today&rsquo;s quests</p>
+                            <p class="mt-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">Today&rsquo;s quests</p>
 
                             <ul class="mt-3 space-y-2">
                                 <li class="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
                                     <span class="grid h-5 w-5 shrink-0 place-items-center rounded-md border border-aqua-400/40 bg-aqua-400/15 text-aqua-300">
                                         <i data-lucide="check" class="h-3 w-3"></i>
                                     </span>
-                                    <span class="flex-1 truncate text-xs text-slate-500 line-through">Finish project proposal</span>
+                                    <span class="flex-1 truncate text-xs text-muted line-through">Finish project proposal</span>
                                     <span class="shrink-0 text-[11px] font-semibold text-aqua-300">+50 XP</span>
                                 </li>
                                 <li class="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
@@ -266,13 +266,13 @@ $highlights = [
 
 <!-- Loop strip -->
 <div class="border-y border-white/[0.05] bg-white/[0.012]">
-    <div class="container-page flex flex-wrap items-center justify-center gap-x-6 gap-y-2 py-5 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
+    <div class="container-page flex flex-wrap items-center justify-center gap-x-6 gap-y-2 py-5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
         <span>Plan the work</span>
-        <i data-lucide="chevron-right" class="h-3 w-3 text-slate-700"></i>
+        <i data-lucide="chevron-right" class="h-3 w-3 text-muted-dim"></i>
         <span>Complete the quest</span>
-        <i data-lucide="chevron-right" class="h-3 w-3 text-slate-700"></i>
+        <i data-lucide="chevron-right" class="h-3 w-3 text-muted-dim"></i>
         <span>Earn the XP</span>
-        <i data-lucide="chevron-right" class="h-3 w-3 text-slate-700"></i>
+        <i data-lucide="chevron-right" class="h-3 w-3 text-muted-dim"></i>
         <span class="text-brand-300">Level up</span>
     </div>
 </div>
@@ -330,9 +330,11 @@ $highlights = [
         <div class="mt-12 grid gap-4 lg:grid-cols-3">
             <?php foreach ($steps as $step): ?>
                 <article data-reveal class="card relative overflow-hidden p-6">
-                    <span class="pointer-events-none absolute -right-2 -top-4 font-display text-7xl font-bold text-white/[0.03]">
-                        <?= e($step['number']) ?>
-                    </span>
+                    <span
+                        class="step-number pointer-events-none absolute -right-2 -top-4 font-display text-7xl font-bold text-white/[0.03]"
+                        data-step="<?= e($step['number']) ?>"
+                        aria-hidden="true"
+                    ></span>
                     <span class="icon-tile border-brand-400/20 bg-brand-500/10 text-brand-300">
                         <i data-lucide="<?= e($step['icon']) ?>" class="h-5 w-5"></i>
                     </span>
@@ -383,7 +385,7 @@ $highlights = [
             <div class="rounded-3xl border border-white/10 bg-panel/80 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-[11px] uppercase tracking-[0.16em] text-slate-500">This week</p>
+                        <p class="text-[11px] uppercase tracking-[0.16em] text-muted">This week</p>
                         <p class="mt-1 font-display text-2xl font-bold text-white">
                             1,480 <span class="text-sm font-medium text-brand-300">XP</span>
                         </p>
@@ -401,7 +403,7 @@ $highlights = [
                     <?php endforeach; ?>
                 </div>
 
-                <div class="mt-2 flex justify-between text-[10px] uppercase tracking-wider text-slate-600">
+                <div class="mt-2 flex justify-between text-[10px] uppercase tracking-wider text-muted-dim">
                     <?php foreach ($bars as $bar): ?>
                         <span class="flex-1 text-center"><?= e($bar['day']) ?></span>
                     <?php endforeach; ?>
@@ -409,14 +411,14 @@ $highlights = [
 
                 <div class="mt-6 border-t border-white/[0.06] pt-5">
                     <div class="flex items-center justify-between">
-                        <p class="text-[11px] uppercase tracking-[0.16em] text-slate-500">Weekly leaderboard</p>
-                        <span class="text-[10px] text-slate-600">Top 3</span>
+                        <p class="text-[11px] uppercase tracking-[0.16em] text-muted">Weekly leaderboard</p>
+                        <span class="text-[10px] text-muted-dim">Top 3</span>
                     </div>
 
                     <ul class="mt-3 space-y-2">
                         <?php foreach ($leaders as $leader): ?>
                             <li class="flex items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
-                                <span class="w-4 text-center text-[11px] font-semibold text-slate-500"><?= e($leader['rank']) ?></span>
+                                <span class="w-4 text-center text-[11px] font-semibold text-muted"><?= e($leader['rank']) ?></span>
                                 <span class="grid h-7 w-7 place-items-center rounded-lg border text-[10px] font-bold <?= e($leader['tone']) ?>">
                                     <?= e($leader['initials']) ?>
                                 </span>
@@ -458,7 +460,7 @@ $highlights = [
                     <a href="<?= e(url('/login')) ?>" class="btn btn-ghost w-full sm:w-auto">I already have one</a>
                 </div>
 
-                <p class="mt-5 text-xs text-slate-500">Free to use &middot; No credit card &middot; Your quests stay private</p>
+                <p class="mt-5 text-xs text-muted">Free to use &middot; No credit card &middot; Your quests stay private</p>
             </div>
         </div>
     </div>

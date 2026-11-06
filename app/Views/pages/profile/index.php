@@ -34,7 +34,7 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                 Adventurer card
             </p>
             <h1 class="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">My profile</h1>
-            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
                 Your identity, public leaderboard settings, streak history, and earned trophies.
             </p>
         </div>
@@ -79,7 +79,7 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                     <div class="min-w-0 flex-1">
                         <h2 class="truncate font-display text-2xl font-bold tracking-tight text-white"><?= e($displayName) ?></h2>
                         <?php if ($username !== ''): ?>
-                            <p class="mt-1 truncate text-sm text-slate-500">@<?= e($username) ?></p>
+                            <p class="mt-1 truncate text-sm text-muted">@<?= e($username) ?></p>
                         <?php endif; ?>
                         <div class="mt-3 flex flex-wrap items-center gap-2">
                             <span class="inline-flex items-center gap-1.5 rounded-full border border-gold-400/20 bg-gold-400/[0.08] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-gold-300">
@@ -98,14 +98,14 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                                 </span>
                             <?php endif; ?>
                             <?php if (!$visible): ?>
-                                <span class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-slate-500">
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-muted">
                                     <i data-lucide="eye-off" class="h-3 w-3"></i>
                                     Leaderboard hidden
                                 </span>
                             <?php endif; ?>
                         </div>
                         <?php if ($memberSince !== null): ?>
-                            <p class="mt-3 inline-flex items-center gap-1.5 text-[10px] text-slate-600">
+                            <p class="mt-3 inline-flex items-center gap-1.5 text-[10px] text-muted-dim">
                                 <i data-lucide="calendar-days" class="h-3 w-3"></i>
                                 Member since <?= e($memberSince) ?>
                             </p>
@@ -115,28 +115,28 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
 
                 <div class="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                     <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                        <p class="text-[9px] uppercase tracking-wider text-slate-600">Total XP</p>
+                        <p class="text-[9px] uppercase tracking-wider text-muted-dim">Total XP</p>
                         <p class="mt-1 font-display text-lg font-bold text-white"><?= e(number_format((int) $progression['xp'])) ?></p>
                     </div>
                     <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                        <p class="text-[9px] uppercase tracking-wider text-slate-600">Level</p>
+                        <p class="text-[9px] uppercase tracking-wider text-muted-dim">Level</p>
                         <p class="mt-1 font-display text-lg font-bold text-gold-300"><?= e((string) $progression['level']) ?></p>
                     </div>
                     <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                        <p class="text-[9px] uppercase tracking-wider text-slate-600">Completed</p>
+                        <p class="text-[9px] uppercase tracking-wider text-muted-dim">Completed</p>
                         <p class="mt-1 font-display text-lg font-bold text-white"><?= e((string) $completedQuests) ?></p>
                     </div>
                     <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                        <p class="text-[9px] uppercase tracking-wider text-slate-600">Current streak</p>
+                        <p class="text-[9px] uppercase tracking-wider text-muted-dim">Current streak</p>
                         <p class="mt-1 font-display text-lg font-bold text-ember-300"><?= e((string) $streak['current']) ?></p>
                     </div>
                     <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                        <p class="text-[9px] uppercase tracking-wider text-slate-600">Longest streak</p>
+                        <p class="text-[9px] uppercase tracking-wider text-muted-dim">Longest streak</p>
                         <p class="mt-1 font-display text-lg font-bold text-white"><?= e((string) $streak['longest']) ?></p>
                     </div>
                     <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                        <p class="text-[9px] uppercase tracking-wider text-slate-600">Achievements</p>
-                        <p class="mt-1 font-display text-lg font-bold text-gold-300"><?= e((string) $summary['unlocked']) ?><span class="text-xs text-slate-600">/<?= e((string) $summary['total']) ?></span></p>
+                        <p class="text-[9px] uppercase tracking-wider text-muted-dim">Achievements</p>
+                        <p class="mt-1 font-display text-lg font-bold text-gold-300"><?= e((string) $summary['unlocked']) ?><span class="text-xs text-muted-dim">/<?= e((string) $summary['total']) ?></span></p>
                     </div>
                 </div>
             </article>
@@ -144,7 +144,7 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
             <article class="app-panel p-5">
                 <div class="flex items-center justify-between gap-3">
                     <div>
-                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Showcase</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Showcase</p>
                         <h2 class="mt-1 font-display text-sm font-semibold text-white">Recent achievements</h2>
                     </div>
                     <a href="<?= e(url('/achievements')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold-300 transition hover:text-gold-200">
@@ -156,7 +156,7 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                 <?php if ($achievementShowcase === []): ?>
                     <div class="mt-4 rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-4 py-6 text-center">
                         <p class="text-xs font-semibold text-slate-300">No badges yet</p>
-                        <p class="mt-1 text-[11px] text-slate-500">Complete a quest and your first achievement will appear here.</p>
+                        <p class="mt-1 text-[11px] text-muted">Complete a quest and your first achievement will appear here.</p>
                     </div>
                 <?php else: ?>
                     <div class="mt-4 grid gap-2 sm:grid-cols-2">
@@ -167,7 +167,7 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                                 </span>
                                 <div class="min-w-0">
                                     <p class="truncate text-xs font-semibold text-slate-200"><?= e((string) $achievement['name']) ?></p>
-                                    <p class="truncate text-[10px] text-slate-500"><?= e((string) format_datetime((string) $achievement['unlocked_at'], $timezone, 'j M Y')) ?></p>
+                                    <p class="truncate text-[10px] text-muted"><?= e((string) format_datetime((string) $achievement['unlocked_at'], $timezone, 'j M Y')) ?></p>
                                 </div>
                             </a>
                         <?php endforeach; ?>
@@ -189,7 +189,7 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
             <article class="app-panel p-5">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Identity</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Identity</p>
                         <h2 class="mt-1 font-display text-lg font-semibold text-white">Profile details</h2>
                     </div>
                     <span class="grid h-10 w-10 place-items-center rounded-xl border border-ember-400/20 bg-ember-500/10 text-ember-300">
@@ -203,7 +203,7 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                     <div>
                         <div class="flex items-center justify-between gap-2">
                             <label for="display_name" class="field-label mb-2">Display name</label>
-                            <span class="mb-2 text-[10px] text-slate-600"><span data-display-name-count><?= e((string) mb_strlen((string) ($old['display_name'] ?? ''))) ?></span>/50</span>
+                            <span class="mb-2 text-[10px] text-muted-dim"><span data-display-name-count><?= e((string) mb_strlen((string) ($old['display_name'] ?? ''))) ?></span>/50</span>
                         </div>
                         <input
                             id="display_name"
@@ -219,14 +219,14 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                             aria-invalid="<?= isset($errors['display_name']) ? 'true' : 'false' ?>"
                             aria-describedby="<?= isset($errors['display_name']) ? 'display_name-error' : 'display_name-help' ?>"
                         >
-                        <p id="display_name-help" class="mt-1.5 text-[11px] text-slate-600">Letters, numbers, spaces, apostrophes, hyphens, periods, and underscores.</p>
+                        <p id="display_name-help" class="mt-1.5 text-[11px] text-muted-dim">Letters, numbers, spaces, apostrophes, hyphens, periods, and underscores.</p>
                         <?php $field = 'display_name'; require __DIR__ . '/../../partials/field-error.php'; ?>
                     </div>
 
                     <div>
                         <label for="timezone" class="field-label">Timezone</label>
                         <div class="relative">
-                            <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600">
+                            <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-dim">
                                 <i data-lucide="clock" class="h-4 w-4"></i>
                             </span>
                             <select
@@ -243,11 +243,11 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                                     </option>
                                 <?php endforeach; ?>
                             </select>
-                            <span class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+                            <span class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-muted">
                                 <i data-lucide="chevron-down" class="h-4 w-4"></i>
                             </span>
                         </div>
-                        <p id="timezone-help" class="mt-1.5 text-[11px] text-slate-600">Used for streak days and daily quest timing. Past streak history is not rewritten.</p>
+                        <p id="timezone-help" class="mt-1.5 text-[11px] text-muted-dim">Used for streak days and daily quest timing. Past streak history is not rewritten.</p>
                         <?php $field = 'timezone'; require __DIR__ . '/../../partials/field-error.php'; ?>
                     </div>
 
@@ -263,7 +263,7 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                             >
                             <span>
                                 <span class="block text-xs font-semibold text-slate-200">Publish my public profile</span>
-                                <span class="mt-0.5 block text-[11px] leading-relaxed text-slate-500">Your page at <span class="font-mono text-slate-400">/u/<?= e($username) ?></span> shows your level, XP, streaks, and unlocked achievements. Email, timezone, and settings stay private.</span>
+                                <span class="mt-0.5 block text-[11px] leading-relaxed text-muted">Your page at <span class="font-mono text-slate-400">/u/<?= e($username) ?></span> shows your level, XP, streaks, and unlocked achievements. Email, timezone, and settings stay private.</span>
                             </span>
                         </label>
                         <?php if ($profileVisible && $username !== ''): ?>
@@ -286,7 +286,7 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                             >
                             <span>
                                 <span class="block text-xs font-semibold text-slate-200">Show me on public leaderboards</span>
-                                <span class="mt-0.5 block text-[11px] leading-relaxed text-slate-500">Your display name, username, avatar, level, rank, and XP become visible. Your email is never shown.</span>
+                                <span class="mt-0.5 block text-[11px] leading-relaxed text-muted">Your display name, username, avatar, level, rank, and XP become visible. Your email is never shown.</span>
                             </span>
                         </label>
                     </div>
@@ -301,7 +301,7 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
             <article class="app-panel p-5">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Portrait</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Portrait</p>
                         <h2 class="mt-1 font-display text-lg font-semibold text-white">Profile picture</h2>
                     </div>
                     <span class="grid h-10 w-10 place-items-center rounded-xl border border-gold-400/20 bg-gold-400/10 text-gold-300">
@@ -316,7 +316,7 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                             <i data-lucide="upload" class="h-4 w-4"></i>
                         </span>
                         <span class="mt-2 text-xs font-semibold text-slate-200" data-avatar-name>Choose an image</span>
-                        <span class="mt-1 text-[10px] text-slate-600">JPEG, PNG, or WebP · max 2 MB · 64×64 to 4096×4096</span>
+                        <span class="mt-1 text-[10px] text-muted-dim">JPEG, PNG, or WebP · max 2 MB · 64×64 to 4096×4096</span>
                     </label>
                     <input
                         id="avatar"
@@ -343,7 +343,7 @@ $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
                     </form>
                 <?php endif; ?>
 
-                <p class="mt-3 flex items-start gap-2 text-[10px] leading-relaxed text-slate-600">
+                <p class="mt-3 flex items-start gap-2 text-[10px] leading-relaxed text-muted-dim">
                     <i data-lucide="shield-check" class="mt-0.5 h-3.5 w-3.5 shrink-0"></i>
                     Uploads are checked by real image content, renamed server-side, and served from a directory that cannot execute scripts.
                 </p>

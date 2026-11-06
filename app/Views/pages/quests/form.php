@@ -38,7 +38,7 @@ $difficultyIcon = [
 ];
 ?>
 <section class="mx-auto max-w-5xl" data-reveal>
-    <a href="<?= e(url($isEdit ? '/quests/' . (int) $quest['id'] : '/quests')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-gold-300">
+    <a href="<?= e(url($isEdit ? '/quests/' . (int) $quest['id'] : '/quests')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted transition hover:text-gold-300">
         <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
         <?= $isEdit ? 'Back to quest' : 'Back to quest log' ?>
     </a>
@@ -90,7 +90,7 @@ $difficultyIcon = [
             </span>
             <div>
                 <h2 class="font-display text-sm font-semibold text-white">Quest details</h2>
-                <p class="text-[11px] text-slate-500">Required fields are marked with an asterisk.</p>
+                <p class="text-[11px] text-muted">Required fields are marked with an asterisk.</p>
             </div>
         </div>
 
@@ -109,14 +109,14 @@ $difficultyIcon = [
                 aria-invalid="<?= $invalid('title') ?>"
                 aria-describedby="<?= isset($errors['title']) ? 'title-error' : 'title-help' ?>"
             >
-            <p id="title-help" class="mt-1.5 text-[11px] text-slate-600">Keep it concrete enough to know when it is done.</p>
+            <p id="title-help" class="mt-1.5 text-[11px] text-muted-dim">Keep it concrete enough to know when it is done.</p>
             <?php $field = 'title'; require __DIR__ . '/../../partials/field-error.php'; ?>
         </div>
 
         <div class="mt-5">
             <div class="flex items-baseline justify-between gap-3">
                 <label for="description" class="field-label">Description <span class="text-ember-300">*</span></label>
-                <span class="text-[10px] tabular-nums text-slate-600"><span data-description-count><?= e((string) mb_strlen((string) ($old['description'] ?? ''))) ?></span>/2000</span>
+                <span class="text-[10px] tabular-nums text-muted-dim"><span data-description-count><?= e((string) mb_strlen((string) ($old['description'] ?? ''))) ?></span>/2000</span>
             </div>
             <textarea
                 id="description"
@@ -130,7 +130,7 @@ $difficultyIcon = [
                 aria-describedby="<?= isset($errors['description']) ? 'description-error' : 'description-help' ?>"
                 data-quest-description
             ><?= e($old['description'] ?? '') ?></textarea>
-            <p id="description-help" class="mt-1.5 text-[11px] text-slate-600">At least 10 characters. Plain text only.</p>
+            <p id="description-help" class="mt-1.5 text-[11px] text-muted-dim">At least 10 characters. Plain text only.</p>
             <?php $field = 'description'; require __DIR__ . '/../../partials/field-error.php'; ?>
         </div>
 
@@ -150,7 +150,7 @@ $difficultyIcon = [
                     </option>
                 <?php endforeach; ?>
             </select>
-            <p id="category_id-help" class="mt-1.5 text-[11px] text-slate-600">Optional. Categories are managed by admins.</p>
+            <p id="category_id-help" class="mt-1.5 text-[11px] text-muted-dim">Optional. Categories are managed by admins.</p>
             <?php $field = 'category_id'; require __DIR__ . '/../../partials/field-error.php'; ?>
         </div>
 
@@ -169,7 +169,7 @@ $difficultyIcon = [
                     </option>
                 <?php endforeach; ?>
             </select>
-            <p id="recurrence-help" class="mt-1.5 text-[11px] text-slate-600">
+            <p id="recurrence-help" class="mt-1.5 text-[11px] text-muted-dim">
                 Recurring quests stay active and pay XP again each new period. One-off quests complete permanently.
             </p>
             <?php $field = 'recurrence'; require __DIR__ . '/../../partials/field-error.php'; ?>
@@ -202,7 +202,7 @@ $difficultyIcon = [
                                     <?= e((string) $reward) ?> XP
                                 </span>
                             </span>
-                            <span class="text-[11px] leading-relaxed text-slate-500">
+                            <span class="text-[11px] leading-relaxed text-muted">
                                 <?= e($difficultyCopy[$key] ?? 'Choose this difficulty.') ?>
                             </span>
                         </span>
@@ -232,7 +232,7 @@ $difficultyIcon = [
                         <i data-lucide="zap" class="h-4 w-4"></i>
                     </span>
                     <div>
-                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Reward preview</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Reward preview</p>
                         <p class="font-display text-sm font-semibold text-white" data-xp-preview-difficulty><?= e(ucfirst($selectedDifficulty)) ?> quest</p>
                     </div>
                 </div>
@@ -241,7 +241,7 @@ $difficultyIcon = [
                     <span data-xp-preview><?= e((string) $selectedReward) ?></span>
                     <span class="text-sm font-medium text-gold-300">XP</span>
                 </p>
-                <p class="mt-2 text-[11px] leading-relaxed text-slate-500">
+                <p class="mt-2 text-[11px] leading-relaxed text-muted">
                     <?php if ($selectedRecurrence === Recurrence::NONE): ?>
                         Awarded once, when you mark this quest complete. The server assigns this value from
                     <?php else: ?>
@@ -253,8 +253,8 @@ $difficultyIcon = [
         </div>
 
         <div class="app-panel p-5">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">How rewards work</p>
-            <ul class="mt-3 space-y-2.5 text-[11px] leading-relaxed text-slate-500">
+            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">How rewards work</p>
+            <ul class="mt-3 space-y-2.5 text-[11px] leading-relaxed text-muted">
                 <li class="flex items-start gap-2">
                     <i data-lucide="shield-check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400/80"></i>
                     <span>XP is calculated on the server; any submitted reward is ignored.</span>
@@ -272,8 +272,8 @@ $difficultyIcon = [
 
         <?php if ($isEdit): ?>
             <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
-                <p class="flex items-start gap-2 text-[11px] leading-relaxed text-slate-500">
-                    <i data-lucide="info" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-500"></i>
+                <p class="flex items-start gap-2 text-[11px] leading-relaxed text-muted">
+                    <i data-lucide="info" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted"></i>
                     <span>Editing an active quest changes the reward it will pay when completed. Changing the cadence clears the current period so the quest can be claimed again. Completed one-off quests keep the XP they already awarded.</span>
                 </p>
             </div>

@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   test:
-    name: Unit + HTTP suites
+    name: Unit + HTTP + browser suites
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -114,6 +114,12 @@ jobs:
           php tests/phase5_flow.php
           php tests/phase6_flow.php
           php tests/public_profile_flow.php
+
+      - name: Run browser QA
+        env:
+          APP_URL: http://127.0.0.1:8000
+          CHROME_PATH: /usr/bin/google-chrome
+        run: npm run test:browser
 
       - name: Upload server log on failure
         if: failure()

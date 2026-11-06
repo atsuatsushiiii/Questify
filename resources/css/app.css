@@ -58,12 +58,21 @@
     @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10;
   }
 
+  /*
+   * The oversized step numbers are decorative, so they are generated with a
+   * pseudo-element rather than real text. That keeps them out of the
+   * accessibility tree without asking contrast tools to assess a watermark.
+   */
+  .step-number::before {
+    content: attr(data-step);
+  }
+
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-primary {
-    @apply bg-brand-500 text-white shadow-[0_12px_45px_-14px_rgba(139,92,246,0.8)] hover:-translate-y-0.5 hover:bg-brand-400 hover:shadow-[0_18px_55px_-14px_rgba(139,92,246,0.9)] active:translate-y-0;
+    @apply bg-brand-700 text-white shadow-[0_12px_45px_-14px_rgba(139,92,246,0.8)] hover:-translate-y-0.5 hover:bg-brand-600 hover:shadow-[0_18px_55px_-14px_rgba(139,92,246,0.9)] active:translate-y-0;
   }
 
   .btn-ghost {
@@ -111,7 +120,7 @@
   }
 
   .field-input {
-    @apply w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder:text-slate-600 transition focus:border-brand-400/60 focus:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-brand-500/20;
+    @apply w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder:text-muted-dim transition focus:border-brand-400/60 focus:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-brand-500/20;
   }
 
   .field-input.is-invalid {
@@ -131,7 +140,7 @@
   }
 
   .app-stat-label {
-    @apply text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500;
+    @apply text-[10px] font-semibold uppercase tracking-[0.16em] text-muted;
   }
 
   .app-stat-icon {
@@ -143,7 +152,7 @@
   }
 
   .app-stat-note {
-    @apply mt-1.5 text-[11px] leading-relaxed text-slate-500;
+    @apply mt-1.5 text-[11px] leading-relaxed text-muted;
   }
 
   .app-panel {
@@ -163,7 +172,7 @@
    * original .field-input stays violet for the public auth pages.
    */
   .app-field {
-    @apply w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder:text-slate-600 transition focus:border-ember-400/60 focus:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-ember-500/20;
+    @apply w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder:text-muted-dim transition focus:border-ember-400/60 focus:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-ember-500/20;
   }
 
   .app-field.is-invalid {
@@ -211,7 +220,7 @@
   }
 
   .notification-icon {
-    @apply border-white/10 bg-white/[0.03] text-slate-500;
+    @apply border-white/10 bg-white/[0.03] text-muted;
   }
 
   .notification-card.is-unread .notification-icon {

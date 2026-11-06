@@ -22,7 +22,7 @@ function refreshBadges(remaining) {
     if (wrapper && wrapper.hasAttribute('aria-label')) {
       wrapper.setAttribute(
         'aria-label',
-        remaining > 0 ? `Notifications (${remaining} unread)` : 'Notifications',
+        remaining > 0 ? `Notifications ${remaining} unread` : 'Notifications',
       );
     }
   });
@@ -44,6 +44,7 @@ export function initNotifications() {
   const markRead = (item) => {
     item.classList.remove('is-unread');
     item.querySelector('.notification-dot')?.remove();
+    item.querySelector('[data-unread-label]')?.remove();
     item.querySelector('[data-notification-read]')?.remove();
   };
 

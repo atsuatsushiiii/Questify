@@ -25,7 +25,7 @@ foreach ($appNav as $section) {
                 href="<?= e(url($item['href'])) ?>"
                 class="relative flex flex-col items-center gap-1 rounded-xl px-0.5 py-1.5 text-[9px] font-medium tracking-tight transition <?= $active
                     ? 'text-gold-300'
-                    : 'text-slate-500 hover:bg-white/[0.04] hover:text-slate-200' ?>"
+                    : 'text-muted hover:bg-white/[0.04] hover:text-slate-200' ?>"
                 <?= $active ? 'aria-current="page"' : '' ?>
                 title="<?= e($item['label'] . ($item['phase'] !== null ? ' — Phase ' . $item['phase'] : '')) ?>"
             >

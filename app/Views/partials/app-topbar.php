@@ -38,8 +38,8 @@
         </a>
 
         <div class="hidden min-w-0 items-center gap-2 lg:flex">
-            <span class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">Command center</span>
-            <i data-lucide="chevron-right" class="h-3 w-3 text-slate-700"></i>
+            <span class="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-dim">Command center</span>
+            <i data-lucide="chevron-right" class="h-3 w-3 text-muted-dim"></i>
             <span class="truncate text-xs font-medium text-slate-300"><?= e($pageHeading) ?></span>
         </div>
 
@@ -53,7 +53,7 @@
                     <i data-lucide="zap" class="h-3.5 w-3.5"></i>
                 </span>
                 <span class="leading-tight">
-                    <span class="block text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-600">Total XP</span>
+                    <span class="block text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-dim">Total XP</span>
                     <span class="block text-xs font-semibold text-slate-200"><?= e(number_format($progression['xp'])) ?></span>
                 </span>
             </a>
@@ -62,12 +62,12 @@
                 <a
                     href="<?= e(url('/notifications')) ?>"
                     class="relative grid h-10 w-10 place-items-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-slate-400 transition hover:border-gold-400/25 hover:bg-white/[0.04] hover:text-gold-200"
-                    aria-label="Notifications<?= $unreadNotifications > 0 ? ' (' . (int) $unreadNotifications . ' unread)' : '' ?>"
+                    aria-label="Notifications<?= $unreadNotifications > 0 ? ' ' . (int) $unreadNotifications . ' unread' : '' ?>"
                     title="Notifications"
                 >
                     <i data-lucide="bell" class="h-[18px] w-[18px]"></i>
                     <?php if ($unreadNotifications > 0): ?>
-                        <span class="absolute -right-1 -top-1 grid h-5 min-w-[1.25rem] place-items-center rounded-full border border-[#0A0910] bg-ember-500 px-1 text-[9px] font-bold tabular-nums text-white" data-unread-count>
+                        <span class="absolute -right-1 -top-1 grid h-5 min-w-[1.25rem] place-items-center rounded-full border border-[#0A0910] bg-ember-500 px-1 text-[9px] font-bold tabular-nums text-white" data-unread-count aria-hidden="true">
                             <?= e($unreadNotifications > 99 ? '99+' : (string) $unreadNotifications) ?>
                         </span>
                     <?php endif; ?>
@@ -89,9 +89,9 @@
                     <?php endif; ?>
                     <span class="hidden min-w-0 leading-tight sm:block">
                         <span class="block max-w-[9rem] truncate text-xs font-semibold text-slate-200"><?= e($displayName) ?></span>
-                        <span class="block text-[10px] text-slate-600">Level <?= e($progression['level']) ?> · <?= e($progression['rank']) ?></span>
+                        <span class="block text-[10px] text-muted-dim">Level <?= e($progression['level']) ?> · <?= e($progression['rank']) ?></span>
                     </span>
-                    <i data-user-menu-chevron data-lucide="chevron-down" class="h-3.5 w-3.5 shrink-0 text-slate-500 transition-transform duration-200"></i>
+                    <i data-user-menu-chevron data-lucide="chevron-down" class="h-3.5 w-3.5 shrink-0 text-muted transition-transform duration-200"></i>
                 </button>
 
                 <div
@@ -111,7 +111,7 @@
                             <?php endif; ?>
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-semibold text-white"><?= e($displayName) ?></p>
-                                <p class="truncate text-[11px] text-slate-500"><?= e($email) ?></p>
+                                <p class="truncate text-[11px] text-muted"><?= e($email) ?></p>
                             </div>
                         </div>
                         <p class="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-gold-400/20 bg-gold-400/[0.08] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-gold-300">
@@ -129,11 +129,11 @@
                             </a>
                         <?php endif; ?>
                         <a href="<?= e(url('/profile')) ?>" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-300 transition hover:bg-white/[0.05] hover:text-white">
-                            <i data-lucide="user-round" class="h-4 w-4 text-slate-500"></i>
+                            <i data-lucide="user-round" class="h-4 w-4 text-muted"></i>
                             <span class="flex-1">My Profile</span>
                         </a>
                         <a href="<?= e(url('/settings')) ?>" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-300 transition hover:bg-white/[0.05] hover:text-white">
-                            <i data-lucide="settings" class="h-4 w-4 text-slate-500"></i>
+                            <i data-lucide="settings" class="h-4 w-4 text-muted"></i>
                             <span class="flex-1">Settings</span>
                         </a>
                     </div>

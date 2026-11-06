@@ -23,14 +23,14 @@ $productLinks = [
                     A gamified productivity platform for people who like their progress visible.
                     Complete quests, protect your streak, and level up the work that matters.
                 </p>
-                <p class="mt-5 inline-flex items-center gap-2 text-xs text-slate-500">
+                <p class="mt-5 inline-flex items-center gap-2 text-xs text-muted">
                     <i data-lucide="shield-check" class="h-4 w-4 text-aqua-400"></i>
                     Secure sessions, validated input, prepared statements.
                 </p>
             </div>
 
             <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Product</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Product</p>
                 <ul class="mt-4 space-y-3">
                     <?php foreach ($productLinks as $link): ?>
                         <li>
@@ -43,7 +43,7 @@ $productLinks = [
             </div>
 
             <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Account</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Account</p>
                 <ul class="mt-4 space-y-3">
                     <?php if (auth_check()): ?>
                         <li>
@@ -64,7 +64,7 @@ $productLinks = [
             </div>
         </div>
 
-        <div class="mt-12 flex flex-col gap-3 border-t border-white/[0.06] pt-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+        <div class="mt-12 flex flex-col gap-3 border-t border-white/[0.06] pt-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
             <p>&copy; <?= e(date('Y')) ?> Questify. Code © 2026 Kevin Cyril Maraño, MIT license.</p>
             <p>PHP 8.2 &middot; MySQL &middot; Tailwind CSS &middot; GSAP</p>
         </div>

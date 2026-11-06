@@ -10,6 +10,7 @@
 
 # Runtime files
 /storage/logs/*.log
+/storage/logs/browser-qa/
 /storage/cache/*
 !/storage/cache/.gitkeep
 /storage/uploads/*

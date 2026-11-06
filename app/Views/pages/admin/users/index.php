@@ -11,7 +11,7 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
 ?>
 <section class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between" data-reveal>
     <div class="min-w-0">
-        <a href="<?= e(url('/admin')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-gold-300">
+        <a href="<?= e(url('/admin')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted transition hover:text-gold-300">
             <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
             Admin overview
         </a>
@@ -35,7 +35,7 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
         <div>
             <label for="search" class="field-label">Search</label>
             <div class="relative">
-                <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"></i>
+                <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"></i>
                 <input
                     id="search"
                     name="search"
@@ -83,23 +83,23 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
             <div>
                 <h2 class="font-display text-sm font-semibold text-white">Accounts</h2>
-                <p class="text-[11px] text-slate-500"><?= e(number_format($directory['total'])) ?> matching account<?= $directory['total'] === 1 ? '' : 's' ?>.</p>
+                <p class="text-[11px] text-muted"><?= e(number_format($directory['total'])) ?> matching account<?= $directory['total'] === 1 ? '' : 's' ?>.</p>
             </div>
         </div>
 
         <?php if ($directory['users'] === []): ?>
             <div class="px-6 py-14 text-center">
-                <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-slate-500">
+                <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-muted">
                     <i data-lucide="users" class="h-5 w-5"></i>
                 </span>
                 <p class="mt-4 font-display text-sm font-semibold text-slate-200">No accounts match these filters</p>
-                <p class="mt-1.5 text-xs text-slate-500">Try a broader search or reset the filters.</p>
+                <p class="mt-1.5 text-xs text-muted">Try a broader search or reset the filters.</p>
             </div>
         <?php else: ?>
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[820px] text-left text-xs">
                     <thead>
-                        <tr class="border-b border-white/[0.06] text-[9px] uppercase tracking-[0.14em] text-slate-600">
+                        <tr class="border-b border-white/[0.06] text-[9px] uppercase tracking-[0.14em] text-muted-dim">
                             <th scope="col" class="px-5 py-3 font-semibold">Adventurer</th>
                             <th scope="col" class="px-4 py-3 font-semibold">Role</th>
                             <th scope="col" class="px-4 py-3 font-semibold">Status</th>
@@ -129,7 +129,7 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
                                             <a href="<?= e(url('/admin/users/' . (int) $account['id'])) ?>" class="block truncate text-xs font-semibold text-slate-200 transition hover:text-gold-200">
                                                 <?= e((string) $account['display_name']) ?>
                                             </a>
-                                            <p class="truncate text-[10px] text-slate-600">@<?= e((string) $account['username']) ?> · <?= e((string) $account['email']) ?></p>
+                                            <p class="truncate text-[10px] text-muted-dim">@<?= e((string) $account['username']) ?> · <?= e((string) $account['email']) ?></p>
                                         </div>
                                     </div>
                                 </td>
@@ -151,9 +151,9 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
                                 </td>
                                 <td class="px-4 py-3.5">
                                     <p class="font-semibold text-slate-300">Level <?= e((string) $account['level']) ?></p>
-                                    <p class="text-[10px] text-slate-600"><?= e(number_format((int) $account['xp_total'])) ?> XP · <?= e((string) $account['current_streak']) ?>d streak</p>
+                                    <p class="text-[10px] text-muted-dim"><?= e(number_format((int) $account['xp_total'])) ?> XP · <?= e((string) $account['current_streak']) ?>d streak</p>
                                 </td>
-                                <td class="px-4 py-3.5 text-slate-500"><?= e($joined ?? '—') ?></td>
+                                <td class="px-4 py-3.5 text-muted"><?= e($joined ?? '—') ?></td>
                                 <td class="px-5 py-3.5 text-right">
                                     <a href="<?= e(url('/admin/users/' . (int) $account['id'])) ?>" class="btn btn-app-ghost px-2.5 py-1.5 text-[11px]">
                                         <i data-lucide="eye" class="h-3.5 w-3.5"></i>

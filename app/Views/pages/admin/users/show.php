@@ -22,7 +22,7 @@ $timezone = (string) ($account['timezone'] ?? 'UTC');
 ?>
 <section class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between" data-reveal>
     <div class="min-w-0">
-        <a href="<?= e(url('/admin/users')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-gold-300">
+        <a href="<?= e(url('/admin/users')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted transition hover:text-gold-300">
             <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
             Back to users
         </a>
@@ -56,8 +56,8 @@ $timezone = (string) ($account['timezone'] ?? 'UTC');
                 </div>
 
                 <h1 class="mt-2 break-words font-display text-3xl font-bold tracking-tight text-white"><?= e((string) $account['display_name']) ?></h1>
-                <p class="mt-1 text-sm text-slate-500">@<?= e((string) $account['username']) ?> · <?= e((string) $account['email']) ?></p>
-                <p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-600">
+                <p class="mt-1 text-sm text-muted">@<?= e((string) $account['username']) ?> · <?= e((string) $account['email']) ?></p>
+                <p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-dim">
                     <span class="inline-flex items-center gap-1.5"><i data-lucide="calendar-days" class="h-3 w-3"></i> Joined <?= e($joined ?? '—') ?> UTC</span>
                     <span class="inline-flex items-center gap-1.5"><i data-lucide="clock" class="h-3 w-3"></i> Last login <?= e($lastLogin ?? 'never') ?></span>
                     <span class="inline-flex items-center gap-1.5"><i data-lucide="globe" class="h-3 w-3"></i> <?= e($timezone) ?></span>
@@ -104,7 +104,7 @@ $timezone = (string) ($account['timezone'] ?? 'UTC');
                 </form>
             <?php endif; ?>
         <?php else: ?>
-            <span class="inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-[11px] text-slate-500">
+            <span class="inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-[11px] text-muted">
                 <i data-lucide="info" class="h-3.5 w-3.5"></i>
                 Self-moderation is disabled
             </span>
@@ -144,10 +144,10 @@ $timezone = (string) ($account['timezone'] ?? 'UTC');
                 </span>
                 <div>
                     <h2 class="font-display text-sm font-semibold text-white">Recent quests</h2>
-                    <p class="text-[11px] text-slate-500">Newest 12 definitions owned by this account.</p>
+                    <p class="text-[11px] text-muted">Newest 12 definitions owned by this account.</p>
                 </div>
             </div>
-            <div class="flex gap-2 text-[10px] text-slate-500">
+            <div class="flex gap-2 text-[10px] text-muted">
                 <span><?= e((string) $questCounts['active']) ?> active</span>
                 <span>·</span>
                 <span><?= e((string) $questCounts['archived']) ?> archived</span>
@@ -156,7 +156,7 @@ $timezone = (string) ($account['timezone'] ?? 'UTC');
 
         <div class="p-4">
             <?php if ($detail['recentQuests'] === []): ?>
-                <p class="rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-5 py-8 text-center text-xs text-slate-500">
+                <p class="rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-5 py-8 text-center text-xs text-muted">
                     This account has not created any quests yet.
                 </p>
             <?php else: ?>
@@ -175,7 +175,7 @@ $timezone = (string) ($account['timezone'] ?? 'UTC');
                             </span>
                             <div class="min-w-0 flex-1">
                                 <p class="truncate text-xs font-semibold text-slate-200"><?= e((string) $quest['title']) ?></p>
-                                <p class="mt-0.5 flex flex-wrap items-center gap-x-2 text-[10px] text-slate-600">
+                                <p class="mt-0.5 flex flex-wrap items-center gap-x-2 text-[10px] text-muted-dim">
                                     <span><?= e(ucfirst((string) $quest['difficulty'])) ?></span>
                                     <span>·</span>
                                     <span><?= e((string) $quest['xp_reward']) ?> XP</span>
@@ -203,18 +203,18 @@ $timezone = (string) ($account['timezone'] ?? 'UTC');
                 </span>
                 <div>
                     <h2 class="font-display text-sm font-semibold text-white">Active sessions</h2>
-                    <p class="text-[11px] text-slate-500"><?= e((string) count($detail['sessions'])) ?> unexpired session<?= count($detail['sessions']) === 1 ? '' : 's' ?>.</p>
+                    <p class="text-[11px] text-muted"><?= e((string) count($detail['sessions'])) ?> unexpired session<?= count($detail['sessions']) === 1 ? '' : 's' ?>.</p>
                 </div>
             </div>
             <div class="p-4">
                 <?php if ($detail['sessions'] === []): ?>
-                    <p class="rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-4 py-6 text-center text-[11px] text-slate-500">No active sessions.</p>
+                    <p class="rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-4 py-6 text-center text-[11px] text-muted">No active sessions.</p>
                 <?php else: ?>
                     <ul class="space-y-2">
                         <?php foreach ($detail['sessions'] as $session): ?>
                             <li class="rounded-xl border border-white/[0.06] bg-white/[0.015] px-3 py-2.5">
                                 <p class="truncate text-[11px] font-medium text-slate-300"><?= e(mb_substr((string) ($session['user_agent'] ?? 'Unknown device'), 0, 80)) ?></p>
-                                <p class="mt-0.5 text-[10px] text-slate-600">
+                                <p class="mt-0.5 text-[10px] text-muted-dim">
                                     <?= e((string) ($session['ip_address'] ?? '—')) ?> ·
                                     last seen <?= e((string) format_datetime((string) $session['last_activity'], 'UTC', 'j M, H:i')) ?> UTC
                                 </p>
@@ -232,18 +232,18 @@ $timezone = (string) ($account['timezone'] ?? 'UTC');
                 </span>
                 <div>
                     <h2 class="font-display text-sm font-semibold text-white">Audit history</h2>
-                    <p class="text-[11px] text-slate-500">Privileged actions taken against this account.</p>
+                    <p class="text-[11px] text-muted">Privileged actions taken against this account.</p>
                 </div>
             </div>
             <div class="p-4">
                 <?php if ($detail['audit'] === []): ?>
-                    <p class="rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-4 py-6 text-center text-[11px] text-slate-500">No moderation history.</p>
+                    <p class="rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-4 py-6 text-center text-[11px] text-muted">No moderation history.</p>
                 <?php else: ?>
                     <ol class="space-y-2">
                         <?php foreach ($detail['audit'] as $entry): ?>
                             <li class="rounded-xl border border-white/[0.06] bg-white/[0.015] px-3 py-2.5">
                                 <p class="text-[11px] font-medium text-slate-300"><?= e((string) $entry['summary']) ?></p>
-                                <p class="mt-0.5 text-[10px] text-slate-600">
+                                <p class="mt-0.5 text-[10px] text-muted-dim">
                                     <span class="font-mono text-gold-300/80"><?= e((string) $entry['action']) ?></span> ·
                                     <?= e((string) ($entry['actor_display_name'] ?? 'System')) ?> ·
                                     <?= e((string) format_datetime((string) $entry['created_at'], 'UTC', 'j M, H:i')) ?> UTC
@@ -262,23 +262,23 @@ $timezone = (string) ($account['timezone'] ?? 'UTC');
         <h2 class="font-display text-sm font-semibold text-white">Account record</h2>
         <dl class="mt-4 grid gap-4 text-[11px] sm:grid-cols-2 lg:grid-cols-4">
             <div>
-                <dt class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">User ID</dt>
+                <dt class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">User ID</dt>
                 <dd class="mt-1 font-mono text-slate-300">#<?= e((string) $account['id']) ?></dd>
             </div>
             <div>
-                <dt class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Email verified</dt>
+                <dt class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Email verified</dt>
                 <dd class="mt-1 text-slate-300"><?= !empty($account['email_verified_at']) ? 'Yes' : 'No' ?></dd>
             </div>
             <div>
-                <dt class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Leaderboard</dt>
+                <dt class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Leaderboard</dt>
                 <dd class="mt-1 text-slate-300"><?= (int) ($account['show_on_leaderboard'] ?? 0) === 1 ? 'Public' : 'Hidden' ?></dd>
             </div>
             <div>
-                <dt class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Public profile</dt>
+                <dt class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Public profile</dt>
                 <dd class="mt-1 text-slate-300"><?= (int) ($account['show_profile'] ?? 1) === 1 ? 'Published' : 'Hidden' ?></dd>
             </div>
             <div>
-                <dt class="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-600">Streak</dt>
+                <dt class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Streak</dt>
                 <dd class="mt-1 text-slate-300"><?= e((string) $account['current_streak']) ?> current · <?= e((string) $account['longest_streak']) ?> best</dd>
             </div>
         </dl>

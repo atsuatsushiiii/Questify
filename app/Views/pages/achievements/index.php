@@ -27,7 +27,7 @@ foreach ($overview['achievements'] as $item) {
                 Trophy hall
             </p>
             <h1 class="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">Achievements</h1>
-            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
                 Every badge is evaluated from your real quest ledger, XP total, level, and streak history.
             </p>
         </div>
@@ -43,10 +43,10 @@ foreach ($overview['achievements'] as $item) {
             <div class="relative">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Collection progress</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">Collection progress</p>
                         <p class="mt-2 font-display text-4xl font-bold tracking-tight text-white">
                             <?= e((string) $summary['unlocked']) ?>
-                            <span class="text-lg font-medium text-slate-500">/ <?= e((string) $summary['total']) ?> unlocked</span>
+                            <span class="text-lg font-medium text-muted">/ <?= e((string) $summary['total']) ?> unlocked</span>
                         </p>
                     </div>
                     <span class="grid h-14 w-14 place-items-center rounded-2xl border border-gold-400/25 bg-gold-400/10 text-gold-300">
@@ -64,7 +64,7 @@ foreach ($overview['achievements'] as $item) {
                 >
                     <div class="h-full rounded-full bg-gradient-to-r from-ember-500 via-ember-400 to-gold-400" style="width: <?= e((string) $summary['percent']) ?>%"></div>
                 </div>
-                <p class="mt-2 text-[11px] text-slate-500"><?= e((string) $summary['percent']) ?>% of the trophy hall collected.</p>
+                <p class="mt-2 text-[11px] text-muted"><?= e((string) $summary['percent']) ?>% of the trophy hall collected.</p>
             </div>
         </article>
 
@@ -110,11 +110,11 @@ foreach ($overview['achievements'] as $item) {
 
     <?php if ($achievements === []): ?>
         <div class="mt-6 rounded-2xl border border-dashed border-white/10 bg-white/[0.01] px-5 py-14 text-center">
-            <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-slate-500">
+            <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-muted">
                 <i data-lucide="trophy" class="h-5 w-5"></i>
             </span>
             <p class="mt-4 font-display text-sm font-semibold text-slate-200">No achievements in this category</p>
-            <p class="mt-1.5 text-xs text-slate-500">Try another category or complete more quests to fill the trophy hall.</p>
+            <p class="mt-1.5 text-xs text-muted">Try another category or complete more quests to fill the trophy hall.</p>
         </div>
     <?php else: ?>
         <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

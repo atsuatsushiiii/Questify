@@ -38,7 +38,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
     <div>
         <label for="email" class="field-label">Email address</label>
         <div class="relative">
-            <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600">
+            <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-dim">
                 <i data-lucide="mail" class="h-4 w-4"></i>
             </span>
             <input
@@ -67,18 +67,18 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
 
 <?php if (config('app.env') === 'local'): ?>
     <div class="mt-6 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
-        <p class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+        <p class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
             <i data-lucide="info" class="h-3.5 w-3.5"></i>
             Local development
         </p>
-        <p class="mt-2 text-xs leading-relaxed text-slate-500">
+        <p class="mt-2 text-xs leading-relaxed text-muted">
             Email delivery is not configured yet. Reset links are written to
             <code class="rounded bg-black/40 px-1 py-0.5 text-[11px] text-brand-200">storage/logs/mail.log</code>.
         </p>
     </div>
 <?php endif; ?>
 
-<div class="mt-7 border-t border-white/[0.07] pt-6 text-center text-sm text-slate-500">
+<div class="mt-7 border-t border-white/[0.07] pt-6 text-center text-sm text-muted">
     Remembered it?
     <a href="<?= e(url('/login')) ?>" class="font-semibold text-brand-300 transition hover:text-brand-200">
         Back to sign in

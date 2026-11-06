@@ -18,7 +18,7 @@ $displayName = (string) ($user['display_name'] ?? $user['username'] ?? 'Adventur
             Email verification
         </p>
         <h1 class="mt-3 font-display text-3xl font-bold tracking-tight text-white">Confirm your new email</h1>
-        <p class="mt-2 text-sm leading-relaxed text-slate-500">
+        <p class="mt-2 text-sm leading-relaxed text-muted">
             This link was issued to <span class="font-medium text-slate-300"><?= e($displayName) ?></span>. Confirm only if you requested this change.
         </p>
     </div>
@@ -29,11 +29,11 @@ $displayName = (string) ($user['display_name'] ?? $user['username'] ?? 'Adventur
         <div class="relative">
             <div class="space-y-3">
                 <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
-                    <p class="text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-600">Current address</p>
+                    <p class="text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-dim">Current address</p>
                     <p class="mt-1 break-all text-sm font-semibold text-slate-400 line-through decoration-slate-600"><?= e($currentEmail) ?></p>
                 </div>
 
-                <div class="flex justify-center text-slate-600" aria-hidden="true">
+                <div class="flex justify-center text-muted-dim" aria-hidden="true">
                     <i data-lucide="chevron-down" class="h-4 w-4"></i>
                 </div>
 
@@ -43,7 +43,7 @@ $displayName = (string) ($user['display_name'] ?? $user['username'] ?? 'Adventur
                 </div>
             </div>
 
-            <div class="mt-5 flex items-start gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-3 text-[11px] leading-relaxed text-slate-500">
+            <div class="mt-5 flex items-start gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-3 text-[11px] leading-relaxed text-muted">
                 <i data-lucide="shield-check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold-300"></i>
                 <p>Confirmation links are single-use and expire after one hour. After the change, sign in with the new address. Your current session stays active.</p>
             </div>

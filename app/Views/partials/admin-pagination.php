@@ -21,7 +21,7 @@ $link = static function (int $target) use ($basePath, $query): string {
 };
 ?>
 <div class="flex flex-col gap-3 border-t border-white/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-    <p class="text-[11px] text-slate-500">
+    <p class="text-[11px] text-muted">
         Showing <span class="font-semibold text-slate-300"><?= e((string) $from) ?>–<?= e((string) $to) ?></span>
         of <span class="font-semibold text-slate-300"><?= e(number_format($total)) ?></span>
     </p>
@@ -39,7 +39,7 @@ $link = static function (int $target) use ($basePath, $query): string {
             </span>
         <?php endif; ?>
 
-        <span class="px-1 text-[11px] tabular-nums text-slate-500">Page <?= e((string) $page) ?> / <?= e((string) $pages) ?></span>
+        <span class="px-1 text-[11px] tabular-nums text-muted">Page <?= e((string) $page) ?> / <?= e((string) $pages) ?></span>
 
         <?php if ($page < $pages): ?>
             <a href="<?= e($link($page + 1)) ?>" class="btn btn-app-ghost px-3 py-1.5 text-[11px]">

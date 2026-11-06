@@ -26,7 +26,7 @@ $criteriaLabels = [
 ];
 ?>
 <section class="mx-auto max-w-5xl" data-reveal>
-    <a href="<?= e(url('/admin/achievements')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-gold-300">
+    <a href="<?= e(url('/admin/achievements')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted transition hover:text-gold-300">
         <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
         Back to achievements
     </a>
@@ -63,7 +63,7 @@ $criteriaLabels = [
             </span>
             <div>
                 <h2 class="font-display text-sm font-semibold text-white">Definition</h2>
-                <p class="text-[11px] text-slate-500">Keys are permanent identifiers; avoid renaming them.</p>
+                <p class="text-[11px] text-muted">Keys are permanent identifiers; avoid renaming them.</p>
             </div>
         </div>
 
@@ -187,7 +187,7 @@ $criteriaLabels = [
                 <label class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3">
                     <span>
                         <span class="block text-xs font-semibold text-slate-200">Active</span>
-                        <span class="block text-[10px] text-slate-500">Visible to adventurers.</span>
+                        <span class="block text-[10px] text-muted">Visible to adventurers.</span>
                     </span>
                     <input type="hidden" name="is_active" value="0">
                     <input
@@ -219,15 +219,15 @@ $criteriaLabels = [
                 </span>
                 <div class="min-w-0">
                     <p class="truncate font-display text-sm font-semibold text-white"><?= e(($old['name'] ?? '') !== '' ? $old['name'] : 'Achievement name') ?></p>
-                    <p class="text-[10px] text-slate-500"><?= e($categories[$old['category'] ?? ''] ?? 'Category') ?></p>
+                    <p class="text-[10px] text-muted"><?= e($categories[$old['category'] ?? ''] ?? 'Category') ?></p>
                 </div>
             </div>
-            <p class="relative mt-4 text-[11px] leading-relaxed text-slate-500"><?= e(($old['description'] ?? '') !== '' ? $old['description'] : 'The description shown in the trophy hall.') ?></p>
+            <p class="relative mt-4 text-[11px] leading-relaxed text-muted"><?= e(($old['description'] ?? '') !== '' ? $old['description'] : 'The description shown in the trophy hall.') ?></p>
         </div>
 
         <div class="app-panel p-5">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Evaluation notes</p>
-            <ul class="mt-3 space-y-2.5 text-[11px] leading-relaxed text-slate-500">
+            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Evaluation notes</p>
+            <ul class="mt-3 space-y-2.5 text-[11px] leading-relaxed text-muted">
                 <li class="flex items-start gap-2">
                     <i data-lucide="shield-check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400/80"></i>
                     <span>Only the five whitelisted criteria types can be selected.</span>

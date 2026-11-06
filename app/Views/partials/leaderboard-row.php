@@ -24,7 +24,7 @@ $badgeClasses = match (true) {
     $position === 1 => 'border-gold-400/35 bg-gold-400/15 text-gold-200',
     $position === 2 => 'border-slate-300/25 bg-slate-300/10 text-slate-200',
     $position === 3 => 'border-ember-400/30 bg-ember-500/10 text-ember-200',
-    default => 'border-white/10 bg-white/[0.03] text-slate-500',
+    default => 'border-white/10 bg-white/[0.03] text-muted',
 };
 ?>
 <div class="grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border px-3 py-3 transition sm:grid-cols-[3rem_minmax(0,1fr)_4.5rem_6rem_6.5rem] <?= $isViewer
@@ -59,7 +59,7 @@ $badgeClasses = match (true) {
                 <?php endif; ?>
             </p>
             <?php if ($username !== ''): ?>
-                <p class="truncate text-[10px] text-slate-600">
+                <p class="truncate text-[10px] text-muted-dim">
                     <?php if ($profileUrl !== null): ?>
                         <a href="<?= e($profileUrl) ?>" class="underline-offset-2 hover:text-gold-300 hover:underline">@<?= e($username) ?></a>
                     <?php else: ?>
@@ -71,18 +71,18 @@ $badgeClasses = match (true) {
     </div>
 
     <div class="hidden text-center sm:block">
-        <p class="text-[9px] uppercase tracking-wider text-slate-600">Level</p>
+        <p class="text-[9px] uppercase tracking-wider text-muted-dim">Level</p>
         <p class="text-xs font-semibold text-slate-300"><?= e((string) $level) ?></p>
     </div>
 
     <div class="hidden text-center sm:block">
-        <p class="text-[9px] uppercase tracking-wider text-slate-600">Rank</p>
+        <p class="text-[9px] uppercase tracking-wider text-muted-dim">Rank</p>
         <p class="truncate text-xs font-semibold text-slate-300"><?= e($rankTitle) ?></p>
     </div>
 
     <div class="text-right">
-        <p class="text-[9px] uppercase tracking-wider text-slate-600"><?= e($metricLabel) ?></p>
+        <p class="text-[9px] uppercase tracking-wider text-muted-dim"><?= e($metricLabel) ?></p>
         <p class="text-xs font-bold tabular-nums text-slate-200"><?= e(number_format($xp)) ?></p>
-        <p class="text-[9px] text-slate-600 sm:hidden">Lv <?= e((string) $level) ?></p>
+        <p class="text-[9px] text-muted-dim sm:hidden">Lv <?= e((string) $level) ?></p>
     </div>
 </div>

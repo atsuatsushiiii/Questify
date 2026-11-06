@@ -16,6 +16,7 @@ module.exports = {
         panel: '#14141F',
         line: '#252538',
         muted: '#9898B3',
+        'muted-dim': '#8b97aa',
         brand: {
           50: '#F4F0FF',
           100: '#E9E1FF',

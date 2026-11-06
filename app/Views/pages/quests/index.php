@@ -141,7 +141,7 @@ $activeTab = $tabs[$status] ?? $tabs['active'];
         <?php if ($categories !== []): ?>
             <label for="category-filter" class="sr-only">Filter by category</label>
             <div class="relative">
-                <i data-lucide="folder-tree" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500"></i>
+                <i data-lucide="folder-tree" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted"></i>
                 <select
                     id="category-filter"
                     name="category"
@@ -159,7 +159,7 @@ $activeTab = $tabs[$status] ?? $tabs['active'];
         <?php endif; ?>
         <label for="difficulty-filter" class="sr-only">Filter by difficulty</label>
         <div class="relative">
-            <i data-lucide="filter" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500"></i>
+            <i data-lucide="filter" class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted"></i>
             <select
                 id="difficulty-filter"
                 name="difficulty"
@@ -176,7 +176,7 @@ $activeTab = $tabs[$status] ?? $tabs['active'];
         </div>
         <button type="submit" class="btn btn-app-ghost px-3 py-2 text-xs">Apply</button>
         <?php if ($difficulty !== '' || $category !== ''): ?>
-            <a href="<?= e(url('/quests?status=' . $status)) ?>" class="text-[11px] font-semibold text-slate-500 transition hover:text-gold-300">
+            <a href="<?= e(url('/quests?status=' . $status)) ?>" class="text-[11px] font-semibold text-muted transition hover:text-gold-300">
                 Clear
             </a>
         <?php endif; ?>
@@ -194,7 +194,7 @@ $activeTab = $tabs[$status] ?? $tabs['active'];
                     <i data-lucide="<?= e($activeTab['icon']) ?>" class="h-6 w-6"></i>
                 </span>
                 <h2 class="mt-5 font-display text-xl font-semibold text-white"><?= e($empty['title']) ?></h2>
-                <p class="mt-2 text-sm leading-relaxed text-slate-500"><?= e($empty['copy']) ?></p>
+                <p class="mt-2 text-sm leading-relaxed text-muted"><?= e($empty['copy']) ?></p>
                 <a href="<?= e(url($empty['href'])) ?>" class="btn btn-app-primary mt-5 inline-flex">
                     <i data-lucide="<?= $empty['href'] === '/quests/create' ? 'plus' : 'target' ?>" class="h-4 w-4"></i>
                     <?= e($empty['cta']) ?>

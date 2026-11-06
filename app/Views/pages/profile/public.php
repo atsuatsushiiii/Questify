@@ -64,7 +64,7 @@ $stats = [
                 <div class="min-w-0 flex-1">
                     <h1 class="truncate font-display text-3xl font-bold tracking-tight text-white sm:text-4xl"><?= e($displayName) ?></h1>
                     <?php if ($username !== ''): ?>
-                        <p class="mt-1 truncate text-sm text-slate-500">@<?= e($username) ?></p>
+                        <p class="mt-1 truncate text-sm text-muted">@<?= e($username) ?></p>
                     <?php endif; ?>
 
                     <div class="mt-3 flex flex-wrap items-center gap-2">
@@ -85,7 +85,7 @@ $stats = [
             <dl class="relative grid grid-cols-2 gap-px border-t border-white/[0.06] bg-white/[0.06] sm:grid-cols-3 lg:grid-cols-6">
                 <?php foreach ($stats as $stat): ?>
                     <div class="bg-[#0a0a12] px-5 py-4">
-                        <dt class="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-600"><?= e($stat['label']) ?></dt>
+                        <dt class="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-dim"><?= e($stat['label']) ?></dt>
                         <dd class="mt-1 font-display text-xl font-bold tabular-nums <?= e($stat['tone']) ?>"><?= e($stat['value']) ?></dd>
                     </div>
                 <?php endforeach; ?>
@@ -96,21 +96,21 @@ $stats = [
             <section class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 sm:p-6">
                 <div class="flex flex-wrap items-end justify-between gap-3">
                     <div>
-                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Trophy case</p>
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Trophy case</p>
                         <h2 class="mt-1 font-display text-lg font-semibold text-white">Unlocked achievements</h2>
                     </div>
-                    <p class="text-[11px] text-slate-500">
+                    <p class="text-[11px] text-muted">
                         <?= e((string) $achievementSummary['unlocked']) ?> of <?= e((string) $achievementSummary['total']) ?> collected
                     </p>
                 </div>
 
                 <?php if ($achievements === []): ?>
                     <div class="mt-5 rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-5 py-10 text-center">
-                        <span class="mx-auto grid h-11 w-11 place-items-center rounded-xl border border-white/[0.07] bg-white/[0.03] text-slate-500">
+                        <span class="mx-auto grid h-11 w-11 place-items-center rounded-xl border border-white/[0.07] bg-white/[0.03] text-muted">
                             <i data-lucide="trophy" class="h-5 w-5"></i>
                         </span>
                         <p class="mt-3 font-display text-sm font-semibold text-slate-200">No trophies yet</p>
-                        <p class="mt-1 text-xs text-slate-500">The first completed quest starts the collection.</p>
+                        <p class="mt-1 text-xs text-muted">The first completed quest starts the collection.</p>
                     </div>
                 <?php else: ?>
                     <div class="mt-4 grid gap-3 sm:grid-cols-2">
@@ -125,7 +125,7 @@ $stats = [
                 <section class="rounded-2xl border border-gold-400/20 bg-gradient-to-br from-gold-400/[0.08] via-white/[0.02] to-transparent p-5">
                     <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-gold-300/80">Level progress</p>
                     <p class="mt-2 font-display text-3xl font-bold text-white"><?= e((string) (int) $progression['level']) ?></p>
-                    <p class="text-[11px] text-slate-500"><?= e((string) $progression['rank']) ?></p>
+                    <p class="text-[11px] text-muted"><?= e((string) $progression['rank']) ?></p>
 
                     <div
                         class="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.08]"
@@ -139,15 +139,15 @@ $stats = [
                     </div>
 
                     <?php if ($progression['next_level'] !== null): ?>
-                        <p class="mt-2 text-[11px] leading-relaxed text-slate-500">
+                        <p class="mt-2 text-[11px] leading-relaxed text-muted">
                             <?= e(number_format((int) $progression['xp_to_next'])) ?> XP to level <?= e((string) (int) $progression['next_level']) ?>.
                         </p>
                     <?php else: ?>
-                        <p class="mt-2 text-[11px] leading-relaxed text-slate-500">Maximum level reached.</p>
+                        <p class="mt-2 text-[11px] leading-relaxed text-muted">Maximum level reached.</p>
                     <?php endif; ?>
 
                     <?php if ($progression['next_rank_level'] !== null): ?>
-                        <p class="mt-3 flex items-center gap-1.5 border-t border-white/[0.06] pt-3 text-[10px] text-slate-500">
+                        <p class="mt-3 flex items-center gap-1.5 border-t border-white/[0.06] pt-3 text-[10px] text-muted">
                             <i data-lucide="sparkles" class="h-3 w-3 text-gold-300"></i>
                             Next rank: <?= e((string) $progression['next_rank']) ?> at level <?= e((string) (int) $progression['next_rank_level']) ?>
                         </p>
@@ -155,8 +155,8 @@ $stats = [
                 </section>
 
                 <section class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">About this page</p>
-                    <p class="mt-2 text-[11px] leading-relaxed text-slate-500">
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">About this page</p>
+                    <p class="mt-2 text-[11px] leading-relaxed text-muted">
                         This adventurer chose to share their progress publicly. Quests, email, timezone, and account settings are never shown.
                     </p>
                     <a href="<?= e(url('/register')) ?>" class="mt-4 inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold-300 transition hover:text-gold-200">
@@ -167,7 +167,7 @@ $stats = [
             </aside>
         </div>
 
-        <p class="mt-6 flex items-start gap-2 text-[11px] leading-relaxed text-slate-600">
+        <p class="mt-6 flex items-start gap-2 text-[11px] leading-relaxed text-muted-dim">
             <i data-lucide="shield-check" class="mt-0.5 h-3.5 w-3.5 shrink-0"></i>
             Public profiles show only display name, username, avatar, progression, streak counts, and unlocked achievements.
         </p>
