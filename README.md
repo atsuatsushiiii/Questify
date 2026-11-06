@@ -6,11 +6,13 @@ A gamified productivity platform where everyday tasks become **quests**. Complet
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
 > **Status:** Phase 8 — production readiness complete: 63 PHPUnit unit tests,
-> a repeatable demo seeder, a written security/threat review with a production
-> checklist, and documented backup/restore steps. These sit alongside recurring
-> daily/weekly/monthly quests, public opt-in profiles, the Phase 7 polish pass,
-> and the Phase 1–6 auth, shell, quest engine, achievements, streaks, profiles,
-> notifications, leaderboards, account settings, and administrator tooling.
+> seven HTTP regression suites, and a headless Chrome browser QA pass with
+> axe-core WCAG scans, alongside a repeatable demo seeder, a written
+> security/threat review with a production checklist, and documented
+> backup/restore steps. These sit alongside recurring daily/weekly/monthly
+> quests, public opt-in profiles, the Phase 7 polish pass, and the Phase 1–6
+> auth, shell, quest engine, achievements, streaks, profiles, notifications,
+> leaderboards, account settings, and administrator tooling.
 > See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full architecture,
 > schema, and roadmap.
 
@@ -517,11 +519,14 @@ php scripts/seed_demo.php
   the route authorization table.
 - `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
   before the seven HTTP suites (648 checks total).
+- `npm run test:browser` adds a headless Chrome pass with 71 functional checks
+  and 20 axe-core WCAG 2.0/2.1 A+AA scans. It lives outside `composer test`
+  because it needs the app served by a web server.
 - `tests/bootstrap.php` boots configuration and autoloading without starting a
   session or opening a database connection.
 - `.github/workflows/ci.yml` runs Composer/npm installs, the asset build, PHP
-  lint, migrations, the unit suite, and all seven HTTP suites against MariaDB
-  10.11 on every push and pull request.
+  lint, migrations, the unit suite, all seven HTTP suites against MariaDB 10.11,
+  and the browser QA pass on every push and pull request.
 
 ### Email
 

@@ -1,10 +1,14 @@
 # QUESTIFY — Architecture & Implementation Plan
 
-> Status: proposal, awaiting approval. No application code has been written.
+> Status: implemented. Phases 0–8 have shipped, and the verification ladder now
+> includes 63 PHPUnit unit tests, seven HTTP regression suites, and a headless
+> Chrome browser QA pass with axe-core WCAG scans (see the README). This document
+> remains the architecture, schema, and decision reference; the roadmap below
+> records what shipped.
 
 ---
 
-## 0. Environment audit (this machine)
+## 0. Environment audit (project start)
 
 | Tool | Status |
 |---|---|
@@ -14,7 +18,7 @@
 | npm | 11.19.0 |
 | Git | installed |
 | Composer | **not installed** |
-| Project folder | `C:\Users\kevin\Desktop\Questify` (empty, not a git repo) |
+| Project folder | `C:\Users\kevin\Desktop\Questify` (empty at project start) |
 
 MariaDB 10.4 is the practical target, not MySQL 8. That means: no `JSON_TABLE`,
 no `INSERT ... RETURNING`, limited JSON path indexing. The schema below avoids
@@ -499,7 +503,8 @@ Failure anywhere rolls the whole thing back; no partial XP, no double XP.
 
 ## 5. Development roadmap
 
-Each phase ends with a working, demoable slice — no dead buttons.
+Each phase ends with a working, demoable slice — no dead buttons. All eight
+phases below have shipped.
 
 ### Phase 0 — Foundation (½–1 day)
 Composer/npm setup, PSR-4 autoload, `.env`, config loader, PDO factory, router,
@@ -554,6 +559,10 @@ PHPUnit for level/streak/validation/authz, security checklist in
 config (debug off, HTTPS cookies, CSP).
 
 **Total: roughly 15–18 focused working days.**
+
+**Verification:** 63 PHPUnit unit tests (259 assertions), seven HTTP regression
+suites (585 checks), and 71 browser checks with 20 axe-core WCAG 2.0/2.1 A+AA
+scans. CI runs all of them on every push and pull request.
 
 ---
 
@@ -634,7 +643,8 @@ config surface for no benefit here.)
 "dev:js":   "esbuild resources/js/app.js --bundle --sourcemap --outfile=public/assets/js/app.js --watch",
 "build:css":"tailwindcss -i resources/css/app.css -o public/assets/css/app.css --minify",
 "build:js": "esbuild resources/js/app.js --bundle --minify --outfile=public/assets/js/app.js",
-"build":    "npm run build:css && npm run build:js"
+"build":    "npm run build:css && npm run build:js",
+"test:browser": "node tests/browser/run.js"
 ```
 
 ---
@@ -662,9 +672,11 @@ config surface for no benefit here.)
 
 ---
 
-## 8. Open decisions (defaults proposed)
+## 8. Decisions (resolved)
 
-| # | Decision | Proposed default |
+Every decision below was adopted as proposed and is reflected in the shipped app.
+
+| # | Decision | Resolved default |
 |---|---|---|
 | 1 | Are quests private per user, or admin-assigned/global? | Private, user-owned; admin sees aggregate stats only |
 | 2 | Leaderboard periods | Weekly, monthly, all-time (from XP ledger) |
