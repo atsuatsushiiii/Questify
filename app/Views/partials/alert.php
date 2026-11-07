@@ -9,30 +9,30 @@
  */
 $tone = match ($type ?? 'info') {
     'success' => [
-        'wrap' => 'border-emerald-400/25 bg-emerald-500/[0.08] text-emerald-100',
+        'wrap' => 'border-aqua-400/30 border-l-2 border-l-aqua-400 bg-aqua-500/[0.07] text-aqua-100',
         'icon' => 'check-circle-2',
-        'iconTone' => 'text-emerald-300',
+        'iconTone' => 'text-aqua-300',
     ],
     'error' => [
-        'wrap' => 'border-rose-400/25 bg-rose-500/[0.08] text-rose-100',
+        'wrap' => 'border-ember-400/35 border-l-2 border-l-ember-400 bg-ember-500/[0.07] text-ember-100',
         'icon' => 'alert-circle',
-        'iconTone' => 'text-rose-300',
+        'iconTone' => 'text-ember-300',
     ],
     'info' => [
-        'wrap' => 'border-gold-400/25 bg-gold-400/[0.08] text-gold-100',
+        'wrap' => 'border-brand-400/30 border-l-2 border-l-brand-400 bg-brand-400/[0.06] text-brand-100',
         'icon' => 'info',
-        'iconTone' => 'text-gold-300',
+        'iconTone' => 'text-brand-300',
     ],
     default => [
-        'wrap' => 'border-aqua-400/25 bg-aqua-500/[0.08] text-aqua-100',
+        'wrap' => 'border-line border-l-2 border-l-brand-400 bg-panel/50 text-slate-200',
         'icon' => 'info',
-        'iconTone' => 'text-aqua-300',
+        'iconTone' => 'text-brand-300',
     ],
 };
 $role = ($type ?? 'info') === 'error' ? 'alert' : 'status';
 ?>
 <div
-    class="mb-6 flex items-start gap-3 rounded-xl border px-4 py-3 text-sm leading-relaxed <?= e($tone['wrap']) ?>"
+    class="mb-6 flex items-start gap-3 rounded-sm border px-4 py-3 text-sm leading-relaxed <?= e($tone['wrap']) ?>"
     role="<?= e($role) ?>"
 >
     <i data-lucide="<?= e($tone['icon']) ?>" class="mt-0.5 h-4 w-4 shrink-0 <?= e($tone['iconTone']) ?>"></i>

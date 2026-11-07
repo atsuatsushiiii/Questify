@@ -23,18 +23,18 @@ foreach ($appNav as $section) {
             <?php $active = nav_active($item['href']); ?>
             <a
                 href="<?= e(url($item['href'])) ?>"
-                class="relative flex flex-col items-center gap-1 rounded-xl px-0.5 py-1.5 text-[9px] font-medium tracking-tight transition <?= $active
-                    ? 'text-gold-300'
-                    : 'text-muted hover:bg-white/[0.04] hover:text-slate-200' ?>"
+                class="relative flex flex-col items-center gap-1 rounded-sm px-0.5 py-1.5 font-mono text-[8px] font-medium uppercase tracking-[0.08em] transition <?= $active
+                    ? 'text-brand-300'
+                    : 'text-muted hover:bg-brand-400/[0.05] hover:text-slate-200' ?>"
                 <?= $active ? 'aria-current="page"' : '' ?>
                 title="<?= e($item['label'] . ($item['phase'] !== null ? ' — Phase ' . $item['phase'] : '')) ?>"
             >
-                <span class="<?= $active ? 'text-gold-300' : '' ?>">
+                <span class="<?= $active ? 'text-brand-300' : '' ?>">
                     <i data-lucide="<?= e($item['icon']) ?>" class="h-[19px] w-[19px]"></i>
                 </span>
                 <span class="max-w-full truncate"><?= e($item['label'] === 'My Profile' ? 'Profile' : $item['label']) ?></span>
                 <?php if ($active): ?>
-                    <span class="absolute -top-1.5 h-0.5 w-6 rounded-full bg-gradient-to-r from-ember-400 to-gold-400" aria-hidden="true"></span>
+                    <span class="absolute -top-1.5 h-0.5 w-6 bg-brand-400" aria-hidden="true"></span>
                 <?php endif; ?>
             </a>
         <?php endforeach; ?>

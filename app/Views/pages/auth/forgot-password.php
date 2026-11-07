@@ -16,7 +16,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
         <i data-lucide="key-round" class="h-3.5 w-3.5"></i>
         Account recovery
     </p>
-    <h1 class="mt-5 font-display text-3xl font-bold tracking-tight text-white sm:text-[2.15rem]">
+    <h1 class="mt-5 font-display text-3xl font-semibold tracking-tight text-white sm:text-[2.15rem]">
         Lost your key?
     </h1>
     <p class="mt-3 text-sm leading-relaxed text-muted">
@@ -66,7 +66,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
 </form>
 
 <?php if (config('app.env') === 'local'): ?>
-    <div class="mt-6 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
+    <div class="mt-6 rounded-sm border border-line bg-white/[0.02] p-4">
         <p class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
             <i data-lucide="info" class="h-3.5 w-3.5"></i>
             Local development
@@ -78,7 +78,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
     </div>
 <?php endif; ?>
 
-<div class="mt-7 border-t border-white/[0.07] pt-6 text-center text-sm text-muted">
+<div class="mt-7 border-t border-line pt-6 text-center text-sm text-muted">
     Remembered it?
     <a href="<?= e(url('/login')) ?>" class="font-semibold text-brand-300 transition hover:text-brand-200">
         Back to sign in

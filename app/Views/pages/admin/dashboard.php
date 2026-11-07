@@ -12,11 +12,11 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
 ?>
 <section class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between" data-reveal>
     <div class="min-w-0">
-        <p class="inline-flex items-center gap-2 rounded-full border border-gold-400/25 bg-gold-400/[0.08] px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-gold-300">
+        <p class="eyebrow">
             <i data-lucide="shield-check" class="h-3.5 w-3.5"></i>
             Administrator
         </p>
-        <h1 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">Platform overview</h1>
+        <h1 class="mt-4 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Platform overview</h1>
         <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
             Live counts from the database, growth over the last 14 days, and the newest privileged actions.
             Nothing on this page is simulated.
@@ -39,7 +39,7 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
     <article class="app-stat-card">
         <div class="flex items-center justify-between gap-3">
             <p class="app-stat-label">Accounts</p>
-            <span class="app-stat-icon border-gold-400/20 bg-gold-400/10 text-gold-300">
+            <span class="app-stat-icon border-brand-400/30 bg-brand-400/10 text-brand-300">
                 <i data-lucide="users" class="h-4 w-4"></i>
             </span>
         </div>
@@ -50,7 +50,7 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
     <article class="app-stat-card">
         <div class="flex items-center justify-between gap-3">
             <p class="app-stat-label">Administrators</p>
-            <span class="app-stat-icon border-ember-400/20 bg-ember-500/10 text-ember-300">
+            <span class="app-stat-icon border-ember-400/30 bg-ember-500/10 text-ember-300">
                 <i data-lucide="shield-check" class="h-4 w-4"></i>
             </span>
         </div>
@@ -61,7 +61,7 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
     <article class="app-stat-card">
         <div class="flex items-center justify-between gap-3">
             <p class="app-stat-label">Quests</p>
-            <span class="app-stat-icon border-emerald-400/20 bg-emerald-500/10 text-emerald-300">
+            <span class="app-stat-icon border-aqua-400/30 bg-aqua-500/10 text-aqua-300">
                 <i data-lucide="scroll-text" class="h-4 w-4"></i>
             </span>
         </div>
@@ -72,7 +72,7 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
     <article class="app-stat-card">
         <div class="flex items-center justify-between gap-3">
             <p class="app-stat-label">XP awarded</p>
-            <span class="app-stat-icon border-gold-400/20 bg-gold-400/10 text-gold-300">
+            <span class="app-stat-icon border-brand-400/30 bg-brand-400/10 text-brand-300">
                 <i data-lucide="zap" class="h-4 w-4"></i>
             </span>
         </div>
@@ -85,7 +85,7 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
     <article class="app-stat-card">
         <div class="flex items-center justify-between gap-3">
             <p class="app-stat-label">Signups (14d)</p>
-            <span class="app-stat-icon border-emerald-400/20 bg-emerald-500/10 text-emerald-300">
+            <span class="app-stat-icon border-aqua-400/30 bg-aqua-500/10 text-aqua-300">
                 <i data-lucide="user-plus" class="h-4 w-4"></i>
             </span>
         </div>
@@ -96,7 +96,7 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
     <article class="app-stat-card">
         <div class="flex items-center justify-between gap-3">
             <p class="app-stat-label">Badges unlocked</p>
-            <span class="app-stat-icon border-gold-400/20 bg-gold-400/10 text-gold-300">
+            <span class="app-stat-icon border-brand-400/30 bg-brand-400/10 text-brand-300">
                 <i data-lucide="award" class="h-4 w-4"></i>
             </span>
         </div>
@@ -107,7 +107,7 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
     <article class="app-stat-card">
         <div class="flex items-center justify-between gap-3">
             <p class="app-stat-label">Categories</p>
-            <span class="app-stat-icon border-ember-400/20 bg-ember-500/10 text-ember-300">
+            <span class="app-stat-icon border-ember-400/30 bg-ember-500/10 text-ember-300">
                 <i data-lucide="folder-tree" class="h-4 w-4"></i>
             </span>
         </div>
@@ -118,7 +118,7 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
     <article class="app-stat-card">
         <div class="flex items-center justify-between gap-3">
             <p class="app-stat-label">Completions (14d)</p>
-            <span class="app-stat-icon border-emerald-400/20 bg-emerald-500/10 text-emerald-300">
+            <span class="app-stat-icon border-aqua-400/30 bg-aqua-500/10 text-aqua-300">
                 <i data-lucide="circle-check" class="h-4 w-4"></i>
             </span>
         </div>
@@ -129,28 +129,28 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
 
 <section class="mt-4 grid gap-4 xl:grid-cols-[1.5fr_1fr]" data-reveal>
     <article class="app-panel overflow-hidden">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
             <div class="flex items-center gap-3">
-                <span class="app-panel-icon border-gold-400/20 bg-gold-400/10 text-gold-300">
+                <span class="app-panel-icon border-brand-400/30 bg-brand-400/10 text-brand-300">
                     <i data-lucide="trending-up" class="h-4 w-4"></i>
                 </span>
                 <div>
                     <h2 class="font-display text-sm font-semibold text-white">Growth and activity</h2>
-                    <p class="text-[11px] text-muted">Signups and quest rewards over the last 14 days.</p>
+                    <p class="font-mono text-[9px] uppercase tracking-[0.1em] text-muted">Signups and quest rewards over the last 14 days</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3 text-[10px] text-muted">
-                <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-gold-400"></span> Signups</span>
-                <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-ember-400"></span> Completions</span>
+            <div class="flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+                <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 bg-brand-400"></span> Signups</span>
+                <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 bg-ember-400"></span> Completions</span>
             </div>
         </div>
 
         <div class="p-5">
             <div class="relative min-h-[260px]">
                 <div data-admin-chart-skeleton class="absolute inset-0 hidden" aria-hidden="true">
-                    <div class="flex h-full items-end gap-1.5 rounded-xl border border-white/[0.04] bg-white/[0.015] p-4 sm:gap-2">
+                    <div class="flex h-full items-end gap-1.5 rounded-sm border border-line bg-white/[0.015] p-4 sm:gap-2">
                         <?php foreach ([34, 52, 41, 66, 48, 74, 58, 84, 62, 70, 50, 78, 56, 88] as $barHeight): ?>
-                            <span class="skeleton flex-1 rounded-t-md" style="height: <?= e((string) $barHeight) ?>%"></span>
+                            <span class="skeleton flex-1 rounded-t-sm" style="height: <?= e((string) $barHeight) ?>%"></span>
                         <?php endforeach; ?>
                     </div>
                 </div>
@@ -169,17 +169,17 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
     </article>
 
     <article class="app-panel overflow-hidden">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
             <div class="flex items-center gap-3">
-                <span class="app-panel-icon border-gold-400/20 bg-gold-400/10 text-gold-300">
+                <span class="app-panel-icon border-brand-400/30 bg-brand-400/10 text-brand-300">
                     <i data-lucide="history" class="h-4 w-4"></i>
                 </span>
                 <div>
                     <h2 class="font-display text-sm font-semibold text-white">Recent audit entries</h2>
-                    <p class="text-[11px] text-muted">The latest privileged changes.</p>
+                    <p class="font-mono text-[9px] uppercase tracking-[0.1em] text-muted">The latest privileged changes</p>
                 </div>
             </div>
-            <a href="<?= e(url('/admin/audit')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold-300 transition hover:text-gold-200">
+            <a href="<?= e(url('/admin/audit')) ?>" class="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-300 transition hover:text-brand-200">
                 View all
                 <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
             </a>
@@ -187,8 +187,8 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
 
         <div class="p-4">
             <?php if ($dashboard['recentAudit'] === []): ?>
-                <div class="rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-5 py-10 text-center">
-                    <span class="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-white/[0.03] text-muted-dim">
+                <div class="rounded-sm border border-dashed border-line bg-panel/30 px-5 py-10 text-center">
+                    <span class="mx-auto grid h-10 w-10 place-items-center rounded-sm bg-white/[0.03] text-muted-dim">
                         <i data-lucide="history" class="h-4 w-4"></i>
                     </span>
                     <p class="mt-3 text-xs font-semibold text-slate-300">No admin actions yet</p>
@@ -197,15 +197,15 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
             <?php else: ?>
                 <ol class="space-y-2">
                     <?php foreach ($dashboard['recentAudit'] as $entry): ?>
-                        <li class="rounded-xl border border-white/[0.06] bg-white/[0.015] px-3 py-2.5">
+                        <li class="rounded-sm border border-line bg-white/[0.015] px-3 py-2.5">
                             <div class="flex items-start gap-2.5">
-                                <span class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-gold-400/20 bg-gold-400/[0.08] text-gold-300">
+                                <span class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-sm border border-brand-400/30 bg-brand-400/[0.08] text-brand-300">
                                     <i data-lucide="shield-check" class="h-3.5 w-3.5"></i>
                                 </span>
                                 <div class="min-w-0 flex-1">
                                     <p class="truncate text-[11px] font-semibold text-slate-200"><?= e((string) $entry['summary']) ?></p>
-                                    <p class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-dim">
-                                        <span class="font-mono text-gold-300/80"><?= e((string) $entry['action']) ?></span>
+                                    <p class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[9px] text-muted-dim">
+                                        <span class="text-brand-300/80"><?= e((string) $entry['action']) ?></span>
                                         <span>·</span>
                                         <span><?= e((string) ($entry['actor_display_name'] ?? 'System')) ?></span>
                                         <span>·</span>
@@ -224,36 +224,36 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
 </section>
 
 <section class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-reveal>
-    <a href="<?= e(url('/admin/users')) ?>" class="app-panel group flex items-center gap-4 p-5 transition hover:border-gold-400/25">
-        <span class="app-panel-icon border-gold-400/20 bg-gold-400/10 text-gold-300">
+    <a href="<?= e(url('/admin/users')) ?>" class="app-panel group flex items-center gap-4 p-5 transition hover:border-brand-400/35">
+        <span class="app-panel-icon border-brand-400/30 bg-brand-400/10 text-brand-300">
             <i data-lucide="users" class="h-4 w-4"></i>
         </span>
         <div class="min-w-0 flex-1">
             <p class="text-sm font-semibold text-white">User management</p>
             <p class="mt-0.5 text-[11px] text-muted">Search, suspend, activate, promote, or demote.</p>
         </div>
-        <i data-lucide="arrow-right" class="h-4 w-4 shrink-0 text-muted-dim transition group-hover:text-gold-300"></i>
+        <i data-lucide="arrow-right" class="h-4 w-4 shrink-0 text-muted-dim transition group-hover:text-brand-300"></i>
     </a>
 
-    <a href="<?= e(url('/admin/categories')) ?>" class="app-panel group flex items-center gap-4 p-5 transition hover:border-gold-400/25">
-        <span class="app-panel-icon border-ember-400/20 bg-ember-500/10 text-ember-300">
+    <a href="<?= e(url('/admin/categories')) ?>" class="app-panel group flex items-center gap-4 p-5 transition hover:border-brand-400/35">
+        <span class="app-panel-icon border-ember-400/30 bg-ember-500/10 text-ember-300">
             <i data-lucide="folder-tree" class="h-4 w-4"></i>
         </span>
         <div class="min-w-0 flex-1">
             <p class="text-sm font-semibold text-white">Category catalogue</p>
             <p class="mt-0.5 text-[11px] text-muted">Control how quests are grouped and filtered.</p>
         </div>
-        <i data-lucide="arrow-right" class="h-4 w-4 shrink-0 text-muted-dim transition group-hover:text-gold-300"></i>
+        <i data-lucide="arrow-right" class="h-4 w-4 shrink-0 text-muted-dim transition group-hover:text-brand-300"></i>
     </a>
 
-    <a href="<?= e(url('/admin/achievements')) ?>" class="app-panel group flex items-center gap-4 p-5 transition hover:border-gold-400/25">
-        <span class="app-panel-icon border-gold-400/20 bg-gold-400/10 text-gold-300">
+    <a href="<?= e(url('/admin/achievements')) ?>" class="app-panel group flex items-center gap-4 p-5 transition hover:border-brand-400/35">
+        <span class="app-panel-icon border-brand-400/30 bg-brand-400/10 text-brand-300">
             <i data-lucide="award" class="h-4 w-4"></i>
         </span>
         <div class="min-w-0 flex-1">
             <p class="text-sm font-semibold text-white">Achievement definitions</p>
             <p class="mt-0.5 text-[11px] text-muted">Tune thresholds and publish new badges.</p>
         </div>
-        <i data-lucide="arrow-right" class="h-4 w-4 shrink-0 text-muted-dim transition group-hover:text-gold-300"></i>
+        <i data-lucide="arrow-right" class="h-4 w-4 shrink-0 text-muted-dim transition group-hover:text-brand-300"></i>
     </a>
 </section>

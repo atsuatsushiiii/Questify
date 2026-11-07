@@ -22,11 +22,11 @@ $createdAt = format_datetime(
 $showAction = $showAction ?? true;
 ?>
 <article
-    class="notification-card <?= $unread ? 'is-unread' : '' ?> flex items-start gap-3 rounded-2xl border px-4 py-3.5 transition"
+    class="notification-card <?= $unread ? 'is-unread' : '' ?> flex items-start gap-3 rounded-sm border px-4 py-3.5 transition"
     data-notification
     data-notification-id="<?= e((string) $notification['id']) ?>"
 >
-    <span class="notification-icon grid h-10 w-10 shrink-0 place-items-center rounded-xl border">
+    <span class="notification-icon grid h-10 w-10 shrink-0 place-items-center rounded-sm border">
         <i data-lucide="<?= e((string) ($notification['icon'] ?? 'bell')) ?>" class="h-4 w-4"></i>
     </span>
 
@@ -35,11 +35,11 @@ $showAction = $showAction ?? true;
             <div class="min-w-0">
                 <p class="flex items-center gap-2 text-xs font-semibold text-slate-100">
                     <?php if ($unread): ?>
-                        <span class="notification-dot h-1.5 w-1.5 shrink-0 rounded-full bg-gold-400" aria-hidden="true"></span>
+                        <span class="notification-dot h-1.5 w-1.5 shrink-0 rounded-sm bg-brand-400" aria-hidden="true"></span>
                         <span class="sr-only" data-unread-label>Unread: </span>
                     <?php endif; ?>
                     <?php if ($href !== null): ?>
-                        <a href="<?= e($href) ?>" class="truncate transition hover:text-gold-200"><?= e((string) $notification['title']) ?></a>
+                        <a href="<?= e($href) ?>" class="truncate transition hover:text-brand-200"><?= e((string) $notification['title']) ?></a>
                     <?php else: ?>
                         <span class="truncate"><?= e((string) $notification['title']) ?></span>
                     <?php endif; ?>
@@ -52,7 +52,7 @@ $showAction = $showAction ?? true;
                     <?= csrf_field() ?>
                     <button
                         type="submit"
-                        class="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-slate-400 transition hover:border-gold-400/25 hover:text-gold-200"
+                        class="inline-flex items-center gap-1 rounded-sm border border-line bg-white/[0.03] px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400 transition hover:border-brand-400/30 hover:text-brand-200"
                     >
                         <i data-lucide="check" class="h-3 w-3"></i>
                         Mark read
@@ -62,7 +62,7 @@ $showAction = $showAction ?? true;
         </div>
 
         <?php if ($createdAt !== null): ?>
-            <p class="mt-2 text-[10px] text-muted-dim">
+            <p class="mt-2 font-mono text-[9px] text-muted-dim">
                 <time datetime="<?= e((string) iso_datetime((string) $notification['created_at'])) ?>"><?= e($createdAt) ?></time>
             </p>
         <?php endif; ?>

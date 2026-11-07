@@ -38,18 +38,18 @@ $difficultyIcon = [
 ];
 ?>
 <section class="mx-auto max-w-5xl" data-reveal>
-    <a href="<?= e(url($isEdit ? '/quests/' . (int) $quest['id'] : '/quests')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted transition hover:text-gold-300">
+    <a href="<?= e(url($isEdit ? '/quests/' . (int) $quest['id'] : '/quests')) ?>" class="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted transition hover:text-brand-300">
         <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
         <?= $isEdit ? 'Back to quest' : 'Back to quest log' ?>
     </a>
 
     <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div class="min-w-0">
-            <p class="inline-flex items-center gap-2 rounded-full border border-gold-400/25 bg-gold-400/[0.08] px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-gold-300">
+            <p class="eyebrow">
                 <i data-lucide="<?= $isEdit ? 'pencil' : 'plus' ?>" class="h-3.5 w-3.5"></i>
                 <?= $isEdit ? 'Edit quest' : 'New quest' ?>
             </p>
-            <h1 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <h1 class="mt-4 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">
                 <?= $isEdit ? 'Sharpen the objective.' : 'What will you conquer?' ?>
             </h1>
             <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
@@ -84,13 +84,13 @@ $difficultyIcon = [
     <?php endif; ?>
 
     <div class="app-panel p-5 sm:p-6">
-        <div class="flex items-center gap-3 border-b border-white/[0.06] pb-4">
-            <span class="app-panel-icon border-ember-400/20 bg-ember-500/10 text-ember-300">
+        <div class="flex items-center gap-3 border-b border-line pb-4">
+            <span class="app-panel-icon border-ember-400/30 bg-ember-500/10 text-ember-300">
                 <i data-lucide="scroll-text" class="h-4 w-4"></i>
             </span>
             <div>
                 <h2 class="font-display text-sm font-semibold text-white">Quest details</h2>
-                <p class="text-[11px] text-muted">Required fields are marked with an asterisk.</p>
+                <p class="font-mono text-[9px] uppercase tracking-[0.1em] text-muted">Required fields are marked with an asterisk</p>
             </div>
         </div>
 
@@ -192,13 +192,13 @@ $difficultyIcon = [
                             <?= $checked ? 'checked' : '' ?>
                             required
                         >
-                        <span class="flex h-full flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-3.5 transition peer-checked:border-gold-400/45 peer-checked:bg-gold-400/[0.07] peer-checked:shadow-[0_0_0_1px_rgba(250,204,21,0.12)] peer-focus-visible:ring-2 peer-focus-visible:ring-ember-400/60 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[#07060B] hover:border-white/20">
+                        <span class="flex h-full flex-col gap-2 rounded-sm border border-line bg-white/[0.02] p-3.5 transition peer-checked:border-brand-400/50 peer-checked:bg-brand-400/[0.07] peer-focus-visible:ring-2 peer-focus-visible:ring-brand-400/60 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-void hover:border-brand-400/30">
                             <span class="flex items-center justify-between gap-2">
                                 <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-200">
-                                    <i data-lucide="<?= e($difficultyIcon[$key] ?? 'target') ?>" class="h-3.5 w-3.5 text-gold-300"></i>
+                                    <i data-lucide="<?= e($difficultyIcon[$key] ?? 'target') ?>" class="h-3.5 w-3.5 text-brand-300"></i>
                                     <?= e(ucfirst($key)) ?>
                                 </span>
-                                <span class="rounded-full border border-gold-400/20 bg-gold-400/[0.08] px-2 py-0.5 text-[10px] font-bold text-gold-300">
+                                <span class="rounded-sm border border-brand-400/30 bg-brand-400/[0.08] px-2 py-0.5 font-mono text-[9px] font-bold text-brand-300">
                                     <?= e((string) $reward) ?> XP
                                 </span>
                             </span>
@@ -212,7 +212,7 @@ $difficultyIcon = [
             <?php $field = 'difficulty'; require __DIR__ . '/../../partials/field-error.php'; ?>
         </fieldset>
 
-        <div class="mt-6 flex flex-col gap-2 border-t border-white/[0.06] pt-5 sm:flex-row sm:items-center sm:justify-end">
+        <div class="mt-6 flex flex-col gap-2 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-end">
             <a href="<?= e(url($isEdit ? '/quests/' . (int) $quest['id'] : '/quests')) ?>" class="btn btn-app-ghost w-full sm:w-auto">
                 Cancel
             </a>
@@ -224,22 +224,22 @@ $difficultyIcon = [
     </div>
 
     <aside class="flex flex-col gap-4">
-        <div class="relative overflow-hidden rounded-2xl border border-gold-400/20 bg-gradient-to-br from-gold-400/[0.08] via-white/[0.02] to-transparent p-5">
-            <div class="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-gold-400/[0.12] blur-[60px]" aria-hidden="true"></div>
+        <div class="relative overflow-hidden rounded-sm border border-brand-400/30 bg-brand-400/[0.05] p-5">
+            <div class="pointer-events-none absolute inset-0 bg-grid opacity-40" aria-hidden="true"></div>
             <div class="relative">
                 <div class="flex items-center gap-2">
-                    <span class="grid h-9 w-9 place-items-center rounded-xl border border-gold-400/25 bg-gold-400/10 text-gold-300">
+                    <span class="grid h-9 w-9 place-items-center rounded-sm border border-brand-400/35 bg-brand-400/10 text-brand-300">
                         <i data-lucide="zap" class="h-4 w-4"></i>
                     </span>
                     <div>
-                        <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Reward preview</p>
+                        <p class="app-stat-label">Reward preview</p>
                         <p class="font-display text-sm font-semibold text-white" data-xp-preview-difficulty><?= e(ucfirst($selectedDifficulty)) ?> quest</p>
                     </div>
                 </div>
 
-                <p class="mt-5 font-display text-5xl font-bold leading-none tracking-tight text-white">
+                <p class="mt-5 font-display text-5xl font-semibold leading-none tracking-tight text-white">
                     <span data-xp-preview><?= e((string) $selectedReward) ?></span>
-                    <span class="text-sm font-medium text-gold-300">XP</span>
+                    <span class="text-sm font-medium text-brand-300">XP</span>
                 </p>
                 <p class="mt-2 text-[11px] leading-relaxed text-muted">
                     <?php if ($selectedRecurrence === Recurrence::NONE): ?>
@@ -247,20 +247,20 @@ $difficultyIcon = [
                     <?php else: ?>
                         Awarded once per <?= e(Recurrence::periodNoun($selectedRecurrence)) ?> while the quest stays active. The server assigns this value from
                     <?php endif; ?>
-                    <code class="rounded bg-white/[0.05] px-1 py-0.5 text-[10px] text-slate-400">config/game.php</code>.
+                    <code class="rounded-sm bg-white/[0.05] px-1 py-0.5 font-mono text-[10px] text-slate-400">config/game.php</code>.
                 </p>
             </div>
         </div>
 
         <div class="app-panel p-5">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">How rewards work</p>
+            <p class="app-stat-label">How rewards work</p>
             <ul class="mt-3 space-y-2.5 text-[11px] leading-relaxed text-muted">
                 <li class="flex items-start gap-2">
-                    <i data-lucide="shield-check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400/80"></i>
+                    <i data-lucide="shield-check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-aqua-400/80"></i>
                     <span>XP is calculated on the server; any submitted reward is ignored.</span>
                 </li>
                 <li class="flex items-start gap-2">
-                    <i data-lucide="check-circle-2" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold-400/80"></i>
+                    <i data-lucide="check-circle-2" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-400/80"></i>
                     <span>A quest pays out exactly once per period, even across repeated or concurrent requests.</span>
                 </li>
                 <li class="flex items-start gap-2">
@@ -271,7 +271,7 @@ $difficultyIcon = [
         </div>
 
         <?php if ($isEdit): ?>
-            <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
+            <div class="rounded-sm border border-line bg-panel/30 p-4">
                 <p class="flex items-start gap-2 text-[11px] leading-relaxed text-muted">
                     <i data-lucide="info" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted"></i>
                     <span>Editing an active quest changes the reward it will pay when completed. Changing the cadence clears the current period so the quest can be claimed again. Completed one-off quests keep the XP they already awarded.</span>

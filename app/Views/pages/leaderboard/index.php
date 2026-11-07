@@ -32,9 +32,9 @@ $podiumLayout = array_values(array_filter([
 ]));
 $podiumHeights = [2 => 'sm:mt-8', 1 => '', 3 => 'sm:mt-12'];
 $podiumTones = [
-    1 => 'border-gold-400/35 bg-gradient-to-br from-gold-400/[0.16] to-transparent text-gold-200',
-    2 => 'border-slate-300/25 bg-gradient-to-br from-slate-300/[0.10] to-transparent text-slate-200',
-    3 => 'border-ember-400/30 bg-gradient-to-br from-ember-500/[0.12] to-transparent text-ember-200',
+    1 => 'border-brand-400/45 bg-brand-400/[0.08] text-brand-200',
+    2 => 'border-slate-300/25 bg-slate-300/[0.05] text-slate-200',
+    3 => 'border-ember-400/35 bg-ember-500/[0.06] text-ember-200',
 ];
 $query = static fn (array $overrides = []): string => url('/leaderboard?' . http_build_query(array_merge(
     ['period' => $period],
@@ -48,7 +48,7 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
                 <i data-lucide="crown" class="h-3.5 w-3.5"></i>
                 Hall of adventurers
             </p>
-            <h1 class="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">Leaderboard</h1>
+            <h1 class="mt-3 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Leaderboard</h1>
             <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
                 Rankings are built from the XP ledger. Only adventurers who chose to appear publicly are listed.
             </p>
@@ -71,15 +71,15 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
                 </a>
             <?php endforeach; ?>
         </div>
-        <p class="text-[11px] text-muted-dim"><?= e((string) $board['period_note']) ?></p>
+        <p class="font-mono text-[9px] uppercase tracking-[0.1em] text-muted-dim"><?= e((string) $board['period_note']) ?></p>
     </div>
 
     <?php if (!$board['viewer_visible']): ?>
-        <div class="mt-4 flex items-start gap-3 rounded-xl border border-gold-400/20 bg-gold-400/[0.06] px-4 py-3 text-xs leading-relaxed text-gold-100">
-            <i data-lucide="eye-off" class="mt-0.5 h-4 w-4 shrink-0 text-gold-300"></i>
+        <div class="mt-4 flex items-start gap-3 rounded-sm border border-brand-400/30 border-l-2 border-l-brand-400 bg-brand-400/[0.06] px-4 py-3 text-xs leading-relaxed text-brand-100">
+            <i data-lucide="eye-off" class="mt-0.5 h-4 w-4 shrink-0 text-brand-300"></i>
             <p>
                 You are hidden from public leaderboards. Turn on visibility in
-                <a href="<?= e(url('/profile')) ?>" class="font-semibold underline decoration-gold-400/40 underline-offset-2 hover:text-white">your profile</a>
+                <a href="<?= e(url('/profile')) ?>" class="font-semibold underline decoration-brand-400/40 underline-offset-2 hover:text-white">your profile</a>
                 to compete.
             </p>
         </div>
@@ -97,10 +97,10 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
                     : null;
                 $isViewer = (int) $entry['id'] === (int) $user['id'];
                 ?>
-                <article class="relative overflow-hidden rounded-2xl border p-5 <?= e($podiumTones[$position] ?? $podiumTones[3]) ?> <?= e($podiumHeights[$position] ?? '') ?>">
-                    <div class="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-white/[0.06] blur-2xl" aria-hidden="true"></div>
+                <article class="relative overflow-hidden rounded-sm border p-5 <?= e($podiumTones[$position] ?? $podiumTones[3]) ?> <?= e($podiumHeights[$position] ?? '') ?>">
+                    <div class="pointer-events-none absolute inset-0 bg-grid opacity-40" aria-hidden="true"></div>
                     <div class="relative flex items-center gap-3">
-                        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/15 bg-black/20 font-display text-base font-bold">
+                        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-sm border border-line bg-black/20 font-display text-base font-semibold">
                             #<?= e((string) $position) ?>
                         </span>
                         <div class="min-w-0 flex-1">
@@ -111,12 +111,12 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
                                     <?= e($entryName) ?>
                                 <?php endif; ?>
                                 <?php if ($isViewer): ?>
-                                    <span class="ml-1 rounded border border-gold-400/25 bg-gold-400/[0.12] px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-gold-200">You</span>
+                                    <span class="ml-1 rounded-sm border border-brand-400/35 bg-brand-400/[0.12] px-1 py-0.5 font-mono text-[8px] font-bold uppercase tracking-[0.12em] text-brand-200">You</span>
                                 <?php endif; ?>
                             </p>
-                            <p class="truncate text-[10px] text-slate-400">
+                            <p class="truncate font-mono text-[9px] text-slate-400">
                                 <?php if ($entryProfileUrl !== null): ?>
-                                    <a href="<?= e($entryProfileUrl) ?>" class="underline-offset-2 hover:text-gold-300 hover:underline">@<?= e($entryUsername) ?></a>
+                                    <a href="<?= e($entryProfileUrl) ?>" class="underline-offset-2 hover:text-brand-300 hover:underline">@<?= e($entryUsername) ?></a>
                                 <?php else: ?>
                                     @<?= e($entryUsername) ?>
                                 <?php endif; ?>
@@ -124,9 +124,9 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
                             </p>
                         </div>
                     </div>
-                    <p class="relative mt-4 font-display text-2xl font-bold tabular-nums text-white">
+                    <p class="relative mt-4 font-display text-2xl font-semibold tabular-nums text-white">
                         <?= e(number_format((int) $entry['period_xp'])) ?>
-                        <span class="text-[10px] font-medium uppercase tracking-wider text-slate-400"><?= e($metricLabel) ?></span>
+                        <span class="font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-slate-400"><?= e($metricLabel) ?></span>
                     </p>
                 </article>
             <?php endforeach; ?>
@@ -134,20 +134,20 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
     <?php endif; ?>
 
     <article class="app-panel mt-4 overflow-hidden">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
             <div class="flex items-center gap-3">
-                <span class="app-panel-icon border-gold-400/20 bg-gold-400/10 text-gold-300">
+                <span class="app-panel-icon border-brand-400/35 bg-brand-400/10 text-brand-300">
                     <i data-lucide="crown" class="h-4 w-4"></i>
                 </span>
                 <div>
                     <h2 class="font-display text-sm font-semibold text-white"><?= e((string) $board['period_label']) ?> standings</h2>
-                    <p class="text-[11px] text-muted">
+                    <p class="font-mono text-[9px] uppercase tracking-[0.1em] text-muted">
                         <?= e(number_format((int) $board['total'])) ?> ranked <?= (int) $board['total'] === 1 ? 'adventurer' : 'adventurers' ?>
                     </p>
                 </div>
             </div>
             <?php if ($board['viewer_rank'] !== null): ?>
-                <span class="inline-flex items-center gap-1.5 rounded-full border border-gold-400/20 bg-gold-400/[0.08] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-gold-300">
+                <span class="inline-flex items-center gap-1.5 rounded-sm border border-brand-400/35 bg-brand-400/[0.08] px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-300">
                     <i data-lucide="trending-up" class="h-3 w-3"></i>
                     Your rank #<?= e((string) $board['viewer_rank']) ?>
                 </span>
@@ -156,7 +156,7 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
 
         <?php if ($rows === []): ?>
             <div class="px-5 py-14 text-center">
-                <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-muted">
+                <span class="mx-auto grid h-12 w-12 place-items-center rounded-sm border border-line bg-white/[0.03] text-muted">
                     <i data-lucide="crown" class="h-5 w-5"></i>
                 </span>
                 <p class="mt-4 font-display text-sm font-semibold text-slate-200">No ranked adventurers yet</p>
@@ -165,7 +165,7 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
                         ? 'Complete a quest to put the first XP on the board.'
                         : 'Nobody has earned XP in this period yet. The board resets on the next UTC boundary.' ?>
                 </p>
-                <a href="<?= e(url('/quests/create')) ?>" class="mt-4 inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold-300 transition hover:text-gold-200">
+                <a href="<?= e(url('/quests/create')) ?>" class="mt-4 inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-300 transition hover:text-brand-200">
                     Create a quest
                     <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
                 </a>
@@ -182,8 +182,8 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
         <?php endif; ?>
 
         <?php if ((int) $board['pages'] > 1): ?>
-            <nav class="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] px-5 py-4" aria-label="Leaderboard pagination">
-                <p class="text-[11px] text-muted-dim">
+            <nav class="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-4" aria-label="Leaderboard pagination">
+                <p class="font-mono text-[9px] uppercase tracking-[0.1em] text-muted-dim">
                     Page <?= e((string) $board['page']) ?> of <?= e((string) $board['pages']) ?>
                 </p>
                 <div class="flex items-center gap-2">
@@ -206,9 +206,9 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
 
     <?php if ($board['viewer_row'] !== null): ?>
         <article class="app-panel mt-4 overflow-hidden">
-            <div class="border-b border-white/[0.06] px-5 py-3.5">
+            <div class="border-b border-line px-5 py-3.5">
                 <h2 class="font-display text-sm font-semibold text-white">Your standing</h2>
-                <p class="text-[11px] text-muted">Calculated from the same ledger as the table above.</p>
+                <p class="font-mono text-[9px] uppercase tracking-[0.1em] text-muted">Calculated from the same ledger as the table above</p>
             </div>
             <div class="p-4">
                 <?php
@@ -220,7 +220,7 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
         </article>
     <?php endif; ?>
 
-    <p class="mt-4 flex items-start gap-2 text-[11px] leading-relaxed text-muted-dim">
+    <p class="mt-4 flex items-start gap-2 font-mono text-[9px] leading-relaxed tracking-[0.04em] text-muted-dim">
         <i data-lucide="info" class="mt-0.5 h-3.5 w-3.5 shrink-0"></i>
         Weekly and monthly boards use UTC boundaries; ties are broken by lifetime XP and then by account age.
         Timestamps are shown in <?= e(str_replace('_', ' ', $timezone)) ?>.

@@ -18,19 +18,21 @@
   }
 
   ::selection {
-    @apply bg-brand-500/30 text-white;
+    @apply bg-brand-400/35 text-white;
   }
 
   input[type='checkbox'] {
-    accent-color: #8b5cf6;
+    accent-color: #c9993f;
   }
 
-  code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  code,
+  kbd,
+  samp {
+    font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
 
   :focus-visible {
-    @apply outline-none ring-2 ring-aqua-400/70 ring-offset-2 ring-offset-void;
+    @apply outline-none ring-2 ring-brand-300/80 ring-offset-2 ring-offset-void;
   }
 
   ::-webkit-scrollbar {
@@ -39,17 +41,17 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: #0a0a13;
+    background: #100d09;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #2a2a42;
-    border: 2px solid #0a0a13;
-    border-radius: 999px;
+    background: #3c3226;
+    border: 2px solid #100d09;
+    border-radius: 0;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #3b3b5c;
+    background: #574734;
   }
 }
 
@@ -67,32 +69,41 @@
     content: attr(data-step);
   }
 
+  /*
+   * Controls read like stamped labels: sharp corners, mono caps, flat colour.
+   * The primary action is brass struck on dark paper; authenticated actions
+   * use vermilion so the two surfaces stay distinct.
+   */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center gap-2 rounded-sm border border-transparent px-5 py-3 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-primary {
-    @apply bg-brand-700 text-white shadow-[0_12px_45px_-14px_rgba(139,92,246,0.8)] hover:-translate-y-0.5 hover:bg-brand-600 hover:shadow-[0_18px_55px_-14px_rgba(139,92,246,0.9)] active:translate-y-0;
+    @apply border-brand-500 bg-brand-400 text-[#14100B] shadow-offset hover:bg-brand-300 active:translate-x-px active:translate-y-px;
   }
 
   .btn-ghost {
-    @apply border border-white/10 bg-white/[0.02] text-slate-200 hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.05] active:translate-y-0;
+    @apply border-line bg-transparent text-slate-200 hover:border-brand-400/50 hover:bg-brand-400/[0.06] hover:text-white;
   }
 
   .btn-sm {
-    @apply rounded-lg px-3.5 py-2 text-xs;
+    @apply px-3.5 py-2 text-[10px];
   }
 
   .card {
-    @apply rounded-2xl border border-white/[0.07] bg-white/[0.025];
+    @apply rounded-sm border border-line bg-panel/60;
   }
 
   .card-hover {
-    @apply transition-all duration-300 hover:-translate-y-1 hover:border-brand-400/30 hover:bg-white/[0.045] hover:shadow-[0_24px_70px_-30px_rgba(139,92,246,0.6)];
+    @apply transition-colors duration-200 hover:border-brand-400/40 hover:bg-panel;
   }
 
+  /*
+   * Eyebrows are margin notes, not pill badges: a short brass rule sits under
+   * a mono caps label.
+   */
   .eyebrow {
-    @apply inline-flex items-center gap-2 rounded-full border border-brand-400/25 bg-brand-500/10 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-200;
+    @apply inline-flex items-center gap-2 border-b border-brand-400/40 pb-1 font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-brand-300;
   }
 
   .section {
@@ -100,55 +111,60 @@
   }
 
   .section-heading {
-    @apply font-display text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08];
+    @apply font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08];
   }
 
   .section-copy {
     @apply mt-4 max-w-2xl text-base leading-relaxed text-muted;
   }
 
+  /*
+   * Kept as a class name for compatibility with existing views, but the
+   * gradient is gone: emphasis is italic brass set in the display serif.
+   */
   .gradient-text {
-    @apply bg-gradient-to-r from-white via-brand-200 to-aqua-300 bg-clip-text text-transparent;
+    @apply text-brand-300;
+    font-style: italic;
   }
 
   .icon-tile {
-    @apply grid h-11 w-11 place-items-center rounded-xl border;
+    @apply grid h-11 w-11 place-items-center rounded-sm border;
   }
 
   .field-label {
-    @apply mb-2 block text-sm font-medium text-slate-300;
+    @apply mb-2 block font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400;
   }
 
   .field-input {
-    @apply w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder:text-muted-dim transition focus:border-brand-400/60 focus:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-brand-500/20;
+    @apply w-full rounded-sm border border-line bg-ink px-4 py-3 text-sm text-white placeholder:text-muted-dim transition focus:border-brand-400/70 focus:outline-none focus:ring-2 focus:ring-brand-400/25;
   }
 
   .field-input.is-invalid {
-    @apply border-rose-400/50 bg-rose-500/[0.04] focus:border-rose-400 focus:ring-rose-500/20;
+    @apply border-ember-400/50 bg-ember-500/[0.04] focus:border-ember-400 focus:ring-ember-500/20;
   }
 
   .btn-app-primary {
-    @apply bg-gradient-to-r from-ember-500 to-ember-600 text-white shadow-[0_14px_40px_-16px_rgba(239,68,68,0.85)] hover:-translate-y-0.5 hover:from-ember-400 hover:to-ember-500 hover:shadow-[0_18px_50px_-16px_rgba(239,68,68,0.95)] active:translate-y-0;
+    @apply border-ember-700 bg-ember-600 text-[#FBF4E8] shadow-offset hover:bg-ember-700 hover:text-white active:translate-x-px active:translate-y-px;
   }
 
   .btn-app-ghost {
-    @apply border border-white/10 bg-white/[0.025] text-slate-200 hover:-translate-y-0.5 hover:border-gold-400/25 hover:bg-white/[0.05] active:translate-y-0;
+    @apply border-line bg-transparent text-slate-200 hover:border-brand-400/50 hover:bg-brand-400/[0.06] hover:text-white;
   }
 
   .app-stat-card {
-    @apply relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.025] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-gold-400/20 hover:bg-white/[0.035] hover:shadow-[0_24px_60px_-35px_rgba(250,204,21,0.35)];
+    @apply relative overflow-hidden rounded-sm border border-line border-l-2 border-l-brand-400/40 bg-panel/50 p-5 transition-colors duration-200 hover:border-brand-400/40 hover:border-l-brand-400/70 hover:bg-panel;
   }
 
   .app-stat-label {
-    @apply text-[10px] font-semibold uppercase tracking-[0.16em] text-muted;
+    @apply font-mono text-[9px] font-medium uppercase tracking-[0.18em] text-muted;
   }
 
   .app-stat-icon {
-    @apply grid h-9 w-9 place-items-center rounded-xl border;
+    @apply grid h-9 w-9 place-items-center rounded-sm border;
   }
 
   .app-stat-value {
-    @apply mt-4 font-display text-3xl font-bold tracking-tight text-white;
+    @apply mt-4 font-display text-3xl font-semibold tracking-tight text-white;
   }
 
   .app-stat-note {
@@ -156,55 +172,51 @@
   }
 
   .app-panel {
-    @apply rounded-2xl border border-white/[0.07] bg-white/[0.025];
+    @apply rounded-sm border border-line bg-panel/50;
   }
 
   .app-panel-icon {
-    @apply grid h-9 w-9 place-items-center rounded-xl border;
+    @apply grid h-9 w-9 place-items-center rounded-sm border;
   }
 
   .app-nav-link {
-    @apply relative flex items-center gap-3 rounded-xl border px-2.5 py-1.5 text-sm font-medium transition-all duration-200;
+    @apply relative flex items-center gap-3 rounded-sm border px-2.5 py-1.5 text-sm font-medium transition-colors duration-200;
   }
 
-  /*
-   * Quest journal controls use the authenticated red/gold identity. The
-   * original .field-input stays violet for the public auth pages.
-   */
   .app-field {
-    @apply w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder:text-muted-dim transition focus:border-ember-400/60 focus:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-ember-500/20;
+    @apply w-full rounded-sm border border-line bg-ink px-4 py-3 text-sm text-white placeholder:text-muted-dim transition focus:border-brand-400/70 focus:outline-none focus:ring-2 focus:ring-brand-400/25;
   }
 
   .app-field.is-invalid {
-    @apply border-rose-400/50 bg-rose-500/[0.04] focus:border-rose-400 focus:ring-rose-500/20;
+    @apply border-ember-400/50 bg-ember-500/[0.04] focus:border-ember-400 focus:ring-ember-500/20;
   }
 
   .app-select {
-    @apply w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white transition focus:border-ember-400/60 focus:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-ember-500/20;
+    @apply w-full rounded-sm border border-line bg-ink px-4 py-3 text-sm text-white transition focus:border-brand-400/70 focus:outline-none focus:ring-2 focus:ring-brand-400/25;
   }
 
   .app-shell :focus-visible {
-    @apply outline-none ring-2 ring-gold-400/70 ring-offset-2 ring-offset-[#07060B];
+    @apply outline-none ring-2 ring-brand-300/80 ring-offset-2 ring-offset-void;
   }
 
   .quest-tabs {
-    @apply flex flex-wrap items-center gap-1.5 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-1.5;
+    @apply flex flex-wrap items-center gap-1 rounded-sm border border-line bg-ink p-1.5;
   }
 
   .quest-tab {
-    @apply inline-flex items-center gap-1.5 rounded-xl border border-transparent px-3 py-2 text-xs font-medium text-slate-400 transition-all duration-200 hover:bg-white/[0.04] hover:text-slate-200;
+    @apply inline-flex items-center gap-1.5 rounded-sm border border-transparent px-3 py-2 text-xs font-medium text-slate-400 transition-colors duration-200 hover:bg-white/[0.03] hover:text-slate-200;
   }
 
   .quest-tab.is-active {
-    @apply border-ember-400/25 bg-gradient-to-r from-ember-500/[0.16] via-ember-500/[0.06] to-gold-400/[0.06] text-white shadow-[0_10px_30px_-18px_rgba(239,68,68,0.8)];
+    @apply border-brand-400/40 bg-brand-400/[0.10] text-brand-100;
   }
 
   .quest-tab-count {
-    @apply ml-0.5 rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-slate-400;
+    @apply ml-0.5 rounded-sm bg-white/[0.06] px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-slate-400;
   }
 
   .quest-tab.is-active .quest-tab-count {
-    @apply border border-gold-400/20 bg-gold-400/[0.10] text-gold-300;
+    @apply border border-brand-400/30 bg-brand-400/[0.10] text-brand-200;
   }
 
   /*
@@ -212,19 +224,19 @@
    * notifications module can flip a row to read without rebuilding utilities.
    */
   .notification-card {
-    @apply border-white/[0.06] bg-white/[0.015];
+    @apply border-line bg-panel/40;
   }
 
   .notification-card.is-unread {
-    @apply border-gold-400/20 bg-gradient-to-r from-gold-400/[0.07] to-transparent;
+    @apply border-brand-400/35 bg-brand-400/[0.06];
   }
 
   .notification-icon {
-    @apply border-white/10 bg-white/[0.03] text-muted;
+    @apply border-line bg-white/[0.03] text-muted;
   }
 
   .notification-card.is-unread .notification-icon {
-    @apply border-gold-400/25 bg-gold-400/10 text-gold-300;
+    @apply border-brand-400/35 bg-brand-400/10 text-brand-300;
   }
 
   .notification-dot {
@@ -238,19 +250,41 @@
   /*
    * Password visibility toggles ship with the hidden attribute so no-JS users
    * never see a dead control. The attribute has to outweigh the grid utility
-   * class; the auth module unhides the button once it binds.
+   * class; the auth module unhooks it once it binds.
    */
   [data-password-toggle][hidden] {
     display: none;
+  }
+
+  /*
+   * Expedition artifacts: a dashed seal for unlocked achievements and a
+   * perforated edge for quest tickets.
+   */
+  .ledger-seal {
+    @apply grid place-items-center rounded-full border-2 border-dashed border-brand-400/50 text-brand-300;
+  }
+
+  .ledger-ticket {
+    position: relative;
+    border: 1px solid #332b21;
+    background-color: #1a150f;
+  }
+
+  .ledger-ticket::before {
+    content: '';
+    position: absolute;
+    inset-block: 0.75rem;
+    left: -1px;
+    width: 2px;
+    background: linear-gradient(to bottom, transparent, rgba(201, 153, 63, 0.55), transparent);
   }
 }
 
 @layer utilities {
   .bg-grid {
-    background-image:
-      linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-    background-size: 64px 64px;
+    /* Ruled ledger lines rather than a tech grid. */
+    background-image: linear-gradient(to bottom, rgba(201, 153, 63, 0.06) 1px, transparent 1px);
+    background-size: 100% 32px;
   }
 
   .mask-fade-b {
@@ -271,7 +305,7 @@
   .skeleton {
     position: relative;
     overflow: hidden;
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(201, 153, 63, 0.07);
   }
 
   .skeleton::after {
@@ -279,7 +313,7 @@
     position: absolute;
     inset: 0;
     transform: translateX(-100%);
-    background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    background-image: linear-gradient(90deg, transparent, rgba(217, 178, 102, 0.10), transparent);
     animation: skeleton-sweep 1.4s ease-in-out infinite;
   }
 }
@@ -290,7 +324,7 @@
   }
 }
 
-/* Fixed navigation gains a solid surface after scrolling. */
+/* Fixed navigation gains a solid paper surface after scrolling. */
 .nav-shell {
   transition:
     background-color 0.25s ease,
@@ -299,9 +333,9 @@
 }
 
 [data-nav].is-scrolled .nav-shell {
-  background-color: rgba(10, 10, 19, 0.9);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 24px 60px -40px rgba(0, 0, 0, 1);
+  background-color: rgba(16, 13, 9, 0.95);
+  border-color: rgba(51, 43, 33, 0.95);
+  box-shadow: 0 1px 0 rgba(201, 153, 63, 0.14);
 }
 
 /* Animated mobile menu without a JS animation library. */
@@ -397,11 +431,11 @@
   height: 1.5rem;
   width: 1.5rem;
   place-items: center;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: #12111b;
-  color: #94a3b8;
-  box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 1);
+  border-radius: 0.125rem;
+  border: 1px solid rgba(51, 43, 33, 0.95);
+  background: #1a150f;
+  color: #a99c86;
+  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.55);
   transition:
     color 0.2s ease,
     border-color 0.2s ease,
@@ -409,9 +443,9 @@
 }
 
 .app-sidebar-toggle:hover {
-  border-color: rgba(250, 204, 21, 0.35);
-  background: #191722;
-  color: #fde047;
+  border-color: rgba(201, 153, 63, 0.5);
+  background: #221b13;
+  color: #d9b266;
 }
 
 @media (min-width: 1024px) {
@@ -463,11 +497,10 @@
   bottom: 0;
   z-index: 30;
   padding-bottom: env(safe-area-inset-bottom);
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(8, 7, 13, 0.95);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 -20px 50px -35px rgba(0, 0, 0, 1);
+  border-top: 1px solid rgba(51, 43, 33, 0.95);
+  background: rgba(11, 9, 7, 0.97);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
 
 .app-scroll-lock {
@@ -481,17 +514,17 @@
   overflow-y: auto;
   margin: auto;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1.25rem;
-  background: #0e0d15;
-  color: #cbd5e1;
-  box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 1);
+  border: 1px solid rgba(51, 43, 33, 0.95);
+  border-radius: 0.5rem;
+  background: #15110c;
+  color: #c6b9a1;
+  box-shadow: 6px 6px 0 0 rgba(0, 0, 0, 0.55);
 }
 
 .app-dialog::backdrop {
-  background: rgba(4, 4, 8, 0.8);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  background: rgba(6, 5, 4, 0.82);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
 
 .app-dialog[open] {

@@ -49,13 +49,13 @@ function initDeleteGate() {
     if (status) {
       if (matches) {
         status.textContent = 'Phrase matches. Deletion is immediate and irreversible.';
-        status.className = 'mt-1.5 text-[11px] text-emerald-300';
+        status.className = 'mt-1.5 text-[11px] text-aqua-300';
       } else if (phrase.value.trim() === '') {
         status.textContent = 'This phrase is exact and case-sensitive.';
-        status.className = 'mt-1.5 text-[11px] text-rose-100/50';
+        status.className = 'mt-1.5 text-[11px] text-ember-100/60';
       } else {
         status.textContent = 'Not quite — type DELETE MY ACCOUNT exactly.';
-        status.className = 'mt-1.5 text-[11px] text-rose-300';
+        status.className = 'mt-1.5 text-[11px] text-ember-300';
       }
     }
   };

@@ -7,11 +7,11 @@
  */
 
 const STRENGTH_STEPS = [
-  { label: 'Too short', tone: 'text-rose-300', bar: 'bg-rose-400' },
-  { label: 'Weak', tone: 'text-rose-300', bar: 'bg-rose-400' },
-  { label: 'Fair', tone: 'text-amber-300', bar: 'bg-amber-400' },
+  { label: 'Too short', tone: 'text-ember-300', bar: 'bg-ember-400' },
+  { label: 'Weak', tone: 'text-ember-300', bar: 'bg-ember-400' },
+  { label: 'Fair', tone: 'text-brand-300', bar: 'bg-brand-400' },
   { label: 'Strong', tone: 'text-aqua-300', bar: 'bg-aqua-400' },
-  { label: 'Very strong', tone: 'text-emerald-300', bar: 'bg-emerald-400' },
+  { label: 'Very strong', tone: 'text-aqua-200', bar: 'bg-aqua-300' },
 ];
 
 const INACTIVE_BAR = 'bg-white/[0.08]';

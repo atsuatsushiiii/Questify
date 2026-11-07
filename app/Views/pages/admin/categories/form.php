@@ -17,12 +17,12 @@ $summary = $message ?? ($errors !== [] ? 'Please fix the highlighted fields belo
 $isActive = ($old['is_active'] ?? '') !== '';
 ?>
 <section class="mx-auto max-w-4xl" data-reveal>
-    <a href="<?= e(url('/admin/categories')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted transition hover:text-gold-300">
+    <a href="<?= e(url('/admin/categories')) ?>" class="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted transition hover:text-brand-300">
         <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
         Back to categories
     </a>
 
-    <h1 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
+    <h1 class="mt-4 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">
         <?= $isEdit ? 'Edit category' : 'New category' ?>
     </h1>
     <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
@@ -48,7 +48,7 @@ $isActive = ($old['is_active'] ?? '') !== '';
     <?php endif; ?>
 
     <div class="app-panel p-5 sm:p-6">
-        <div class="flex items-center gap-3 border-b border-white/[0.06] pb-4">
+        <div class="flex items-center gap-3 border-b border-line pb-4">
             <span class="app-panel-icon border-ember-400/20 bg-ember-500/10 text-ember-300">
                 <i data-lucide="folder-tree" class="h-4 w-4"></i>
             </span>
@@ -96,7 +96,7 @@ $isActive = ($old['is_active'] ?? '') !== '';
                     <input
                         id="color"
                         type="color"
-                        class="h-11 w-14 cursor-pointer rounded-lg border border-white/10 bg-white/[0.03] p-1"
+                        class="h-11 w-14 cursor-pointer rounded-sm border border-line bg-white/[0.03] p-1"
                         value="<?= e($old['color'] ?? '#FACC15') ?>"
                         data-color-picker
                         aria-label="Colour picker"
@@ -151,7 +151,7 @@ $isActive = ($old['is_active'] ?? '') !== '';
             </div>
 
             <div class="flex items-end">
-                <label class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3">
+                <label class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-sm border border-line bg-white/[0.02] px-4 py-3">
                     <span>
                         <span class="block text-xs font-semibold text-slate-200">Active</span>
                         <span class="block text-[10px] text-muted">Show on the quest board.</span>
@@ -161,14 +161,14 @@ $isActive = ($old['is_active'] ?? '') !== '';
                         type="checkbox"
                         name="is_active"
                         value="1"
-                        class="h-4 w-4 rounded border-white/20 bg-white/[0.05] text-gold-400 focus:ring-gold-400/50"
+                        class="h-4 w-4 rounded-sm border-line bg-white/[0.05] text-brand-400 focus:ring-brand-400/50"
                         <?= $isActive ? 'checked' : '' ?>
                     >
                 </label>
             </div>
         </div>
 
-        <div class="mt-6 flex flex-col gap-2 border-t border-white/[0.06] pt-5 sm:flex-row sm:items-center sm:justify-end">
+        <div class="mt-6 flex flex-col gap-2 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-end">
             <a href="<?= e(url('/admin/categories')) ?>" class="btn btn-app-ghost w-full sm:w-auto">Cancel</a>
             <button type="submit" class="btn btn-app-primary w-full sm:w-auto">
                 <i data-lucide="<?= $isEdit ? 'check' : 'plus' ?>" class="h-4 w-4"></i>
@@ -179,11 +179,11 @@ $isActive = ($old['is_active'] ?? '') !== '';
 
     <aside class="flex flex-col gap-4">
         <div class="app-panel p-5">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">Preview</p>
-            <div class="mt-4 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
-                <span class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-semibold text-slate-200">
+            <p class="app-stat-label">Preview</p>
+            <div class="mt-4 rounded-sm border border-line bg-white/[0.02] p-4">
+                <span class="inline-flex items-center gap-2 rounded-sm border border-line bg-white/[0.03] px-2.5 py-1 text-[11px] font-semibold text-slate-200">
                     <span
-                        class="h-2 w-2 rounded-full"
+                        class="h-2 w-2 rounded-sm"
                         style="background-color: <?= e($old['color'] ?? '#FACC15') ?>"
                         data-category-preview-dot
                     ></span>
@@ -195,7 +195,7 @@ $isActive = ($old['is_active'] ?? '') !== '';
             </div>
         </div>
 
-        <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
+        <div class="rounded-sm border border-line bg-white/[0.02] p-4">
             <p class="flex items-start gap-2 text-[11px] leading-relaxed text-muted">
                 <i data-lucide="info" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted"></i>
                 <span>Deleting a category is safe: quests keep their history and become uncategorised. Prefer deactivating if you may reuse the category.</span>

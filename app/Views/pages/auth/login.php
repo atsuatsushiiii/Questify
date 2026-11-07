@@ -16,7 +16,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
         <i data-lucide="key-round" class="h-3.5 w-3.5"></i>
         Player sign-in
     </p>
-    <h1 class="mt-5 font-display text-3xl font-bold tracking-tight text-white sm:text-[2.15rem]">
+    <h1 class="mt-5 font-display text-3xl font-semibold tracking-tight text-white sm:text-[2.15rem]">
         Welcome back, adventurer.
     </h1>
     <p class="mt-3 text-sm leading-relaxed text-muted">
@@ -81,7 +81,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
             >
             <button
                 type="button"
-                class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-muted transition hover:bg-white/[0.05] hover:text-slate-200"
+                class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-sm text-muted transition hover:bg-white/[0.05] hover:text-slate-200"
                 data-password-toggle="password"
                 aria-controls="password"
                 aria-pressed="false"
@@ -100,7 +100,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
             type="checkbox"
             name="remember"
             value="1"
-            class="h-4 w-4 rounded border-white/15 bg-white/[0.03] text-brand-500 focus:ring-brand-500/30 focus:ring-offset-0"
+            class="h-4 w-4 rounded-sm border-line bg-white/[0.03] text-brand-500 focus:ring-brand-500/30 focus:ring-offset-0"
         >
         Keep me signed in for 30 days
     </label>
@@ -111,7 +111,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
     </button>
 </form>
 
-<div class="mt-8 border-t border-white/[0.07] pt-6 text-center text-sm text-muted">
+<div class="mt-8 border-t border-line pt-6 text-center text-sm text-muted">
     New to Questify?
     <a href="<?= e(url('/register')) ?>" class="font-semibold text-brand-300 transition hover:text-brand-200">
         Create your account

@@ -16,30 +16,30 @@ $navName = $navUser !== null
 ?>
 <header class="fixed inset-x-0 top-0 z-50" data-nav>
     <div class="container-page">
-        <div class="nav-shell mt-4 flex h-16 items-center justify-between gap-4 rounded-2xl border border-white/[0.06] bg-ink/60 px-4 backdrop-blur-xl sm:px-6">
+        <div class="nav-shell mt-4 flex h-16 items-center justify-between gap-4 rounded-sm border border-line bg-ink/85 px-4 backdrop-blur-md sm:px-6">
             <a href="<?= e(url('/')) ?>" class="group inline-flex items-center gap-2.5" aria-label="Questify home">
-                <span class="relative grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-500 via-brand-600 to-aqua-500 shadow-[0_0_24px_-6px_rgba(139,92,246,0.8)]">
-                    <svg viewBox="0 0 24 24" class="h-[18px] w-[18px] text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <span class="grid h-9 w-9 place-items-center rounded-sm border border-brand-500 bg-brand-400 shadow-offset transition-colors group-hover:bg-brand-300">
+                    <svg viewBox="0 0 24 24" class="h-[18px] w-[18px] text-[#14100B]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z"/>
                     </svg>
                 </span>
-                <span class="font-display text-lg font-bold tracking-tight text-white">Questify</span>
+                <span class="font-display text-lg font-semibold tracking-tight text-white">Questify</span>
             </a>
 
             <nav class="hidden items-center gap-1 md:flex" aria-label="Primary">
                 <?php foreach ($links as $link): ?>
                     <a
                         href="<?= e($link['href']) ?>"
-                        class="rounded-lg px-3.5 py-2 text-sm font-medium text-slate-400 transition hover:bg-white/[0.04] hover:text-white"
+                        class="rounded-sm px-3 py-2 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400 transition hover:bg-brand-400/[0.06] hover:text-brand-200"
                     >
                         <?= e($link['label']) ?>
                     </a>
                 <?php endforeach; ?>
             </nav>
 
-            <div class="hidden items-center gap-2 md:flex">
+            <div class="hidden items-center gap-3 md:flex">
                 <?php if ($navUser !== null): ?>
-                    <span class="max-w-[9rem] truncate px-2 text-xs font-medium text-slate-400">
+                    <span class="max-w-[9rem] truncate font-mono text-[10px] uppercase tracking-[0.12em] text-slate-400">
                         <?= e($navName) ?>
                     </span>
                     <a href="<?= e(url('/dashboard')) ?>" class="btn btn-primary btn-sm group">
@@ -49,7 +49,7 @@ $navName = $navUser !== null
                 <?php else: ?>
                     <a
                         href="<?= e(url('/login')) ?>"
-                        class="rounded-lg px-3.5 py-2 text-sm font-medium text-slate-300 transition hover:text-white"
+                        class="rounded-sm px-3 py-2 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300 transition hover:text-brand-200"
                     >
                         Sign in
                     </a>
@@ -63,7 +63,7 @@ $navName = $navUser !== null
             <button
                 type="button"
                 data-nav-toggle
-                class="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-slate-300 transition hover:bg-white/[0.05] hover:text-white md:hidden"
+                class="grid h-10 w-10 place-items-center rounded-sm border border-line text-slate-300 transition hover:border-brand-400/50 hover:text-white md:hidden"
                 aria-expanded="false"
                 aria-controls="mobile-menu"
                 aria-label="Open menu"
@@ -79,17 +79,17 @@ $navName = $navUser !== null
 
         <div id="mobile-menu" data-mobile-menu class="mobile-menu md:hidden" aria-hidden="true">
             <div class="overflow-hidden">
-                <div class="mt-2 rounded-2xl border border-white/[0.08] bg-ink/95 p-3 shadow-2xl shadow-black/50 backdrop-blur-xl">
+                <div class="mt-2 rounded-sm border border-line bg-ink p-3 shadow-offset-lg">
                     <?php foreach ($links as $link): ?>
                         <a
                             href="<?= e($link['href']) ?>"
-                            class="block rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.05] hover:text-white"
+                            class="block rounded-sm px-3 py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300 transition hover:bg-brand-400/[0.06] hover:text-white"
                         >
                             <?= e($link['label']) ?>
                         </a>
                     <?php endforeach; ?>
 
-                    <div class="mt-2 grid gap-2 border-t border-white/[0.06] pt-3">
+                    <div class="mt-2 grid gap-2 border-t border-line pt-3">
                         <?php if ($navUser !== null): ?>
                             <a href="<?= e(url('/dashboard')) ?>" class="btn btn-primary w-full">Open dashboard</a>
                         <?php else: ?>

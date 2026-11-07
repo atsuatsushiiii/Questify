@@ -11,11 +11,11 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
 ?>
 <section class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between" data-reveal>
     <div class="min-w-0">
-        <a href="<?= e(url('/admin')) ?>" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted transition hover:text-gold-300">
+        <a href="<?= e(url('/admin')) ?>" class="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted transition hover:text-brand-300">
             <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
             Admin overview
         </a>
-        <h1 class="mt-3 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">User management</h1>
+        <h1 class="mt-3 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">User management</h1>
         <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
             Search the directory, review account state, and moderate access. Suspending an account revokes its
             sessions and remember-me tokens immediately.
@@ -80,7 +80,7 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
 
 <section class="mt-4">
     <article class="app-panel overflow-hidden" data-reveal>
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
             <div>
                 <h2 class="font-display text-sm font-semibold text-white">Accounts</h2>
                 <p class="text-[11px] text-muted"><?= e(number_format($directory['total'])) ?> matching account<?= $directory['total'] === 1 ? '' : 's' ?>.</p>
@@ -89,7 +89,7 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
 
         <?php if ($directory['users'] === []): ?>
             <div class="px-6 py-14 text-center">
-                <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] text-muted">
+                <span class="mx-auto grid h-12 w-12 place-items-center rounded-sm border border-line bg-white/[0.03] text-muted">
                     <i data-lucide="users" class="h-5 w-5"></i>
                 </span>
                 <p class="mt-4 font-display text-sm font-semibold text-slate-200">No accounts match these filters</p>
@@ -99,7 +99,7 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[820px] text-left text-xs">
                     <thead>
-                        <tr class="border-b border-white/[0.06] text-[9px] uppercase tracking-[0.14em] text-muted-dim">
+                        <tr class="border-b border-line font-mono text-[8px] uppercase tracking-[0.14em] text-muted-dim">
                             <th scope="col" class="px-5 py-3 font-semibold">Adventurer</th>
                             <th scope="col" class="px-4 py-3 font-semibold">Role</th>
                             <th scope="col" class="px-4 py-3 font-semibold">Status</th>
@@ -119,14 +119,14 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
                                 <td class="px-5 py-3.5">
                                     <div class="flex items-center gap-3">
                                         <?php if ($avatar !== null): ?>
-                                            <img src="<?= e($avatar) ?>" alt="" class="h-9 w-9 shrink-0 rounded-lg border border-white/10 object-cover">
+                                            <img src="<?= e($avatar) ?>" alt="" class="h-9 w-9 shrink-0 rounded-sm border border-line object-cover">
                                         <?php else: ?>
-                                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-ember-500 to-gold-400 text-[11px] font-bold text-white">
+                                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-sm bg-brand-400 text-[11px] font-semibold text-[#14100B]">
                                                 <?= e($initial) ?>
                                             </span>
                                         <?php endif; ?>
                                         <div class="min-w-0">
-                                            <a href="<?= e(url('/admin/users/' . (int) $account['id'])) ?>" class="block truncate text-xs font-semibold text-slate-200 transition hover:text-gold-200">
+                                            <a href="<?= e(url('/admin/users/' . (int) $account['id'])) ?>" class="block truncate text-xs font-semibold text-slate-200 transition hover:text-brand-200">
                                                 <?= e((string) $account['display_name']) ?>
                                             </a>
                                             <p class="truncate text-[10px] text-muted-dim">@<?= e((string) $account['username']) ?> · <?= e((string) $account['email']) ?></p>
@@ -134,18 +134,18 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
                                     </div>
                                 </td>
                                 <td class="px-4 py-3.5">
-                                    <span class="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider <?= $account['role'] === 'admin'
-                                        ? 'border-gold-400/25 bg-gold-400/[0.08] text-gold-300'
-                                        : 'border-white/10 bg-white/[0.03] text-slate-400' ?>">
+                                    <span class="inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] <?= $account['role'] === 'admin'
+                                        ? 'border-brand-400/30 bg-brand-400/[0.08] text-brand-300'
+                                        : 'border-line bg-white/[0.03] text-slate-400' ?>">
                                         <i data-lucide="<?= $account['role'] === 'admin' ? 'shield-check' : 'user-round' ?>" class="h-3 w-3"></i>
                                         <?= $account['role'] === 'admin' ? 'Admin' : 'User' ?>
                                     </span>
                                 </td>
                                 <td class="px-4 py-3.5">
-                                    <span class="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider <?= $account['status'] === 'active'
-                                        ? 'border-emerald-400/25 bg-emerald-500/[0.08] text-emerald-300'
-                                        : 'border-rose-400/25 bg-rose-500/[0.08] text-rose-300' ?>">
-                                        <span class="h-1.5 w-1.5 rounded-full <?= $account['status'] === 'active' ? 'bg-emerald-400' : 'bg-rose-400' ?>"></span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] <?= $account['status'] === 'active'
+                                        ? 'border-aqua-400/30 bg-aqua-500/[0.08] text-aqua-300'
+                                        : 'border-ember-400/30 bg-ember-500/[0.08] text-ember-300' ?>">
+                                        <span class="h-1.5 w-1.5 rounded-sm <?= $account['status'] === 'active' ? 'bg-aqua-400' : 'bg-ember-400' ?>"></span>
                                         <?= e(ucfirst((string) $account['status'])) ?>
                                     </span>
                                 </td>

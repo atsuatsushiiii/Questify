@@ -20,7 +20,7 @@ $link = static function (int $target) use ($basePath, $query): string {
     return url($basePath . '?' . http_build_query($params));
 };
 ?>
-<div class="flex flex-col gap-3 border-t border-white/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+<div class="flex flex-col gap-3 border-t border-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
     <p class="text-[11px] text-muted">
         Showing <span class="font-semibold text-slate-300"><?= e((string) $from) ?>–<?= e((string) $to) ?></span>
         of <span class="font-semibold text-slate-300"><?= e(number_format($total)) ?></span>

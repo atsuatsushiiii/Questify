@@ -15,10 +15,10 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
 ?>
 <?php if ($invalidToken): ?>
     <div class="text-center">
-        <span class="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-rose-400/20 bg-rose-500/10 text-rose-300">
+        <span class="mx-auto grid h-14 w-14 place-items-center rounded-sm border border-ember-400/30 bg-ember-500/10 text-ember-300">
             <i data-lucide="key-round" class="h-6 w-6"></i>
         </span>
-        <h1 class="mt-6 font-display text-3xl font-bold tracking-tight text-white">
+        <h1 class="mt-6 font-display text-3xl font-semibold tracking-tight text-white">
             This link has expired.
         </h1>
         <p class="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-muted">
@@ -38,7 +38,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
             <i data-lucide="shield-check" class="h-3.5 w-3.5"></i>
             Account recovery
         </p>
-        <h1 class="mt-5 font-display text-3xl font-bold tracking-tight text-white sm:text-[2.15rem]">
+        <h1 class="mt-5 font-display text-3xl font-semibold tracking-tight text-white sm:text-[2.15rem]">
             Choose a new key.
         </h1>
         <p class="mt-3 text-sm leading-relaxed text-muted">
@@ -81,7 +81,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
                 >
                 <button
                     type="button"
-                    class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-muted transition hover:bg-white/[0.05] hover:text-slate-200"
+                    class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-sm text-muted transition hover:bg-white/[0.05] hover:text-slate-200"
                     data-password-toggle="password"
                     aria-controls="password"
                     aria-pressed="false"
@@ -95,10 +95,10 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
 
             <div class="mt-2 hidden" data-strength aria-live="polite">
                 <div class="flex gap-1.5">
-                    <span class="h-1 flex-1 rounded-full bg-white/[0.08]" data-strength-segment="1"></span>
-                    <span class="h-1 flex-1 rounded-full bg-white/[0.08]" data-strength-segment="2"></span>
-                    <span class="h-1 flex-1 rounded-full bg-white/[0.08]" data-strength-segment="3"></span>
-                    <span class="h-1 flex-1 rounded-full bg-white/[0.08]" data-strength-segment="4"></span>
+                    <span class="h-1 flex-1 bg-white/[0.08]" data-strength-segment="1"></span>
+                    <span class="h-1 flex-1 bg-white/[0.08]" data-strength-segment="2"></span>
+                    <span class="h-1 flex-1 bg-white/[0.08]" data-strength-segment="3"></span>
+                    <span class="h-1 flex-1 bg-white/[0.08]" data-strength-segment="4"></span>
                 </div>
                 <p class="mt-1.5 text-[11px] text-muted" data-strength-label></p>
             </div>
@@ -127,7 +127,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
                 >
                 <button
                     type="button"
-                    class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-muted transition hover:bg-white/[0.05] hover:text-slate-200"
+                    class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-sm text-muted transition hover:bg-white/[0.05] hover:text-slate-200"
                     data-password-toggle="password_confirmation"
                     aria-controls="password_confirmation"
                     aria-pressed="false"
@@ -155,7 +155,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
         </button>
     </form>
 
-    <div class="mt-7 border-t border-white/[0.07] pt-6 text-center text-sm text-muted">
+    <div class="mt-7 border-t border-line pt-6 text-center text-sm text-muted">
         <a href="<?= e(url('/login')) ?>" class="font-semibold text-brand-300 transition hover:text-brand-200">
             Back to sign in
         </a>

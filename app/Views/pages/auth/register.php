@@ -17,7 +17,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
         <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
         New player
     </p>
-    <h1 class="mt-5 font-display text-3xl font-bold tracking-tight text-white sm:text-[2.15rem]">
+    <h1 class="mt-5 font-display text-3xl font-semibold tracking-tight text-white sm:text-[2.15rem]">
         Create your character.
     </h1>
     <p class="mt-3 text-sm leading-relaxed text-muted">
@@ -149,7 +149,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
             >
             <button
                 type="button"
-                class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-muted transition hover:bg-white/[0.05] hover:text-slate-200"
+                class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-sm text-muted transition hover:bg-white/[0.05] hover:text-slate-200"
                 data-password-toggle="password"
                 aria-controls="password"
                 aria-pressed="false"
@@ -163,10 +163,10 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
 
         <div class="mt-2 hidden" data-strength aria-live="polite">
             <div class="flex gap-1.5">
-                <span class="h-1 flex-1 rounded-full bg-white/[0.08]" data-strength-segment="1"></span>
-                <span class="h-1 flex-1 rounded-full bg-white/[0.08]" data-strength-segment="2"></span>
-                <span class="h-1 flex-1 rounded-full bg-white/[0.08]" data-strength-segment="3"></span>
-                <span class="h-1 flex-1 rounded-full bg-white/[0.08]" data-strength-segment="4"></span>
+                <span class="h-1 flex-1 bg-white/[0.08]" data-strength-segment="1"></span>
+                <span class="h-1 flex-1 bg-white/[0.08]" data-strength-segment="2"></span>
+                <span class="h-1 flex-1 bg-white/[0.08]" data-strength-segment="3"></span>
+                <span class="h-1 flex-1 bg-white/[0.08]" data-strength-segment="4"></span>
             </div>
             <p class="mt-1.5 text-[11px] text-muted" data-strength-label></p>
         </div>
@@ -196,7 +196,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
             >
             <button
                 type="button"
-                class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-muted transition hover:bg-white/[0.05] hover:text-slate-200"
+                class="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-sm text-muted transition hover:bg-white/[0.05] hover:text-slate-200"
                 data-password-toggle="password_confirmation"
                 aria-controls="password_confirmation"
                 aria-pressed="false"
@@ -216,7 +216,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
                 type="checkbox"
                 name="terms"
                 value="1"
-                class="mt-0.5 h-4 w-4 shrink-0 rounded border-white/15 bg-white/[0.03] text-brand-500 focus:ring-brand-500/30 focus:ring-offset-0"
+                class="mt-0.5 h-4 w-4 shrink-0 rounded-sm border-line bg-white/[0.03] text-brand-500 focus:ring-brand-500/30 focus:ring-offset-0"
                 <?= isset($old['terms']) ? 'checked' : '' ?>
                 required
             >
@@ -233,7 +233,7 @@ $describedBy = static fn (string $field): string => isset($errors[$field]) ? $fi
     </button>
 </form>
 
-<div class="mt-7 border-t border-white/[0.07] pt-6 text-center text-sm text-muted">
+<div class="mt-7 border-t border-line pt-6 text-center text-sm text-muted">
     Already have an account?
     <a href="<?= e(url('/login')) ?>" class="font-semibold text-brand-300 transition hover:text-brand-200">
         Sign in

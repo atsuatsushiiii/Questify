@@ -640,7 +640,7 @@ async function run() {
     );
     await waitForNavigationFromClick('#app-sidebar a[href$="/quests"]');
     await assertPath('/quests', 'A drawer link navigates to the quest log');
-    await waitForText('My Quests');
+    await waitForText('My quests');
     assert(true, 'Drawer navigation lands on the quest log');
 
     await waitForNavigationFromClick('.app-bottom-nav a[href$="/achievements"]');
@@ -656,7 +656,7 @@ async function run() {
     await submit('form[action$="/logout"] button[type="submit"]');
     await assertPath('/login', 'Signing out returns to the login page');
     const signedOut = await bodyText();
-    assert(signedOut.includes('Sign in'), 'Login form is rendered after sign-out');
+    assert(signedOut.includes('Welcome back, adventurer.'), 'Login form is rendered after sign-out');
 
     await goto(`/u/${account.username}`);
     await waitForText(account.renamedDisplay);

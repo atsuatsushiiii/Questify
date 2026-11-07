@@ -17,19 +17,19 @@ $displayName = (string) ($user['display_name'] ?? $user['username'] ?? 'Adventur
             <i data-lucide="mail" class="h-3.5 w-3.5"></i>
             Email verification
         </p>
-        <h1 class="mt-3 font-display text-3xl font-bold tracking-tight text-white">Confirm your new email</h1>
+        <h1 class="mt-3 font-display text-3xl font-semibold tracking-tight text-white">Confirm your new email</h1>
         <p class="mt-2 text-sm leading-relaxed text-muted">
             This link was issued to <span class="font-medium text-slate-300"><?= e($displayName) ?></span>. Confirm only if you requested this change.
         </p>
     </div>
 
     <article class="app-panel relative overflow-hidden p-6 sm:p-8">
-        <div class="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-gold-400/[0.08] blur-[90px]" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute inset-0 bg-grid opacity-40" aria-hidden="true"></div>
 
         <div class="relative">
             <div class="space-y-3">
-                <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
-                    <p class="text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-dim">Current address</p>
+                <div class="rounded-sm border border-line bg-white/[0.02] px-4 py-3">
+                    <p class="font-mono text-[8px] font-semibold uppercase tracking-[0.16em] text-muted-dim">Current address</p>
                     <p class="mt-1 break-all text-sm font-semibold text-slate-400 line-through decoration-slate-600"><?= e($currentEmail) ?></p>
                 </div>
 
@@ -37,14 +37,14 @@ $displayName = (string) ($user['display_name'] ?? $user['username'] ?? 'Adventur
                     <i data-lucide="chevron-down" class="h-4 w-4"></i>
                 </div>
 
-                <div class="rounded-xl border border-gold-400/25 bg-gold-400/[0.08] px-4 py-3">
-                    <p class="text-[9px] font-semibold uppercase tracking-[0.16em] text-gold-300/80">New address</p>
+                <div class="rounded-sm border border-brand-400/35 bg-brand-400/[0.08] px-4 py-3">
+                    <p class="font-mono text-[8px] font-semibold uppercase tracking-[0.16em] text-brand-300/80">New address</p>
                     <p class="mt-1 break-all text-sm font-semibold text-white"><?= e($newEmail) ?></p>
                 </div>
             </div>
 
-            <div class="mt-5 flex items-start gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-3 text-[11px] leading-relaxed text-muted">
-                <i data-lucide="shield-check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold-300"></i>
+            <div class="mt-5 flex items-start gap-2 rounded-sm border border-line bg-white/[0.02] px-3.5 py-3 text-[11px] leading-relaxed text-muted">
+                <i data-lucide="shield-check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-300"></i>
                 <p>Confirmation links are single-use and expire after one hour. After the change, sign in with the new address. Your current session stays active.</p>
             </div>
 
