@@ -30,7 +30,7 @@ final class AdminCategoryController
         return $this->form(null, [
             'name' => '',
             'slug' => '',
-            'color' => '#FACC15',
+            'color' => '#C9993F',
             'icon' => 'folder',
             'sort_order' => '0',
             'is_active' => '1',

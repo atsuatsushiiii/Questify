@@ -182,9 +182,9 @@ final class ErrorHandler
             . '<meta name="viewport" content="width=device-width,initial-scale=1">'
             . '<title>' . $status . ' — ' . htmlspecialchars($title, ENT_QUOTES) . '</title>'
             . '<style>body{margin:0;min-height:100vh;display:grid;place-items:center;'
-            . 'background:#06060d;color:#e2e2f0;font-family:system-ui,sans-serif;text-align:center}'
-            . 'h1{font-size:72px;margin:0;color:#8b5cf6}p{color:#9a9ab5}'
-            . 'a{color:#22d3ee;text-decoration:none}</style></head><body><main>'
+            . 'background:#0b0907;color:#f3e6c8;font-family:"IBM Plex Sans",system-ui,sans-serif;text-align:center}'
+            . 'h1{font-size:72px;margin:0;color:#c9993f;font-family:Georgia,serif}p{color:#b6ab98}'
+            . 'a{color:#d9b266;text-decoration:none}</style></head><body><main>'
             . '<h1>' . $status . '</h1><p>' . htmlspecialchars($message, ENT_QUOTES) . '</p>'
             . '<a href="/">Return home</a></main></body></html>';
     }

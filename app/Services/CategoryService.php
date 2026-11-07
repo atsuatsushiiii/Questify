@@ -156,7 +156,7 @@ final class CategoryService
         }
 
         if (preg_match('/^#[0-9A-F]{6}$/', $color) !== 1) {
-            $errors['color'] = 'Choose a six-digit hex colour such as #FACC15.';
+            $errors['color'] = 'Choose a six-digit hex colour such as #C9993F.';
         }
 
         if (preg_match(self::ICON_PATTERN, $icon) !== 1) {

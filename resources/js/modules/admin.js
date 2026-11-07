@@ -111,9 +111,9 @@ function initGrowthChart() {
             {
               label: 'Signups',
               data: signups.map((row) => row.total),
-              borderColor: '#FACC15',
-              backgroundColor: 'rgba(250, 204, 21, 0.12)',
-              pointBackgroundColor: '#FACC15',
+              borderColor: '#C9993F',
+              backgroundColor: 'rgba(201, 153, 63, 0.12)',
+              pointBackgroundColor: '#C9993F',
               fill: true,
               tension: 0.35,
               borderWidth: 2,
@@ -123,9 +123,9 @@ function initGrowthChart() {
             {
               label: 'Completions',
               data: completions.map((row) => row.total),
-              borderColor: '#DC2626',
-              backgroundColor: 'rgba(220, 38, 38, 0.14)',
-              pointBackgroundColor: '#DC2626',
+              borderColor: '#C94C2A',
+              backgroundColor: 'rgba(201, 76, 42, 0.14)',
+              pointBackgroundColor: '#C94C2A',
               fill: true,
               tension: 0.35,
               borderWidth: 2,
@@ -145,11 +145,11 @@ function initGrowthChart() {
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: 'rgba(8, 7, 13, 0.96)',
-              borderColor: 'rgba(255, 255, 255, 0.10)',
+              backgroundColor: 'rgba(16, 13, 9, 0.96)',
+              borderColor: 'rgba(201, 153, 63, 0.28)',
               borderWidth: 1,
-              titleColor: '#F8FAFC',
-              bodyColor: '#CBD5E1',
+              titleColor: '#FAF3E4',
+              bodyColor: '#B6AB98',
               padding: 10,
               displayColors: true,
               callbacks: {
@@ -160,10 +160,10 @@ function initGrowthChart() {
           },
           scales: {
             x: {
-              grid: { color: 'rgba(255, 255, 255, 0.04)' },
+              grid: { color: 'rgba(201, 153, 63, 0.08)' },
               border: { display: false },
               ticks: {
-                color: '#64748B',
+                color: '#9C9180',
                 font: { size: 10 },
                 maxRotation: 0,
                 autoSkipPadding: 18,
@@ -171,10 +171,10 @@ function initGrowthChart() {
             },
             y: {
               beginAtZero: true,
-              grid: { color: 'rgba(255, 255, 255, 0.06)' },
+              grid: { color: 'rgba(201, 153, 63, 0.12)' },
               border: { display: false },
               ticks: {
-                color: '#64748B',
+                color: '#9C9180',
                 font: { size: 10 },
                 precision: 0,
                 callback: (value) => numberFormatter.format(Number(value)),
@@ -227,7 +227,7 @@ function initCategoryForm() {
   const currentColor = () =>
     text instanceof HTMLInputElement && validHex.test(text.value.trim())
       ? text.value.trim().toUpperCase()
-      : '#FACC15';
+      : '#C9993F';
 
   const paintColor = () => {
     const color = currentColor();

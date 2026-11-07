@@ -97,7 +97,7 @@ $isActive = ($old['is_active'] ?? '') !== '';
                         id="color"
                         type="color"
                         class="h-11 w-14 cursor-pointer rounded-sm border border-line bg-white/[0.03] p-1"
-                        value="<?= e($old['color'] ?? '#FACC15') ?>"
+                        value="<?= e($old['color'] ?? '#C9993F') ?>"
                         data-color-picker
                         aria-label="Colour picker"
                     >
@@ -106,7 +106,7 @@ $isActive = ($old['is_active'] ?? '') !== '';
                         name="color"
                         type="text"
                         class="app-field<?= e($errorClass('color')) ?> font-mono uppercase"
-                        value="<?= e($old['color'] ?? '#FACC15') ?>"
+                        value="<?= e($old['color'] ?? '#C9993F') ?>"
                         maxlength="7"
                         pattern="#[0-9A-Fa-f]{6}"
                         required
@@ -184,7 +184,7 @@ $isActive = ($old['is_active'] ?? '') !== '';
                 <span class="inline-flex items-center gap-2 rounded-sm border border-line bg-white/[0.03] px-2.5 py-1 text-[11px] font-semibold text-slate-200">
                     <span
                         class="h-2 w-2 rounded-sm"
-                        style="background-color: <?= e($old['color'] ?? '#FACC15') ?>"
+                        style="background-color: <?= e($old['color'] ?? '#C9993F') ?>"
                         data-category-preview-dot
                     ></span>
                     <span data-category-preview-name><?= e(($old['name'] ?? '') !== '' ? $old['name'] : 'Category name') ?></span>
