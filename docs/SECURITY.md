@@ -29,6 +29,17 @@ working exploit. Include the route, the request, and the observed behaviour.
   token for the account.
 - Suspended accounts are rejected at sign-in and any existing session is
   revoked, so the target is signed out on its next request.
+- Google sign-in uses OpenID Connect with the authorization-code grant, PKCE
+  (`S256`), a single-use session-bound `state`, and a `nonce`. The ID token is
+  received directly from Google's token endpoint over TLS; issuer, audience,
+  nonce, expiry, and a verified email are still validated before the account is
+  trusted.
+- A verified Google email links to an existing account only when it exactly
+  matches the Questify email. A second Google subject cannot take over an email
+  that is already linked.
+- Google-created accounts have no usable password until the owner sets one via
+  the reset flow. Disconnecting Google is refused while `password_set_at` is
+  null, so the account cannot be locked out.
 
 ### Sessions
 
@@ -99,7 +110,10 @@ working exploit. Include the route, the request, and the observed behaviour.
 `config/security.php` sends these on every response:
 
 - `Content-Security-Policy` with `script-src 'self'`, `frame-ancestors 'none'`,
-  `object-src 'none'`, `base-uri 'self'`, and `form-action 'self'`
+  `object-src 'none'`, `base-uri 'self'`, and
+  `form-action 'self' https://accounts.google.com`. The Google host is required
+  because `form-action` also governs the redirect from the sign-in POST to
+  Google's authorization endpoint.
 - `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Permissions-Policy` disabling camera, microphone and geolocation

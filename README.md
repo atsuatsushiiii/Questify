@@ -132,7 +132,7 @@ database/        Migrations and seeders
 resources/       Tailwind entry + JS modules (source)
 scripts/         Migration runner, dev server router, CLI tools
 storage/         Logs, cache, private uploads
-docs/            Architecture plan and security notes
+docs/            Architecture plan, security notes, and deployment guide
 ```
 
 ## Commands
@@ -142,10 +142,11 @@ docs/            Architecture plan and security notes
 | `php scripts/migrate.php` | Apply pending migrations |
 | `php scripts/migrate.php status` | Show applied/pending migrations |
 | `php scripts/migrate.php rollback` | Roll back the last batch |
+| `php scripts/preflight.php` | Check a host for production readiness |
 | `npm run build` | Compile + minify CSS and JS |
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
-| `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, recurrence, mail, route authz (63 tests) |
+| `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, recurrence, mail, Google claims, route authz (78 tests) |
 | `php scripts/seed_demo.php` | Create/reuse a local demo account with realistic quests |
 | `php tests/auth_flow.php` | End-to-end auth regression suite (55 checks) |
 | `php tests/app_shell.php` | Authenticated shell and Phase 4-6 pages suite (69 checks) |
@@ -154,8 +155,9 @@ docs/            Architecture plan and security notes
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
 | `php tests/phase6_flow.php` | Admin authorization, KPIs, moderation, catalogue CRUD, audit (111 checks) |
 | `php tests/public_profile_flow.php` | Public profile rendering, privacy, 404s, leaderboard links (39 checks) |
+| `php tests/google_oauth_flow.php` | Google start, callback guards, account resolution, linking, CSP (49 checks) |
 | `npm run test:browser` | Chrome browser QA for auth, quests, profiles, mobile navigation, and WCAG scans |
-| `composer test` | Run the unit suite and all seven HTTP suites (648 checks) |
+| `composer test` | Run the unit suite and all eight HTTP suites (634 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -527,6 +529,12 @@ account menu only render the Administration section for admins.
 
 ## Production readiness (Phase 8)
 
+### Deployment
+
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) covers shared hosting, a VPS, and a
+PaaS: production environment values, document-root setup, database migrations,
+HTTPS, Google OAuth, the preflight script, backups, and troubleshooting.
+
 ### Demo data
 
 `scripts/seed_demo.php` creates a realistic local fixture without touching
@@ -548,18 +556,18 @@ php scripts/seed_demo.php
 
 ### Tests
 
-- `phpunit.xml` + `tests/Unit` provide 63 DB-free tests / 259 assertions over
-  `Progression`, `Validator`, `StreakService`, `Recurrence`, `MailService`, and
-  the route authorization table.
+- `phpunit.xml` + `tests/Unit` provide 78 DB-free tests / 293 assertions over
+  `Progression`, `Validator`, `StreakService`, `Recurrence`, `MailService`,
+  `GoogleAuthService`, and the route authorization table.
 - `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
-  before the seven HTTP suites (648 checks total).
+  before the eight HTTP suites (634 checks total).
 - `npm run test:browser` adds a headless Chrome pass with 71 functional checks
   and 20 axe-core WCAG 2.0/2.1 A+AA scans. It lives outside `composer test`
   because it needs the app served by a web server.
 - `tests/bootstrap.php` boots configuration and autoloading without starting a
   session or opening a database connection.
 - `.github/workflows/ci.yml` runs Composer/npm installs, the asset build, PHP
-  lint, migrations, the unit suite, all seven HTTP suites against MariaDB 10.11,
+  lint, migrations, the unit suite, all eight HTTP suites against MariaDB 10.11,
   and the browser QA pass on every push and pull request.
 
 ### Email
