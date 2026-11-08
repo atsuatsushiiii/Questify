@@ -4,6 +4,20 @@ All notable changes to Questify are recorded in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Google sign-in via OpenID Connect: a CSRF-protected start endpoint, a
+  PKCE + state + nonce callback, verified-email account linking, automatic
+  account creation, and connect/disconnect controls in Settings.
+
+### Changed
+
+- The static showcase and both favicons now use the Expedition Ledger system.
+- Admin charts and the emergency error fallback use the warm brass palette.
+- The default category colour is now brass (`#C9993F`).
+
 ## [1.0.0] - 2026-11-07
 
 The first complete release: every phase of the project plan has shipped, with

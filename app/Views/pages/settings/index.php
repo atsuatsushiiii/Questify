@@ -11,6 +11,7 @@
  * @var array<string, string> $errors
  * @var string|null $message
  * @var string|null $form
+ * @var bool $googleEnabled
  */
 $timezone = (string) ($user['timezone'] ?? 'UTC');
 $displayName = (string) ($user['display_name'] ?? $user['username'] ?? 'Adventurer');
@@ -19,6 +20,9 @@ $email = (string) ($user['email'] ?? '');
 $memberSince = format_datetime(isset($user['created_at']) ? (string) $user['created_at'] : null, $timezone, 'j M Y');
 $lastLogin = format_datetime(isset($user['last_login_at']) ? (string) $user['last_login_at'] : null, $timezone, 'j M Y, H:i');
 $emailVerified = !empty($user['email_verified_at']);
+$googleConnected = !empty($user['google_id']);
+$googleEmail = (string) ($user['google_email'] ?? '');
+$hasPassword = !empty($user['password_set_at']);
 $oldEmail = (string) ($old['new_email'] ?? '');
 $otherSessions = array_values(array_filter($sessions, static fn (array $session): bool => !(bool) ($session['is_current'] ?? false)));
 $pendingExpires = $pendingEmail !== null
@@ -288,6 +292,75 @@ $deviceLabel = static function (array $session): string {
                         <i data-lucide="loader-2" class="hidden h-4 w-4 animate-spin" data-submit-spinner></i>
                     </button>
                 </form>
+            </article>
+
+            <article id="google" class="app-panel scroll-mt-24 p-5">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="app-stat-label">Sign-in</p>
+                        <h2 class="mt-1 font-display text-lg font-semibold text-white">Connected accounts</h2>
+                        <p class="mt-1 text-[11px] leading-relaxed text-muted">Sign in with Google instead of typing your password. The Google email must match your Questify email.</p>
+                    </div>
+                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-sm border border-aqua-400/30 bg-aqua-500/10 text-aqua-300">
+                        <i data-lucide="link" class="h-4 w-4"></i>
+                    </span>
+                </div>
+
+                <div class="mt-4 flex flex-wrap items-center gap-3 rounded-sm border border-line bg-white/[0.02] px-3.5 py-3">
+                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-sm border border-line bg-white/[0.03]" aria-hidden="true">
+                        <svg viewBox="0 0 48 48" class="h-4 w-4">
+                            <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z"/>
+                            <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+                            <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.6 5.1C9.6 39.6 16.2 44 24 44z"/>
+                            <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.2 5.2C36.9 40.3 44 35 44 24c0-1.3-.1-2.3-.4-3.5z"/>
+                        </svg>
+                    </span>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-semibold text-slate-200">Google</p>
+                        <p class="mt-0.5 truncate text-[11px] text-muted">
+                            <?= $googleConnected
+                                ? e($googleEmail !== '' ? $googleEmail : 'Connected')
+                                : 'Not connected' ?>
+                        </p>
+                    </div>
+                    <?php if ($googleConnected): ?>
+                        <span class="inline-flex items-center gap-1.5 rounded-sm border border-aqua-400/30 bg-aqua-500/[0.08] px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-aqua-300">
+                            <i data-lucide="badge-check" class="h-3 w-3"></i>
+                            Connected
+                        </span>
+                    <?php endif; ?>
+                </div>
+
+                <?php if ($googleConnected): ?>
+                    <?php if ($hasPassword): ?>
+                        <form method="POST" action="<?= e(url('/settings/google/unlink')) ?>" class="mt-4" data-confirm="Disconnect Google sign-in? You will need your password to sign in.">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-app-ghost w-full text-sm">
+                                <i data-lucide="unlink" class="h-4 w-4"></i>
+                                Disconnect Google
+                            </button>
+                        </form>
+                    <?php else: ?>
+                        <p class="mt-3 flex items-start gap-2 rounded-sm border border-brand-400/30 bg-brand-400/[0.06] px-3.5 py-3 text-[11px] leading-relaxed text-brand-100">
+                            <i data-lucide="info" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-300"></i>
+                            <span>
+                                This account signs in with Google only.
+                                <a href="<?= e(url('/forgot-password')) ?>" class="font-semibold text-brand-200 underline decoration-brand-400/40 underline-offset-2 transition hover:text-white">Set a password</a>
+                                before disconnecting so you can still sign in.
+                            </span>
+                        </p>
+                    <?php endif; ?>
+                <?php elseif (!empty($googleEnabled)): ?>
+                    <form method="POST" action="<?= e(url('/settings/google')) ?>" class="mt-4">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-app-ghost w-full text-sm">
+                            <i data-lucide="link" class="h-4 w-4"></i>
+                            Connect Google
+                        </button>
+                    </form>
+                <?php else: ?>
+                    <p class="mt-3 text-[11px] leading-relaxed text-muted-dim">Google sign-in is not configured on this deployment.</p>
+                <?php endif; ?>
             </article>
 
             <article id="notifications" class="app-panel scroll-mt-24 p-5">

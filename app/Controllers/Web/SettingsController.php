@@ -12,6 +12,7 @@ use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Models\EmailChangeRequest;
+use App\Services\GoogleAuthService;
 use App\Services\SettingsService;
 
 /**
@@ -218,6 +219,7 @@ final class SettingsController
             'errors' => $errors,
             'message' => $message,
             'form' => $form,
+            'googleEnabled' => (new GoogleAuthService())->isConfigured(),
         ], 'layouts/app')->withStatus($status);
     }
 

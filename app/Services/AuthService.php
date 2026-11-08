@@ -368,6 +368,7 @@ final class AuthService
 
         try {
             User::updatePassword((int) $reset['user_id'], $newHash);
+            User::markPasswordSet((int) $reset['user_id']);
             PasswordReset::markUsed((int) $reset['id']);
             PasswordReset::deleteForUser((int) $reset['user_id']);
 

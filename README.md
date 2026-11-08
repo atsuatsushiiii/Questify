@@ -167,6 +167,10 @@ docs/            Architecture plan and security notes
 | `POST /logout` | End the session and revoke the remember-me token |
 | `GET/POST /forgot-password` | Request a reset link (generic response, no account enumeration) |
 | `GET/POST /reset-password` | Set a new password with a single-use, one-hour token |
+| `POST /auth/google` | Start Google sign-in (CSRF-protected) |
+| `GET /auth/google/callback` | Google redirect target; validates state, nonce, and ID token |
+| `POST /settings/google` | Connect Google to the signed-in account |
+| `POST /settings/google/unlink` | Disconnect Google (requires a usable password) |
 | `GET /dashboard` | Authenticated account home; guests are redirected to `/login` |
 
 Security properties:
@@ -187,9 +191,38 @@ Security properties:
   requests to protected pages remember the intended URL.
 - Validation is server-side (mirrored by HTML constraints); failures re-render
   the form with `422` and field-level messages.
+- Google sign-in uses OpenID Connect with the authorization-code grant, PKCE
+  (`S256`), a single-use session-bound `state`, and a `nonce`. The ID token is
+  validated for issuer, audience, nonce, expiry, and a verified email before the
+  account is trusted. Existing accounts are linked only when the verified Google
+  email matches the Questify email.
 
 Tune throttling, token lifetimes, and password length limits in
-[`config/auth.php`](config/auth.php).
+[`config/auth.php`](config/auth.php). Google credentials live in
+[`config/oauth.php`](config/oauth.php) and are read from the environment.
+
+### Google sign-in setup
+
+1. Open [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
+   and create an **OAuth client ID** of type **Web application**.
+2. Add an authorized redirect URI:
+   `https://your-domain.example/auth/google/callback` (for local work,
+   `http://localhost:8000/auth/google/callback`).
+3. Copy the client ID and secret into `.env`:
+
+   ```ini
+   GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   # Optional; defaults to APP_URL/auth/google/callback
+   # GOOGLE_REDIRECT_URI=https://your-domain.example/auth/google/callback
+   ```
+
+4. Clear the config cache if one is used, then reload `/login`. The
+   **Continue with Google** button appears only when both values are present.
+
+Accounts created through Google start without a usable password. Their owners
+can set one through the normal **Forgot password** flow; until then, Settings
+will not allow Google to be disconnected.
 
 ### Local password-reset email
 

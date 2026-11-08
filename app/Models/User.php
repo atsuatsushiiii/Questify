@@ -38,6 +38,30 @@ final class User
         return $user === false ? null : $user;
     }
 
+    /** @return array<string, mixed>|null */
+    public static function findByEmail(string $email): ?array
+    {
+        $statement = Database::connection()->prepare(
+            'SELECT * FROM users WHERE email = ? LIMIT 1',
+        );
+        $statement->execute([mb_strtolower($email)]);
+        $user = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return $user === false ? null : $user;
+    }
+
+    /** @return array<string, mixed>|null */
+    public static function findByGoogleId(string $googleId): ?array
+    {
+        $statement = Database::connection()->prepare(
+            'SELECT * FROM users WHERE google_id = ? LIMIT 1',
+        );
+        $statement->execute([$googleId]);
+        $user = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return $user === false ? null : $user;
+    }
+
     public static function emailExists(string $email): bool
     {
         $statement = Database::connection()->prepare('SELECT 1 FROM users WHERE email = ? LIMIT 1');
@@ -81,8 +105,8 @@ final class User
     public static function create(array $data): int
     {
         $statement = Database::connection()->prepare(
-            'INSERT INTO users (username, email, password_hash, display_name, timezone, role, status, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())',
+            'INSERT INTO users (username, email, password_hash, display_name, timezone, role, status, password_set_at, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP())',
         );
 
         $statement->execute([
@@ -212,6 +236,72 @@ final class User
             'UPDATE users SET password_hash = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?',
         );
         $statement->execute([$hash, $id]);
+    }
+
+    /**
+     * Mark that the account owner now knows a usable password. Google-created
+     * accounts start with a placeholder hash and no password set.
+     */
+    public static function markPasswordSet(int $id): void
+    {
+        $statement = Database::connection()->prepare(
+            'UPDATE users SET password_set_at = UTC_TIMESTAMP(), updated_at = UTC_TIMESTAMP() WHERE id = ?',
+        );
+        $statement->execute([$id]);
+    }
+
+    /**
+     * @param array{username: string, email: string, password_hash: string, display_name: string, timezone: string, google_id: string, google_email: string} $data
+     */
+    public static function createFromGoogle(array $data): int
+    {
+        $statement = Database::connection()->prepare(
+            'INSERT INTO users
+                (username, email, password_hash, display_name, timezone, role, status,
+                 google_id, google_email, email_verified_at, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP())',
+        );
+
+        $statement->execute([
+            $data['username'],
+            mb_strtolower($data['email']),
+            $data['password_hash'],
+            $data['display_name'],
+            $data['timezone'],
+            'user',
+            'active',
+            $data['google_id'],
+            mb_strtolower($data['google_email']),
+        ]);
+
+        return (int) Database::connection()->lastInsertId();
+    }
+
+    public static function linkGoogle(int $id, string $googleId, string $googleEmail): void
+    {
+        $statement = Database::connection()->prepare(
+            'UPDATE users
+             SET google_id = ?, google_email = ?, email_verified_at = COALESCE(email_verified_at, UTC_TIMESTAMP()),
+                 updated_at = UTC_TIMESTAMP()
+             WHERE id = ?',
+        );
+        $statement->execute([$googleId, mb_strtolower($googleEmail), $id]);
+    }
+
+    public static function updateGoogleEmail(int $id, string $googleEmail): void
+    {
+        $statement = Database::connection()->prepare(
+            'UPDATE users SET google_email = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?',
+        );
+        $statement->execute([mb_strtolower($googleEmail), $id]);
+    }
+
+    public static function disconnectGoogle(int $id): void
+    {
+        $statement = Database::connection()->prepare(
+            'UPDATE users SET google_id = NULL, google_email = NULL, updated_at = UTC_TIMESTAMP() WHERE id = ?',
+        );
+        $statement->execute([$id]);
     }
 
     public static function touchLogin(int $id): void

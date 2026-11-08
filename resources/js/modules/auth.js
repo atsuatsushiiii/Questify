@@ -119,6 +119,20 @@ function initTimezoneDetection() {
   });
 }
 
+function initTimezoneInputs() {
+  const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  if (!detected) {
+    return;
+  }
+
+  document.querySelectorAll('[data-timezone-input]').forEach((input) => {
+    if (input instanceof HTMLInputElement) {
+      input.value = detected;
+    }
+  });
+}
+
 function initSubmitState() {
   document.querySelectorAll('[data-auth-form]').forEach((form) => {
     form.addEventListener('submit', () => {
@@ -143,5 +157,6 @@ export function initAuth() {
   initPasswordToggles();
   initStrengthMeters();
   initTimezoneDetection();
+  initTimezoneInputs();
   initSubmitState();
 }

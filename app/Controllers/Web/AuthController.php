@@ -11,6 +11,7 @@ use App\Core\Flash;
 use App\Core\Request;
 use App\Core\Response;
 use App\Services\AuthService;
+use App\Services\GoogleAuthService;
 
 final class AuthController
 {
@@ -22,6 +23,7 @@ final class AuthController
             'identifier' => '',
             'errors' => [],
             'message' => null,
+            'googleEnabled' => (new GoogleAuthService())->isConfigured(),
         ], 'layouts/auth');
     }
 
@@ -36,6 +38,7 @@ final class AuthController
                 'identifier' => (string) ($result['old']['identifier'] ?? ''),
                 'errors' => $result['errors'] ?? [],
                 'message' => $result['message'] ?? null,
+                'googleEnabled' => (new GoogleAuthService())->isConfigured(),
             ], 'layouts/auth')->withStatus((int) ($result['status'] ?? 422));
 
             if (isset($result['retry_after'])) {
@@ -64,6 +67,7 @@ final class AuthController
             'errors' => [],
             'message' => null,
             'timezones' => timezone_identifiers_list(),
+            'googleEnabled' => (new GoogleAuthService())->isConfigured(),
         ], 'layouts/auth');
     }
 
@@ -84,6 +88,7 @@ final class AuthController
                 'errors' => $result['errors'] ?? [],
                 'message' => $result['message'] ?? null,
                 'timezones' => timezone_identifiers_list(),
+                'googleEnabled' => (new GoogleAuthService())->isConfigured(),
             ], 'layouts/auth')->withStatus((int) ($result['status'] ?? 422));
         }
 

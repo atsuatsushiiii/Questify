@@ -12,6 +12,7 @@ use App\Controllers\Web\AdminDashboardController;
 use App\Controllers\Web\AdminUserController;
 use App\Controllers\Web\AuthController;
 use App\Controllers\Web\DashboardController;
+use App\Controllers\Web\GoogleAuthController;
 use App\Controllers\Web\LandingController;
 use App\Controllers\Web\LeaderboardController;
 use App\Controllers\Web\NotificationController;
@@ -35,6 +36,10 @@ $router->post('/login', [AuthController::class, 'login'], [GuestMiddleware::clas
 
 $router->get('/register', [AuthController::class, 'showRegister'], [GuestMiddleware::class]);
 $router->post('/register', [AuthController::class, 'register'], [GuestMiddleware::class, VerifyCsrfToken::class]);
+
+// Google OpenID Connect. The callback is a browser redirect from Google.
+$router->post('/auth/google', [GoogleAuthController::class, 'redirect'], [GuestMiddleware::class, VerifyCsrfToken::class]);
+$router->get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
 
 $router->get('/forgot-password', [PasswordResetController::class, 'showRequest'], [GuestMiddleware::class]);
 $router->post('/forgot-password', [PasswordResetController::class, 'send'], [GuestMiddleware::class, VerifyCsrfToken::class]);
@@ -86,6 +91,9 @@ $router->post('/settings/sessions/revoke-others', [SettingsController::class, 'r
 $router->post('/settings/sessions/{id}/revoke', [SettingsController::class, 'revokeSession'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/settings/export', [SettingsController::class, 'export'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/settings/delete', [SettingsController::class, 'destroy'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+
+$router->post('/settings/google', [GoogleAuthController::class, 'link'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/settings/google/unlink', [GoogleAuthController::class, 'unlink'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 
 // Phase 6: administrator surface. Every route requires an admin role and
 // every mutation is CSRF-protected and audited.
