@@ -5,8 +5,8 @@
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 8 — production readiness complete: 63 PHPUnit unit tests,
-> seven HTTP regression suites, and a headless Chrome browser QA pass with
+> **Status:** Phase 8 — production readiness complete: 78 PHPUnit unit tests,
+> eight HTTP regression suites, and a headless Chrome browser QA pass with
 > axe-core WCAG scans, alongside a repeatable demo seeder, a written
 > security/threat review with a production checklist, and documented
 > backup/restore steps. These sit alongside recurring daily/weekly/monthly
@@ -153,11 +153,11 @@ docs/            Architecture plan, security notes, and deployment guide
 | `php tests/quest_flow.php` | Quest engine, ownership, XP, recurring cadences, and locking suite (137 checks) |
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
-| `php tests/phase6_flow.php` | Admin authorization, KPIs, moderation, catalogue CRUD, audit (111 checks) |
+| `php tests/phase6_flow.php` | Admin authorization, KPIs, quest/user moderation, catalogue CRUD, audit (140 checks) |
 | `php tests/public_profile_flow.php` | Public profile rendering, privacy, 404s, leaderboard links (39 checks) |
 | `php tests/google_oauth_flow.php` | Google start, callback guards, account resolution, linking, CSP (49 checks) |
 | `npm run test:browser` | Chrome browser QA for auth, quests, profiles, mobile navigation, and WCAG scans |
-| `composer test` | Run the unit suite and all eight HTTP suites (634 checks) |
+| `composer test` | Run the unit suite and all eight HTTP suites (663 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -256,13 +256,13 @@ php scripts/migrate.php
 npm run build
 php -S localhost:8000 -t public scripts/router.php
 
-composer test                 # unit suite + all seven HTTP suites
+composer test                 # unit suite + all eight HTTP suites
 php tests/auth_flow.php       # auth only (55 checks)
 php tests/app_shell.php       # shell and Phase 4-6 pages (69 checks)
 php tests/quest_flow.php      # quests only (137 checks)
 php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leaderboard (78 checks)
 php tests/phase5_flow.php     # settings/email/sessions/export/deletion (96 checks)
-php tests/phase6_flow.php     # admin authorization/moderation/catalogue/audit (111 checks)
+php tests/phase6_flow.php     # admin authorization/moderation/catalogue/audit (140 checks)
 php tests/public_profile_flow.php  # public profiles/privacy/leaderboard links (39 checks)
 ```
 
@@ -486,6 +486,11 @@ account menu only render the Administration section for admins.
 | `POST /admin/users/{id}/activate` | Restore sign-in access |
 | `POST /admin/users/{id}/promote` | Grant administrator access |
 | `POST /admin/users/{id}/demote` | Remove administrator access |
+| `GET /admin/quests` | Search, status/difficulty/category filters, pagination |
+| `GET /admin/quests/{id}` | Definition, owner, XP ledger, and moderation history |
+| `POST /admin/quests/{id}/archive` | Hide a quest from its owner without deleting it |
+| `POST /admin/quests/{id}/restore` | Return an archived quest to its prior status |
+| `POST /admin/quests/{id}/delete` | Delete a quest while keeping its XP ledger history |
 | `GET/POST /admin/categories` | List and create categories |
 | `GET/POST /admin/categories/{id}` | Edit a category (`_method=PUT`) |
 | `POST /admin/categories/{id}/delete` | Delete a category without deleting quests |
@@ -500,6 +505,12 @@ account menu only render the Administration section for admins.
   administrator cannot be demoted. Suspension revokes database sessions and
   remember-me tokens immediately. Promotions and demotions take effect on the
   target's next request.
+- **Quest moderation:** every quest is searchable by title, description, owner,
+  status, difficulty, and category. Archiving hides a quest from the owner's
+  board without touching its XP; restoring a completed quest returns it to
+  `completed`, so it cannot pay out twice. Deleting a quest keeps the
+  `xp_transactions` ledger rows and their `quest_title` snapshot via
+  `ON DELETE SET NULL`.
 - **Categories:** CRUD validates name, slug, six-digit colour, Lucide icon, sort
   order, and active state. Quests select an active category on create/edit and can
   filter by category slug. Deactivating hides a category from new quests while
@@ -556,11 +567,11 @@ php scripts/seed_demo.php
 
 ### Tests
 
-- `phpunit.xml` + `tests/Unit` provide 78 DB-free tests / 293 assertions over
+- `phpunit.xml` + `tests/Unit` provide 78 DB-free tests / 314 assertions over
   `Progression`, `Validator`, `StreakService`, `Recurrence`, `MailService`,
   `GoogleAuthService`, and the route authorization table.
 - `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
-  before the eight HTTP suites (634 checks total).
+  before the eight HTTP suites (663 checks total).
 - `npm run test:browser` adds a headless Chrome pass with 71 functional checks
   and 20 axe-core WCAG 2.0/2.1 A+AA scans. It lives outside `composer test`
   because it needs the app served by a web server.

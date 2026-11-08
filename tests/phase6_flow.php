@@ -319,6 +319,11 @@ check(
     'Guest is redirected from /admin/audit to sign in',
     $guestAudit['status'] === 302 && str_ends_with((string) ($guestAudit['headers']['location'] ?? ''), '/login'),
 );
+$guestQuests = $guestClient->get('/admin/quests');
+check(
+    'Guest is redirected from /admin/quests to sign in',
+    $guestQuests['status'] === 302 && str_ends_with((string) ($guestQuests['headers']['location'] ?? ''), '/login'),
+);
 $guestStats = $guestClient->getJson('/api/admin/stats');
 $guestStatsJson = decodeJson($guestStats['body']);
 check(
@@ -346,6 +351,8 @@ $normalGetRoutes = [
     '/admin',
     '/admin/users',
     '/admin/users/' . $adminId,
+    '/admin/quests',
+    '/admin/quests/999999',
     '/admin/categories',
     '/admin/categories/create',
     '/admin/categories/' . $workId . '/edit',
@@ -367,6 +374,9 @@ foreach ($normalGetRoutes as $route) {
 $normalMutationRoutes = [
     ['POST', '/admin/users/' . $adminId . '/suspend', []],
     ['POST', '/admin/users/' . $userId . '/promote', []],
+    ['POST', '/admin/quests/999999/archive', []],
+    ['POST', '/admin/quests/999999/restore', []],
+    ['POST', '/admin/quests/999999/delete', []],
     ['POST', '/admin/categories', []],
     ['POST', '/admin/categories/' . $workId, ['_method' => 'PUT']],
     ['POST', '/admin/categories/' . $workId . '/delete', []],
@@ -833,7 +843,210 @@ check(
     })(),
 );
 
-echo "\n5. Achievement CRUD and deletion protection\n";
+echo "\n5. Quest moderation\n";
+
+$moderationTitle = 'Moderation quest ' . $suffix;
+$moderationId = createQuest($userClient, $moderationTitle, $workId);
+
+if ($moderationId > 0) {
+    $createdQuestIds[] = $moderationId;
+}
+
+$questDirectory = $adminClient->get('/admin/quests');
+check(
+    'Quest directory lists platform quests with their owner and filters',
+    $questDirectory['status'] === 200
+        && contains($questDirectory['body'], $moderationTitle)
+        && contains($questDirectory['body'], '@' . $userUsername)
+        && contains($questDirectory['body'], 'name="difficulty"')
+        && contains($questDirectory['body'], 'name="category"')
+        && contains($questDirectory['body'], 'Quest moderation'),
+);
+
+$questSearch = $adminClient->get('/admin/quests?search=' . rawurlencode($moderationTitle));
+check(
+    'Quest search narrows the directory to the matching quest',
+    $questSearch['status'] === 200
+        && contains($questSearch['body'], $moderationTitle)
+        && !contains($questSearch['body'], $questTitle),
+);
+
+$easyQuests = $adminClient->get('/admin/quests?difficulty=easy&search=' . rawurlencode($suffix));
+check(
+    'Difficulty filter keeps matching easy quests',
+    $easyQuests['status'] === 200 && contains($easyQuests['body'], $moderationTitle),
+);
+$hardQuests = $adminClient->get('/admin/quests?difficulty=hard&search=' . rawurlencode($suffix));
+check(
+    'Difficulty filter excludes quests of another difficulty',
+    $hardQuests['status'] === 200 && !contains($hardQuests['body'], $moderationTitle),
+);
+
+$questDetailPage = $adminClient->get('/admin/quests/' . $moderationId);
+check(
+    'Quest detail shows the definition, owner, XP ledger, and moderation history',
+    $questDetailPage['status'] === 200
+        && contains($questDetailPage['body'], $moderationTitle)
+        && contains($questDetailPage['body'], '@' . $userUsername)
+        && contains($questDetailPage['body'], 'Quest definition')
+        && contains($questDetailPage['body'], 'XP ledger')
+        && contains($questDetailPage['body'], 'Moderation history'),
+);
+check(
+    'Quest detail offers archive and delete actions',
+    contains($questDetailPage['body'], '/admin/quests/' . $moderationId . '/archive')
+        && contains($questDetailPage['body'], '/admin/quests/' . $moderationId . '/delete'),
+);
+
+$completeModerated = $userClient->post('/quests/' . $moderationId . '/complete', [
+    '_csrf_token' => csrfFor($userClient, '/quests/' . $moderationId),
+]);
+check(
+    'The owner can complete a quest before it is moderated',
+    $completeModerated['status'] === 302
+        && (string) (row($pdo, 'SELECT status FROM quests WHERE id = ?', [$moderationId])['status'] ?? '') === 'completed',
+);
+check(
+    'Completing the quest writes one XP ledger entry',
+    scalar($pdo, 'SELECT COUNT(*) FROM xp_transactions WHERE quest_id = ?', [$moderationId]) === 1,
+);
+
+$archiveQuest = $adminClient->post('/admin/quests/' . $moderationId . '/archive', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/quests/' . $moderationId),
+]);
+check(
+    'Administrator can archive a quest',
+    $archiveQuest['status'] === 302
+        && (string) (row($pdo, 'SELECT status FROM quests WHERE id = ?', [$moderationId])['status'] ?? '') === 'archived',
+);
+
+$activeBoard = $userClient->get('/quests?status=active');
+check(
+    'An archived quest disappears from the owner active board',
+    $activeBoard['status'] === 200 && !contains($activeBoard['body'], $moderationTitle),
+);
+check(
+    'Quest archive is recorded in the audit trail',
+    scalar(
+        $pdo,
+        "SELECT COUNT(*) FROM audit_logs WHERE action = 'quest.archived' AND target_type = 'quest' AND target_id = ?",
+        [$moderationId],
+    ) === 1,
+);
+
+$archivedDirectory = $adminClient->get('/admin/quests?status=archived&search=' . rawurlencode($moderationTitle));
+check(
+    'Status filter surfaces the archived quest',
+    $archivedDirectory['status'] === 200 && contains($archivedDirectory['body'], $moderationTitle),
+);
+
+$restoreQuest = $adminClient->post('/admin/quests/' . $moderationId . '/restore', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/quests/' . $moderationId),
+]);
+check(
+    'Administrator can restore an archived quest',
+    $restoreQuest['status'] === 302
+        && (string) (row($pdo, 'SELECT status FROM quests WHERE id = ?', [$moderationId])['status'] ?? '') === 'completed',
+);
+check(
+    'A restored completed quest returns to completed, not active',
+    (string) (row($pdo, 'SELECT status FROM quests WHERE id = ?', [$moderationId])['status'] ?? '') === 'completed',
+);
+$completedBoard = $userClient->get('/quests?status=completed');
+check(
+    'A restored completed quest reappears on the completed board',
+    $completedBoard['status'] === 200 && contains($completedBoard['body'], $moderationTitle),
+);
+check(
+    'Quest restore is recorded in the audit trail',
+    scalar(
+        $pdo,
+        "SELECT COUNT(*) FROM audit_logs WHERE action = 'quest.restored' AND target_type = 'quest' AND target_id = ?",
+        [$moderationId],
+    ) === 1,
+);
+
+$recurringTitle = 'Moderation recurring quest ' . $suffix;
+$pdo->prepare(
+    "INSERT INTO quests (user_id, category_id, title, description, difficulty, xp_reward, recurrence, status, completed_at, created_at, updated_at)
+     VALUES (?, ?, ?, 'Recurring moderation coverage quest.', 'easy', 10, 'daily', 'active', UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP())",
+)->execute([$userId, $workId, $recurringTitle]);
+$recurringId = (int) $pdo->lastInsertId();
+
+$archiveRecurring = $adminClient->post('/admin/quests/' . $recurringId . '/archive', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/quests/' . $recurringId),
+]);
+$restoreRecurring = $adminClient->post('/admin/quests/' . $recurringId . '/restore', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/quests/' . $recurringId),
+]);
+check(
+    'Restoring an archived recurring quest returns it to active',
+    $archiveRecurring['status'] === 302
+        && $restoreRecurring['status'] === 302
+        && (string) (row($pdo, 'SELECT status FROM quests WHERE id = ?', [$recurringId])['status'] ?? '') === 'active',
+);
+
+$deleteQuest = $adminClient->post('/admin/quests/' . $moderationId . '/delete', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/quests/' . $moderationId),
+]);
+check(
+    'Administrator can delete a quest',
+    $deleteQuest['status'] === 302
+        && str_ends_with((string) ($deleteQuest['headers']['location'] ?? ''), '/admin/quests')
+        && row($pdo, 'SELECT * FROM quests WHERE id = ?', [$moderationId]) === null,
+);
+
+$preservedLedger = row(
+    $pdo,
+    'SELECT quest_id, quest_title, amount FROM xp_transactions WHERE quest_title = ? ORDER BY id DESC LIMIT 1',
+    [$moderationTitle],
+);
+check(
+    'Deleting a quest preserves its XP ledger history',
+    $preservedLedger !== null
+        && $preservedLedger['quest_id'] === null
+        && (string) ($preservedLedger['quest_title'] ?? '') === $moderationTitle
+        && (int) ($preservedLedger['amount'] ?? 0) === 10,
+);
+
+check(
+    'Quest deletion is audited with the ledger snapshot',
+    (static function () use ($pdo, $moderationId, $userId): bool {
+        $entry = row(
+            $pdo,
+            "SELECT metadata FROM audit_logs WHERE action = 'quest.deleted' AND target_type = 'quest' AND target_id = ?",
+            [$moderationId],
+        );
+
+        if ($entry === null) {
+            return false;
+        }
+
+        $metadata = json_decode((string) $entry['metadata'], true);
+
+        return is_array($metadata)
+            && ($metadata['ledger_entries'] ?? null) === 1
+            && ($metadata['ledger_xp'] ?? null) === 10
+            && ($metadata['owner_id'] ?? null) === $userId;
+    })(),
+);
+
+$missingQuest = $adminClient->get('/admin/quests/999999999');
+check(
+    'Unknown quest returns 404',
+    $missingQuest['status'] === 404,
+);
+
+$csrfQuestTitle = 'Moderation CSRF quest ' . $suffix;
+$csrfQuestId = createQuest($userClient, $csrfQuestTitle, $workId);
+$noCsrfArchive = $adminClient->post('/admin/quests/' . $csrfQuestId . '/archive', []);
+check(
+    'Quest archive without a CSRF token returns 419 and changes nothing',
+    $noCsrfArchive['status'] === 419
+        && (string) (row($pdo, 'SELECT status FROM quests WHERE id = ?', [$csrfQuestId])['status'] ?? '') === 'active',
+);
+
+echo "\n6. Achievement CRUD and deletion protection\n";
 
 $achievementList = $adminClient->get('/admin/achievements');
 check(
@@ -990,7 +1203,7 @@ check(
     ) === 1,
 );
 
-echo "\n6. Audit trail\n";
+echo "\n7. Audit trail\n";
 
 $auditPage = $adminClient->get('/admin/audit');
 check(
@@ -999,7 +1212,8 @@ check(
         && contains($auditPage['body'], 'Audit log')
         && contains($auditPage['body'], 'user.suspended')
         && contains($auditPage['body'], 'category.created')
-        && contains($auditPage['body'], 'achievement.created'),
+        && contains($auditPage['body'], 'achievement.created')
+        && contains($auditPage['body'], 'quest.deleted'),
 );
 
 $auditByAction = $adminClient->get('/admin/audit?action=user.suspended');
@@ -1016,6 +1230,15 @@ check(
     $auditByTarget['status'] === 200
         && contains($auditByTarget['body'], 'Created category')
         && !contains($auditByTarget['body'], 'Suspended Phase Six User'),
+);
+
+$auditByQuest = $adminClient->get('/admin/audit?target_type=quest');
+check(
+    'Audit log filters by the quest target type',
+    $auditByQuest['status'] === 200
+        && contains($auditByQuest['body'], 'Deleted quest')
+        && contains($auditByQuest['body'], 'quest.deleted')
+        && !contains($auditByQuest['body'], 'Suspended Phase Six User'),
 );
 
 $auditByActor = $adminClient->get('/admin/audit?actor=' . rawurlencode($adminUsername));
@@ -1054,7 +1277,7 @@ check(
     Achievement::findById($firstStepsId) !== null,
 );
 
-echo "\n7. CSRF protection on admin mutations\n";
+echo "\n8. CSRF protection on admin mutations\n";
 
 $categoryCountBefore = scalar($pdo, 'SELECT COUNT(*) FROM categories');
 $noCsrfCategory = $adminClient->post('/admin/categories', [
@@ -1110,7 +1333,7 @@ check(
         && (string) (row($pdo, 'SELECT name FROM categories WHERE id = ?', [$workId])['name'] ?? '') === 'Work',
 );
 
-echo "\n8. Cleanup\n";
+echo "\n9. Cleanup\n";
 
 $pdo->prepare('DELETE FROM user_achievements WHERE user_id = ? AND achievement_id = ?')->execute([$userId, $firstStepsId]);
 $pdo->prepare('DELETE FROM audit_logs WHERE actor_user_id IN (?, ?)')->execute([$adminId, $userId]);

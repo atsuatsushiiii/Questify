@@ -13,7 +13,7 @@ use App\Models\AuditLog;
 
 final class AdminAuditController
 {
-    private const TARGET_TYPES = ['user', 'category', 'achievement'];
+    private const TARGET_TYPES = ['user', 'quest', 'category', 'achievement'];
 
     public function index(Request $request): Response
     {

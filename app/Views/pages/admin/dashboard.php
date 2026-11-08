@@ -223,7 +223,18 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
     </article>
 </section>
 
-<section class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-reveal>
+<section class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4" data-reveal>
+    <a href="<?= e(url('/admin/quests')) ?>" class="app-panel group flex items-center gap-4 p-5 transition hover:border-brand-400/35">
+        <span class="app-panel-icon border-ember-400/30 bg-ember-500/10 text-ember-300">
+            <i data-lucide="scroll-text" class="h-4 w-4"></i>
+        </span>
+        <div class="min-w-0 flex-1">
+            <p class="text-sm font-semibold text-white">Quest moderation</p>
+            <p class="mt-0.5 text-[11px] text-muted">Search every quest, review owners, archive or delete.</p>
+        </div>
+        <i data-lucide="arrow-right" class="h-4 w-4 shrink-0 text-muted-dim transition group-hover:text-brand-300"></i>
+    </a>
+
     <a href="<?= e(url('/admin/users')) ?>" class="app-panel group flex items-center gap-4 p-5 transition hover:border-brand-400/35">
         <span class="app-panel-icon border-brand-400/30 bg-brand-400/10 text-brand-300">
             <i data-lucide="users" class="h-4 w-4"></i>

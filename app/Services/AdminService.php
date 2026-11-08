@@ -16,7 +16,8 @@ use App\Models\User;
 use App\Models\UserSession;
 
 /**
- * Administrative queries and user moderation rules.
+ * Administrative queries and moderation rules for accounts, quests, and the
+ * catalogue.
  *
  * Every mutation records an audit entry and is guarded server-side: the actor
  * cannot suspend or demote themselves, and the last administrator cannot be
@@ -106,6 +107,190 @@ final class AdminService
             'recentQuests' => Quest::recentForUser($userId, 12),
             'sessions' => UserSession::forUser($userId),
             'audit' => AuditLog::forTarget('user', $userId, 15),
+        ];
+    }
+
+    /**
+     * @param array{search?: string, status?: string, difficulty?: string, category?: string} $filters
+     * @return array{quests: list<array<string, mixed>>, total: int, page: int, perPage: int, pages: int, statusCounts: array<string, int>, categories: list<array<string, mixed>>}
+     */
+    public function quests(array $filters, int $page, int $perPage = 20): array
+    {
+        $total = Quest::adminCount($filters);
+        $pages = max(1, (int) ceil($total / $perPage));
+        $page = min(max(1, $page), $pages);
+
+        return [
+            'quests' => Quest::adminPaginate($filters, $page, $perPage),
+            'total' => $total,
+            'page' => $page,
+            'perPage' => $perPage,
+            'pages' => $pages,
+            'statusCounts' => Quest::adminStatusCounts(),
+            'categories' => Category::allWithUsage(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function questDetail(int $questId): ?array
+    {
+        $quest = Quest::findForAdmin($questId);
+
+        if ($quest === null) {
+            return null;
+        }
+
+        $statement = Database::connection()->prepare(
+            'SELECT id, amount, level_before, level_after, period_key, created_at
+             FROM xp_transactions
+             WHERE quest_id = ?
+             ORDER BY created_at DESC, id DESC
+             LIMIT 20',
+        );
+        $statement->execute([$questId]);
+
+        return [
+            'quest' => $quest,
+            'xpTransactions' => $statement->fetchAll(\PDO::FETCH_ASSOC),
+            'audit' => AuditLog::forTarget('quest', $questId, 15),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $actor
+     * @return array{ok: bool, status?: int, message: string}
+     */
+    public function archiveQuest(array $actor, int $questId, string $ipAddress): array
+    {
+        return $this->moderateQuest($actor, $questId, 'archived', $ipAddress);
+    }
+
+    /**
+     * @param array<string, mixed> $actor
+     * @return array{ok: bool, status?: int, message: string}
+     */
+    public function restoreQuest(array $actor, int $questId, string $ipAddress): array
+    {
+        return $this->moderateQuest($actor, $questId, 'restored', $ipAddress);
+    }
+
+    /**
+     * @param array<string, mixed> $actor
+     * @return array{ok: bool, status?: int, message: string}
+     */
+    public function deleteQuest(array $actor, int $questId, string $ipAddress): array
+    {
+        $actorId = (int) $actor['id'];
+        $quest = Quest::findForAdmin($questId);
+
+        if ($quest === null) {
+            return ['ok' => false, 'status' => 404, 'message' => 'That quest could not be found.'];
+        }
+
+        $statement = Database::connection()->prepare(
+            'SELECT COUNT(*) AS entries, COALESCE(SUM(amount), 0) AS xp
+             FROM xp_transactions WHERE quest_id = ?',
+        );
+        $statement->execute([$questId]);
+        $ledger = $statement->fetch(\PDO::FETCH_ASSOC) ?: ['entries' => 0, 'xp' => 0];
+
+        if (!Quest::adminDelete($questId)) {
+            return ['ok' => false, 'status' => 409, 'message' => 'That quest could not be deleted.'];
+        }
+
+        AuditLog::record([
+            'actor_user_id' => $actorId,
+            'action' => 'quest.deleted',
+            'target_type' => 'quest',
+            'target_id' => $questId,
+            'summary' => sprintf(
+                'Deleted quest “%s” owned by @%s',
+                (string) $quest['title'],
+                (string) $quest['owner_username'],
+            ),
+            'metadata' => [
+                'status' => (string) $quest['status'],
+                'owner_id' => (int) $quest['user_id'],
+                'owner_username' => (string) $quest['owner_username'],
+                'difficulty' => (string) $quest['difficulty'],
+                'xp_reward' => (int) $quest['xp_reward'],
+                'ledger_entries' => (int) $ledger['entries'],
+                'ledger_xp' => (int) $ledger['xp'],
+            ],
+            'ip_address' => $ipAddress,
+        ]);
+
+        return [
+            'ok' => true,
+            'message' => 'Quest deleted. Its XP ledger history was preserved.',
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $actor
+     * @return array{ok: bool, status?: int, message: string}
+     */
+    private function moderateQuest(array $actor, int $questId, string $action, string $ipAddress): array
+    {
+        $quest = Quest::findForAdmin($questId);
+
+        if ($quest === null) {
+            return ['ok' => false, 'status' => 404, 'message' => 'That quest could not be found.'];
+        }
+
+        $current = (string) $quest['status'];
+        $archiving = $action === 'archived';
+
+        if ($archiving && $current === 'archived') {
+            return ['ok' => true, 'message' => 'This quest is already archived.'];
+        }
+
+        if (!$archiving && $current !== 'archived') {
+            return ['ok' => true, 'message' => 'This quest is already visible.'];
+        }
+
+        $updated = $archiving
+            ? Quest::adminArchive($questId)
+            : Quest::adminRestore($questId);
+
+        if (!$updated) {
+            return ['ok' => false, 'status' => 409, 'message' => 'That quest could not be updated.'];
+        }
+
+        $target = $archiving
+            ? 'archived'
+            : (
+                (string) ($quest['recurrence'] ?? 'none') !== 'none' || $quest['completed_at'] === null
+                    ? 'active'
+                    : 'completed'
+            );
+
+        AuditLog::record([
+            'actor_user_id' => (int) $actor['id'],
+            'action' => 'quest.' . $action,
+            'target_type' => 'quest',
+            'target_id' => $questId,
+            'summary' => sprintf(
+                '%s quest “%s” owned by @%s',
+                $archiving ? 'Archived' : 'Restored',
+                (string) $quest['title'],
+                (string) $quest['owner_username'],
+            ),
+            'metadata' => [
+                'from' => $current,
+                'to' => $target,
+                'owner_id' => (int) $quest['user_id'],
+            ],
+            'ip_address' => $ipAddress,
+        ]);
+
+        return [
+            'ok' => true,
+            'message' => $archiving
+                ? 'Quest archived. It is hidden from the owner and excluded from their active board.'
+                : 'Quest restored. The owner can see it again.',
         ];
     }
 

@@ -58,7 +58,10 @@ working exploit. Include the route, the request, and the observed behaviour.
   non-administrator, before CSRF validation or controller code. Guests get the
   normal sign-in redirect (or `401` JSON).
 - Every quest, notification, profile and account query is scoped by
-  `user_id = ?`; another user's row returns `404`, not a hidden control.
+  `user_id = ?`; another user's row returns `404`, not a hidden control. The
+  admin quest directory is the deliberate exception: it is reachable only
+  through `AdminMiddleware`, and its archive, restore, and delete mutations are
+  CSRF-protected and audited.
 - Admin mutations enforce self-protection and last-administrator rules
   server-side; the disabled buttons are not the security boundary.
 - `tests/Unit/RouteAuthorizationTest.php` fails if an `/admin` route is added
@@ -217,6 +220,6 @@ user gets `403` on every `/admin` route and API. The public profile suite proves
 that hidden and suspended accounts resolve as `404` and that emails/timezones
 never leak.
 
-`.github/workflows/ci.yml` runs the unit suite and all seven HTTP suites against
+`.github/workflows/ci.yml` runs the unit suite and all eight HTTP suites against
 a MariaDB service on every push and pull request, so the verification above is
 not manual-only.

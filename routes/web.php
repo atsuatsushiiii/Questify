@@ -9,6 +9,7 @@ use App\Controllers\Web\AdminAchievementController;
 use App\Controllers\Web\AdminAuditController;
 use App\Controllers\Web\AdminCategoryController;
 use App\Controllers\Web\AdminDashboardController;
+use App\Controllers\Web\AdminQuestController;
 use App\Controllers\Web\AdminUserController;
 use App\Controllers\Web\AuthController;
 use App\Controllers\Web\DashboardController;
@@ -105,6 +106,12 @@ $router->post('/admin/users/{id}/suspend', [AdminUserController::class, 'suspend
 $router->post('/admin/users/{id}/activate', [AdminUserController::class, 'activate'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/admin/users/{id}/promote', [AdminUserController::class, 'promote'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/admin/users/{id}/demote', [AdminUserController::class, 'demote'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+
+$router->get('/admin/quests', [AdminQuestController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->get('/admin/quests/{id}', [AdminQuestController::class, 'show'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->post('/admin/quests/{id}/archive', [AdminQuestController::class, 'archive'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/quests/{id}/restore', [AdminQuestController::class, 'restore'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/quests/{id}/delete', [AdminQuestController::class, 'destroy'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 
 $router->get('/admin/categories', [AdminCategoryController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
 $router->get('/admin/categories/create', [AdminCategoryController::class, 'create'], [AuthMiddleware::class, AdminMiddleware::class]);

@@ -25,6 +25,21 @@ final class Quest
         LEFT JOIN categories c ON c.id = q.category_id
         SQL;
 
+    /**
+     * Admin moderation reads every quest, so the owner is joined in as well.
+     */
+    private const ADMIN_SELECT = <<<'SQL'
+        SELECT q.id, q.user_id, q.category_id, q.title, q.description, q.difficulty,
+               q.xp_reward, q.recurrence, q.status, q.completed_at, q.last_completed_period,
+               q.created_at, q.updated_at,
+               c.name AS category_name, c.slug AS category_slug, c.color AS category_color,
+               u.username AS owner_username, u.display_name AS owner_display_name,
+               u.email AS owner_email, u.avatar_path AS owner_avatar_path
+        FROM quests q
+        INNER JOIN users u ON u.id = q.user_id
+        LEFT JOIN categories c ON c.id = q.category_id
+        SQL;
+
     /** @return array<string, mixed>|null */
     public static function findForUser(int $id, int $userId): ?array
     {
@@ -227,5 +242,156 @@ final class Quest
         $statement->execute([$id, $userId]);
 
         return $statement->rowCount() === 1;
+    }
+
+    /**
+     * Admin quest directory across every account.
+     *
+     * @param array{search?: string, status?: string, difficulty?: string, category?: string} $filters
+     * @return list<array<string, mixed>>
+     */
+    public static function adminPaginate(array $filters, int $page, int $perPage = 20): array
+    {
+        [$where, $parameters] = self::adminCriteria($filters);
+        $offset = (max(1, $page) - 1) * $perPage;
+
+        $statement = Database::connection()->prepare(
+            self::ADMIN_SELECT
+            . $where
+            . ' ORDER BY q.created_at DESC, q.id DESC LIMIT ' . $perPage . ' OFFSET ' . $offset,
+        );
+        $statement->execute($parameters);
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * @param array{search?: string, status?: string, difficulty?: string, category?: string} $filters
+     */
+    public static function adminCount(array $filters): int
+    {
+        [$where, $parameters] = self::adminCriteria($filters);
+
+        $statement = Database::connection()->prepare(
+            'SELECT COUNT(*)
+             FROM quests q
+             INNER JOIN users u ON u.id = q.user_id
+             LEFT JOIN categories c ON c.id = q.category_id' . $where,
+        );
+        $statement->execute($parameters);
+
+        return (int) $statement->fetchColumn();
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public static function findForAdmin(int $id): ?array
+    {
+        $statement = Database::connection()->prepare(
+            self::ADMIN_SELECT . ' WHERE q.id = ? LIMIT 1',
+        );
+        $statement->execute([$id]);
+        $quest = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return $quest === false ? null : $quest;
+    }
+
+    /**
+     * @return array{active: int, completed: int, archived: int}
+     */
+    public static function adminStatusCounts(): array
+    {
+        $counts = ['active' => 0, 'completed' => 0, 'archived' => 0];
+
+        foreach (Database::connection()
+            ->query('SELECT status, COUNT(*) AS total FROM quests GROUP BY status')
+            ->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $status = (string) ($row['status'] ?? '');
+
+            if (array_key_exists($status, $counts)) {
+                $counts[$status] = (int) ($row['total'] ?? 0);
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Hide a quest from its owner without deleting the record or its XP history.
+     */
+    public static function adminArchive(int $id): bool
+    {
+        $statement = Database::connection()->prepare(
+            "UPDATE quests
+             SET status = 'archived', updated_at = UTC_TIMESTAMP()
+             WHERE id = ? AND status <> 'archived'",
+        );
+        $statement->execute([$id]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    /**
+     * Restore an archived quest to the status it had before moderation. A
+     * completed one-off quest returns to `completed`, while a recurring quest
+     * returns to `active`, so it can still be completed in the next period.
+     */
+    public static function adminRestore(int $id): bool
+    {
+        $statement = Database::connection()->prepare(
+            "UPDATE quests
+             SET status = IF(recurrence <> 'none' OR completed_at IS NULL, 'active', 'completed'),
+                 updated_at = UTC_TIMESTAMP()
+             WHERE id = ? AND status = 'archived'",
+        );
+        $statement->execute([$id]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    /**
+     * Delete a quest permanently. `xp_transactions.quest_id` is set to NULL by
+     * the foreign key, so the ledger and its `quest_title` snapshot survive.
+     */
+    public static function adminDelete(int $id): bool
+    {
+        $statement = Database::connection()->prepare('DELETE FROM quests WHERE id = ?');
+        $statement->execute([$id]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    /**
+     * @param array{search?: string, status?: string, difficulty?: string, category?: string} $filters
+     * @return array{0: string, 1: list<string>}
+     */
+    private static function adminCriteria(array $filters): array
+    {
+        $clauses = [];
+        $parameters = [];
+
+        if (($filters['search'] ?? '') !== '') {
+            $like = '%' . $filters['search'] . '%';
+            $clauses[] = '(q.title LIKE ? OR q.description LIKE ? OR u.username LIKE ? OR u.display_name LIKE ? OR u.email LIKE ?)';
+            array_push($parameters, $like, $like, $like, $like, $like);
+        }
+
+        if (in_array($filters['status'] ?? '', ['active', 'completed', 'archived'], true)) {
+            $clauses[] = 'q.status = ?';
+            $parameters[] = $filters['status'];
+        }
+
+        if (in_array($filters['difficulty'] ?? '', ['easy', 'medium', 'hard', 'epic'], true)) {
+            $clauses[] = 'q.difficulty = ?';
+            $parameters[] = $filters['difficulty'];
+        }
+
+        if (($filters['category'] ?? '') !== '') {
+            $clauses[] = 'c.slug = ?';
+            $parameters[] = $filters['category'];
+        }
+
+        return [$clauses === [] ? '' : ' WHERE ' . implode(' AND ', $clauses), $parameters];
     }
 }

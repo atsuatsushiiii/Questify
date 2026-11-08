@@ -11,6 +11,9 @@ All notable changes to Questify are recorded in this file. The format follows
 - Google sign-in via OpenID Connect: a CSRF-protected start endpoint, a
   PKCE + state + nonce callback, verified-email account linking, automatic
   account creation, and connect/disconnect controls in Settings.
+- Admin quest moderation: a searchable, filterable directory of every quest,
+  a detail view with the owner, XP ledger, and moderation history, and audited
+  archive, restore, and delete actions.
 
 ### Changed
 

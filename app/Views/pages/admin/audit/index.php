@@ -11,7 +11,7 @@
  * @var array{page: int, pages: int, total: int, perPage: int} $pagination
  */
 $query = array_filter($filters, static fn (string $value): bool => $value !== '');
-$targetLabels = ['user' => 'User', 'category' => 'Category', 'achievement' => 'Achievement'];
+$targetLabels = ['user' => 'User', 'quest' => 'Quest', 'category' => 'Category', 'achievement' => 'Achievement'];
 ?>
 <section class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between" data-reveal>
     <div class="min-w-0">
