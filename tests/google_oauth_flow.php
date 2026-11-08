@@ -148,6 +148,13 @@ echo "\n1. Guest pages and route guards\n";
 $login = $client->get('/login');
 check('Login page renders', $login['status'] === 200);
 check(
+    'CSP allows the redirect from the Google start form',
+    contains(
+        (string) ($login['headers']['content-security-policy'] ?? ''),
+        "form-action 'self' https://accounts.google.com",
+    ),
+);
+check(
     $configured ? 'Login shows the Google button' : 'Login hides Google when unconfigured',
     $configured
         ? contains($login['body'], 'Continue with Google')

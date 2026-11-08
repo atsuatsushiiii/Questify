@@ -18,7 +18,10 @@ return [
             "font-src 'self' https://fonts.gstatic.com",
             "img-src 'self' data:",
             "connect-src 'self'",
-            "form-action 'self'",
+            // Google sign-in starts as a same-origin form POST; the server
+            // answers with a redirect to Google's authorization endpoint, and
+            // form-action also governs that redirect.
+            "form-action 'self' https://accounts.google.com",
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "object-src 'none'",
