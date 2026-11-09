@@ -100,6 +100,26 @@ final class User
     }
 
     /**
+     * Reportable profile lookup by id. Hidden profiles and suspended accounts
+     * are deliberately indistinguishable from a missing account.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function findPublicById(int $id): ?array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT id, username, display_name, avatar_path, status, show_profile, created_at
+             FROM users
+             WHERE id = ? AND status = 'active' AND show_profile = 1
+             LIMIT 1",
+        );
+        $statement->execute([$id]);
+        $user = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return $user === false ? null : $user;
+    }
+
+    /**
      * @param array{username: string, email: string, password_hash: string, display_name: string, timezone: string} $data
      */
     public static function create(array $data): int

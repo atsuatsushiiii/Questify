@@ -153,11 +153,11 @@ docs/            Architecture plan, security notes, and deployment guide
 | `php tests/quest_flow.php` | Quest engine, ownership, XP, recurring cadences, and locking suite (137 checks) |
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
-| `php tests/phase6_flow.php` | Admin authorization, KPIs, quest/user moderation, catalogue CRUD, audit (140 checks) |
+| `php tests/phase6_flow.php` | Admin authorization, KPIs, quest/user moderation, catalogue CRUD, reports, audit (177 checks) |
 | `php tests/public_profile_flow.php` | Public profile rendering, privacy, 404s, leaderboard links (39 checks) |
 | `php tests/google_oauth_flow.php` | Google start, callback guards, account resolution, linking, CSP (49 checks) |
 | `npm run test:browser` | Chrome browser QA for auth, quests, profiles, mobile navigation, and WCAG scans |
-| `composer test` | Run the unit suite and all eight HTTP suites (663 checks) |
+| `composer test` | Run the unit suite and all eight HTTP suites (700 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -262,7 +262,7 @@ php tests/app_shell.php       # shell and Phase 4-6 pages (69 checks)
 php tests/quest_flow.php      # quests only (137 checks)
 php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leaderboard (78 checks)
 php tests/phase5_flow.php     # settings/email/sessions/export/deletion (96 checks)
-php tests/phase6_flow.php     # admin authorization/moderation/catalogue/audit (140 checks)
+php tests/phase6_flow.php     # admin authorization/moderation/catalogue/reports/audit (177 checks)
 php tests/public_profile_flow.php  # public profiles/privacy/leaderboard links (39 checks)
 ```
 
@@ -491,6 +491,10 @@ account menu only render the Administration section for admins.
 | `POST /admin/quests/{id}/archive` | Hide a quest from its owner without deleting it |
 | `POST /admin/quests/{id}/restore` | Return an archived quest to its prior status |
 | `POST /admin/quests/{id}/delete` | Delete a quest while keeping its XP ledger history |
+| `GET /admin/reports` | Search/filter the report queue by status, target, and reason |
+| `GET /admin/reports/{id}` | Reported content, reporter context, decision form, and history |
+| `POST /admin/reports/{id}/resolve` | Close an open report as resolved with an optional note |
+| `POST /admin/reports/{id}/dismiss` | Close an open report as dismissed with an optional note |
 | `GET/POST /admin/categories` | List and create categories |
 | `GET/POST /admin/categories/{id}` | Edit a category (`_method=PUT`) |
 | `POST /admin/categories/{id}/delete` | Delete a category without deleting quests |
@@ -511,6 +515,16 @@ account menu only render the Administration section for admins.
   `completed`, so it cannot pay out twice. Deleting a quest keeps the
   `xp_transactions` ledger rows and their `quest_title` snapshot via
   `ON DELETE SET NULL`.
+- **Reports:** signed-in users can flag a public profile (quests are supported by
+  the schema and queue but stay private in the user-facing flow). Targets must be
+  reachable: an active `show_profile = 1` account or an existing quest. The
+  reason whitelist is harassment, hate, impersonation, spam, inappropriate,
+  privacy, and other; “other” needs at least 10 characters of detail. Self-reports
+  and duplicate reports are rejected by the service and the
+  `uq_reports_reporter_target` unique index. Admins can resolve or dismiss an open
+  report with a note; closed reports are immutable and every decision writes a
+  `report.resolved` / `report.dismissed` audit entry against the `report` target
+  type. The target label is snapshotted so the queue survives a rename or delete.
 - **Categories:** CRUD validates name, slug, six-digit colour, Lucide icon, sort
   order, and active state. Quests select an active category on create/edit and can
   filter by category slug. Deactivating hides a category from new quests while
@@ -567,11 +581,11 @@ php scripts/seed_demo.php
 
 ### Tests
 
-- `phpunit.xml` + `tests/Unit` provide 78 DB-free tests / 314 assertions over
+- `phpunit.xml` + `tests/Unit` provide 78 DB-free tests / 332 assertions over
   `Progression`, `Validator`, `StreakService`, `Recurrence`, `MailService`,
   `GoogleAuthService`, and the route authorization table.
 - `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
-  before the eight HTTP suites (663 checks total).
+  before the eight HTTP suites (700 checks total).
 - `npm run test:browser` adds a headless Chrome pass with 71 functional checks
   and 20 axe-core WCAG 2.0/2.1 A+AA scans. It lives outside `composer test`
   because it needs the app served by a web server.

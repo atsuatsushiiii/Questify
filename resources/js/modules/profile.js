@@ -30,6 +30,18 @@ export function initProfile() {
     syncCount();
   }
 
+  const reportDetails = document.querySelector('[data-report-details]');
+  const reportCount = document.querySelector('[data-report-count]');
+
+  if (reportDetails && reportCount) {
+    const syncReportCount = () => {
+      reportCount.textContent = String(reportDetails.value.length);
+    };
+
+    reportDetails.addEventListener('input', syncReportCount);
+    syncReportCount();
+  }
+
   const input = document.querySelector('[data-avatar-input]');
   const nameLabel = document.querySelector('[data-avatar-name]');
   const preview = document.querySelector('[data-avatar-preview]');

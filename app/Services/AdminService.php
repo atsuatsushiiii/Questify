@@ -12,6 +12,7 @@ use App\Models\Achievement;
 use App\Models\Category;
 use App\Models\Quest;
 use App\Models\RememberToken;
+use App\Models\Report;
 use App\Models\User;
 use App\Models\UserSession;
 
@@ -40,6 +41,7 @@ final class AdminService
                 'achievements_unlocked' => $this->scalar('SELECT COUNT(*) FROM user_achievements'),
                 'categories' => Category::countActive(),
                 'achievements' => Achievement::countActive(),
+                'open_reports' => Report::openCount(),
             ],
             'signupSeries' => User::signupSeries($seriesDays),
             'completionSeries' => $this->completionSeries($seriesDays),
@@ -155,6 +157,177 @@ final class AdminService
             'quest' => $quest,
             'xpTransactions' => $statement->fetchAll(\PDO::FETCH_ASSOC),
             'audit' => AuditLog::forTarget('quest', $questId, 15),
+        ];
+    }
+
+    /**
+     * @param array{search?: string, status?: string, target_type?: string, reason?: string} $filters
+     * @return array{reports: list<array<string, mixed>>, total: int, page: int, perPage: int, pages: int, statusCounts: array<string, int>}
+     */
+    public function reports(array $filters, int $page, int $perPage = 20): array
+    {
+        $total = Report::adminCount($filters);
+        $pages = max(1, (int) ceil($total / $perPage));
+        $page = min(max(1, $page), $pages);
+
+        return [
+            'reports' => Report::adminPaginate($filters, $page, $perPage),
+            'total' => $total,
+            'page' => $page,
+            'perPage' => $perPage,
+            'pages' => $pages,
+            'statusCounts' => Report::statusCounts(),
+        ];
+    }
+
+    /**
+     * @return array{report: array<string, mixed>, target: array<string, mixed>|null, audit: list<array<string, mixed>>}|null
+     */
+    public function reportDetail(int $reportId): ?array
+    {
+        $report = Report::find($reportId);
+
+        if ($report === null) {
+            return null;
+        }
+
+        return [
+            'report' => $report,
+            'target' => $this->reportTarget($report),
+            'audit' => AuditLog::forTarget('report', $reportId, 15),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $actor
+     * @return array{ok: bool, status?: int, message: string}
+     */
+    public function resolveReport(array $actor, int $reportId, ?string $note, string $ipAddress): array
+    {
+        return $this->moderateReport($actor, $reportId, 'resolved', $note, $ipAddress);
+    }
+
+    /**
+     * @param array<string, mixed> $actor
+     * @return array{ok: bool, status?: int, message: string}
+     */
+    public function dismissReport(array $actor, int $reportId, ?string $note, string $ipAddress): array
+    {
+        return $this->moderateReport($actor, $reportId, 'dismissed', $note, $ipAddress);
+    }
+
+    /**
+     * @param array<string, mixed> $report
+     * @return array{type: string, record: array<string, mixed>, profile_url: string|null, admin_url: string|null}|null
+     */
+    private function reportTarget(array $report): ?array
+    {
+        $targetId = (int) $report['target_id'];
+
+        if ((string) $report['target_type'] === 'profile') {
+            $user = User::find($targetId);
+
+            if ($user === null) {
+                return null;
+            }
+
+            unset($user['password_hash']);
+
+            return [
+                'type' => 'profile',
+                'record' => $user,
+                'profile_url' => (string) ($user['status'] ?? '') === 'active' && (int) ($user['show_profile'] ?? 0) === 1
+                    ? '/u/' . rawurlencode((string) $user['username'])
+                    : null,
+                'admin_url' => '/admin/users/' . $targetId,
+            ];
+        }
+
+        if ((string) $report['target_type'] === 'quest') {
+            $quest = Quest::findForAdmin($targetId);
+
+            if ($quest === null) {
+                return null;
+            }
+
+            return [
+                'type' => 'quest',
+                'record' => $quest,
+                'profile_url' => null,
+                'admin_url' => '/admin/quests/' . $targetId,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $actor
+     * @return array{ok: bool, status?: int, message: string}
+     */
+    private function moderateReport(
+        array $actor,
+        int $reportId,
+        string $status,
+        ?string $note,
+        string $ipAddress,
+    ): array {
+        if (!in_array($status, ['resolved', 'dismissed'], true)) {
+            return ['ok' => false, 'status' => 422, 'message' => 'Choose a valid report decision.'];
+        }
+
+        $note = $note !== null ? trim($note) : '';
+
+        if (mb_strlen($note) > 1000) {
+            return ['ok' => false, 'status' => 422, 'message' => 'The resolution note must be 1000 characters or fewer.'];
+        }
+
+        $report = Report::find($reportId);
+
+        if ($report === null) {
+            return ['ok' => false, 'status' => 404, 'message' => 'That report could not be found.'];
+        }
+
+        if ((string) $report['status'] !== 'open') {
+            return ['ok' => true, 'message' => 'This report has already been closed.'];
+        }
+
+        if (!Report::close($reportId, (int) $actor['id'], $status, $note !== '' ? $note : null)) {
+            return ['ok' => false, 'status' => 409, 'message' => 'That report could not be updated.'];
+        }
+
+        $verb = $status === 'resolved' ? 'Resolved' : 'Dismissed';
+
+        AuditLog::record([
+            'actor_user_id' => (int) $actor['id'],
+            'action' => 'report.' . $status,
+            'target_type' => 'report',
+            'target_id' => $reportId,
+            'summary' => sprintf(
+                '%s report #%d against %s “%s”',
+                $verb,
+                $reportId,
+                (string) $report['target_type'],
+                (string) $report['target_label'],
+            ),
+            'metadata' => [
+                'from' => 'open',
+                'to' => $status,
+                'reason' => (string) $report['reason'],
+                'target_type' => (string) $report['target_type'],
+                'target_id' => (int) $report['target_id'],
+                'target_label' => (string) $report['target_label'],
+                'reporter_user_id' => $report['reporter_user_id'] !== null ? (int) $report['reporter_user_id'] : null,
+                'resolution_note' => $note !== '' ? $note : null,
+            ],
+            'ip_address' => $ipAddress,
+        ]);
+
+        return [
+            'ok' => true,
+            'message' => $status === 'resolved'
+                ? 'Report resolved. The decision and note are recorded in the audit log.'
+                : 'Report dismissed. The decision and note are recorded in the audit log.',
         ];
     }
 

@@ -62,6 +62,12 @@ working exploit. Include the route, the request, and the observed behaviour.
   admin quest directory is the deliberate exception: it is reachable only
   through `AdminMiddleware`, and its archive, restore, and delete mutations are
   CSRF-protected and audited.
+- Reports are scoped to signed-in accounts and resolve only reachable targets: an
+  active `show_profile = 1` profile or an existing quest. Self-reports and
+  duplicates are rejected before insert (`uq_reports_reporter_target` is the
+  backstop), the reporter's identity is visible only to administrators, and
+  resolve/dismiss is an audited, CSRF-protected admin mutation that only applies
+  while the report is open.
 - Admin mutations enforce self-protection and last-administrator rules
   server-side; the disabled buttons are not the security boundary.
 - `tests/Unit/RouteAuthorizationTest.php` fails if an `/admin` route is added
@@ -211,7 +217,7 @@ php tests/app_shell.php                # shell, navigation, copyright
 php tests/quest_flow.php               # ownership, single-use and per-period XP
 php tests/phase4_flow.php              # achievements, streaks, leaderboards
 php tests/phase5_flow.php              # account settings and deletion
-php tests/phase6_flow.php              # admin authorization and moderation
+php tests/phase6_flow.php              # admin authorization, moderation, reports
 php tests/public_profile_flow.php      # public profiles, privacy, 404s
 ```
 

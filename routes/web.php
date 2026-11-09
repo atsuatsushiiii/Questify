@@ -10,6 +10,7 @@ use App\Controllers\Web\AdminAuditController;
 use App\Controllers\Web\AdminCategoryController;
 use App\Controllers\Web\AdminDashboardController;
 use App\Controllers\Web\AdminQuestController;
+use App\Controllers\Web\AdminReportController;
 use App\Controllers\Web\AdminUserController;
 use App\Controllers\Web\AuthController;
 use App\Controllers\Web\DashboardController;
@@ -21,6 +22,7 @@ use App\Controllers\Web\PasswordResetController;
 use App\Controllers\Web\ProfileController;
 use App\Controllers\Web\PublicProfileController;
 use App\Controllers\Web\QuestController;
+use App\Controllers\Web\ReportController;
 use App\Controllers\Web\SettingsController;
 use App\Core\Router;
 use App\Middleware\AdminMiddleware;
@@ -50,6 +52,10 @@ $router->post('/reset-password', [PasswordResetController::class, 'reset'], [Gue
 
 // Public, opt-in profile pages. Hidden and suspended accounts resolve as 404.
 $router->get('/u/{username}', [PublicProfileController::class, 'show']);
+
+// Signed-in reports against public profiles (and future public quests).
+$router->get('/reports/new', [ReportController::class, 'create'], [AuthMiddleware::class]);
+$router->post('/reports', [ReportController::class, 'store'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 
 // Authenticated routes.
 $router->get('/dashboard', [DashboardController::class, 'index'], [AuthMiddleware::class]);
@@ -112,6 +118,11 @@ $router->get('/admin/quests/{id}', [AdminQuestController::class, 'show'], [AuthM
 $router->post('/admin/quests/{id}/archive', [AdminQuestController::class, 'archive'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/admin/quests/{id}/restore', [AdminQuestController::class, 'restore'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/admin/quests/{id}/delete', [AdminQuestController::class, 'destroy'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+
+$router->get('/admin/reports', [AdminReportController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->get('/admin/reports/{id}', [AdminReportController::class, 'show'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->post('/admin/reports/{id}/resolve', [AdminReportController::class, 'resolve'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/reports/{id}/dismiss', [AdminReportController::class, 'dismiss'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 
 $router->get('/admin/categories', [AdminCategoryController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
 $router->get('/admin/categories/create', [AdminCategoryController::class, 'create'], [AuthMiddleware::class, AdminMiddleware::class]);

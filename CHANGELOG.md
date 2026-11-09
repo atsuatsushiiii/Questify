@@ -14,6 +14,11 @@ All notable changes to Questify are recorded in this file. The format follows
 - Admin quest moderation: a searchable, filterable directory of every quest,
   a detail view with the owner, XP ledger, and moderation history, and audited
   archive, restore, and delete actions.
+- Reports and flag queue: signed-in users can report a public profile with a
+  reason and optional details; admins get a searchable queue with status,
+  target, and reason filters, a detail view, and audited resolve/dismiss
+  decisions. Duplicate and self-reports are rejected, and closed reports are
+  immutable.
 
 ### Changed
 

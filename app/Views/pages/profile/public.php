@@ -17,6 +17,8 @@ $username = (string) ($account['username'] ?? '');
 $avatarPath = isset($account['avatar_path']) ? (string) $account['avatar_path'] : null;
 $avatarUrl = avatar_url($avatarPath);
 $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
+$viewer = auth_user();
+$canReport = $viewer !== null && (int) ($viewer['id'] ?? 0) !== (int) ($account['id'] ?? 0);
 $timezone = 'UTC';
 $stats = [
     ['label' => 'Total XP', 'value' => number_format((int) $progression['xp']), 'tone' => 'text-white'],
@@ -78,6 +80,12 @@ $stats = [
                                 <i data-lucide="calendar-days" class="h-3 w-3"></i>
                                 Member since <?= e($memberSince) ?>
                             </span>
+                        <?php endif; ?>
+                        <?php if ($canReport): ?>
+                            <a href="<?= e(url('/reports/new?target_type=profile&target_id=' . (int) $account['id'])) ?>" class="inline-flex items-center gap-1.5 rounded-sm border border-ember-400/30 bg-ember-500/[0.06] px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-ember-300 transition hover:border-ember-400/50 hover:text-ember-200">
+                                <i data-lucide="flag" class="h-3 w-3"></i>
+                                Report profile
+                            </a>
                         <?php endif; ?>
                     </div>
                 </div>

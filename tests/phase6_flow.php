@@ -253,24 +253,52 @@ function createQuest(HttpClient $client, string $title, int $categoryId): int
     return (int) $match[1];
 }
 
+function reportCsrf(HttpClient $client, string $targetType, int $targetId): ?string
+{
+    $page = $client->get('/reports/new?target_type=' . rawurlencode($targetType) . '&target_id=' . $targetId);
+
+    return $client->csrf($page['body']);
+}
+
+function submitReport(HttpClient $client, string $targetType, int $targetId, string $reason, string $details): array
+{
+    return $client->post('/reports', [
+        '_csrf_token' => reportCsrf($client, $targetType, $targetId),
+        'target_type' => $targetType,
+        'target_id' => (string) $targetId,
+        'reason' => $reason,
+        'details' => $details,
+    ]);
+}
+
+function reportQueueLink(string $baseUrl, int $reportId): string
+{
+    return 'href="' . $baseUrl . '/admin/reports/' . $reportId . '"';
+}
+
 $pdo = Database::connection();
 $suffix = bin2hex(random_bytes(4));
 $createdUsers = [];
 $createdCategoryIds = [];
 $createdAchievementIds = [];
 $createdQuestIds = [];
+$createdReportIds = [];
 $identifiers = [];
 
 $adminUsername = 'phase6_admin_' . $suffix;
 $adminEmail = 'phase6_admin_' . $suffix . '@example.test';
 $userUsername = 'phase6_user_' . $suffix;
 $userEmail = 'phase6_user_' . $suffix . '@example.test';
+$reportTargetUsername = 'phase6_report_' . $suffix;
+$reportTargetEmail = 'phase6_report_' . $suffix . '@example.test';
 $password = 'PhaseSix-' . $suffix . '9';
 $identifiers[] = $adminEmail;
 $identifiers[] = $userEmail;
+$identifiers[] = $reportTargetEmail;
 
 $adminClient = new HttpClient($baseUrl);
 $userClient = new HttpClient($baseUrl);
+$reportTargetClient = new HttpClient($baseUrl);
 $guestClient = new HttpClient($baseUrl);
 
 $work = row($pdo, 'SELECT * FROM categories WHERE slug = ?', ['work']);
@@ -324,6 +352,17 @@ check(
     'Guest is redirected from /admin/quests to sign in',
     $guestQuests['status'] === 302 && str_ends_with((string) ($guestQuests['headers']['location'] ?? ''), '/login'),
 );
+$guestReports = $guestClient->get('/admin/reports');
+check(
+    'Guest is redirected from /admin/reports to sign in',
+    $guestReports['status'] === 302 && str_ends_with((string) ($guestReports['headers']['location'] ?? ''), '/login'),
+);
+$guestReportForm = $guestClient->get('/reports/new?target_type=profile&target_id=' . $userId);
+check(
+    'Guest is redirected from the report form to sign in',
+    $guestReportForm['status'] === 302
+        && str_ends_with((string) ($guestReportForm['headers']['location'] ?? ''), '/login'),
+);
 $guestStats = $guestClient->getJson('/api/admin/stats');
 $guestStatsJson = decodeJson($guestStats['body']);
 check(
@@ -353,6 +392,8 @@ $normalGetRoutes = [
     '/admin/users/' . $adminId,
     '/admin/quests',
     '/admin/quests/999999',
+    '/admin/reports',
+    '/admin/reports/999999',
     '/admin/categories',
     '/admin/categories/create',
     '/admin/categories/' . $workId . '/edit',
@@ -377,6 +418,8 @@ $normalMutationRoutes = [
     ['POST', '/admin/quests/999999/archive', []],
     ['POST', '/admin/quests/999999/restore', []],
     ['POST', '/admin/quests/999999/delete', []],
+    ['POST', '/admin/reports/999999/resolve', []],
+    ['POST', '/admin/reports/999999/dismiss', []],
     ['POST', '/admin/categories', []],
     ['POST', '/admin/categories/' . $workId, ['_method' => 'PUT']],
     ['POST', '/admin/categories/' . $workId . '/delete', []],
@@ -1203,7 +1246,362 @@ check(
     ) === 1,
 );
 
-echo "\n7. Audit trail\n";
+echo "\n7. Reports and flag queue\n";
+
+$reportTargetRegistered = registerAccount(
+    $reportTargetClient,
+    'Phase Six Report Target ' . $suffix,
+    $reportTargetUsername,
+    $reportTargetEmail,
+    $password,
+);
+$reportTarget = row($pdo, 'SELECT * FROM users WHERE email = ?', [$reportTargetEmail]);
+$reportTargetId = (int) ($reportTarget['id'] ?? 0);
+
+if ($reportTargetId > 0) {
+    $createdUsers[] = $reportTargetId;
+}
+
+check(
+    'Report target fixture registers',
+    $reportTargetRegistered['status'] === 302 && $reportTargetId > 0,
+);
+
+$pdo->prepare("UPDATE users SET status = 'active', show_profile = 1 WHERE id IN (?, ?, ?)")
+    ->execute([$adminId, $userId, $reportTargetId]);
+
+$adminPublicProfile = $userClient->get('/u/' . rawurlencode($adminUsername));
+check(
+    'Signed-in visitors see a report link on public profiles',
+    $adminPublicProfile['status'] === 200
+        && contains($adminPublicProfile['body'], 'Report profile')
+        && contains($adminPublicProfile['body'], '/reports/new?target_type=profile&amp;target_id=' . $adminId),
+);
+
+$guestPublicProfile = $guestClient->get('/u/' . rawurlencode($adminUsername));
+check(
+    'Guests do not see the report link',
+    $guestPublicProfile['status'] === 200
+        && !contains($guestPublicProfile['body'], 'Report profile'),
+);
+
+$selfReportPage = $adminClient->get('/reports/new?target_type=profile&target_id=' . $adminId);
+check(
+    'Administrators cannot open a report form for their own profile',
+    $selfReportPage['status'] === 302
+        && str_ends_with((string) ($selfReportPage['headers']['location'] ?? ''), '/u/' . $adminUsername),
+);
+
+$selfReport = $adminClient->post('/reports', [
+    '_csrf_token' => csrfFor($adminClient, '/admin'),
+    'target_type' => 'profile',
+    'target_id' => (string) $adminId,
+    'reason' => 'harassment',
+    'details' => 'This self-report must be rejected.',
+]);
+check(
+    'Self-reports are rejected',
+    $selfReport['status'] === 302
+        && scalar(
+            $pdo,
+            "SELECT COUNT(*) FROM reports WHERE target_type = 'profile' AND target_id = ?",
+            [$adminId],
+        ) === 0,
+);
+
+$missingReportTarget = $adminClient->get('/reports/new?target_type=profile&target_id=999999999');
+check(
+    'An unknown report target returns 404',
+    $missingReportTarget['status'] === 404,
+);
+
+$pdo->prepare('UPDATE users SET show_profile = 0 WHERE id = ?')->execute([$reportTargetId]);
+$hiddenReportTarget = $adminClient->get('/reports/new?target_type=profile&target_id=' . $reportTargetId);
+check(
+    'A hidden profile cannot be reported',
+    $hiddenReportTarget['status'] === 404,
+);
+$pdo->prepare('UPDATE users SET show_profile = 1 WHERE id = ?')->execute([$reportTargetId]);
+
+$reportForm = $userClient->get('/reports/new?target_type=profile&target_id=' . $adminId);
+check(
+    'The report form renders for a signed-in non-owner',
+    $reportForm['status'] === 200
+        && contains($reportForm['body'], 'Flag a profile')
+        && contains($reportForm['body'], 'name="reason"')
+        && contains($reportForm['body'], 'Harassment or bullying')
+        && contains($reportForm['body'], 'name="target_id" value="' . $adminId . '"'),
+);
+
+$invalidReason = $userClient->post('/reports', [
+    '_csrf_token' => csrfFor($userClient, '/reports/new?target_type=profile&target_id=' . $adminId),
+    'target_type' => 'profile',
+    'target_id' => (string) $adminId,
+    'reason' => 'not-a-reason',
+    'details' => '',
+]);
+check(
+    'An unknown report reason returns 422 with a field error',
+    $invalidReason['status'] === 422
+        && contains($invalidReason['body'], 'reason-error')
+        && scalar(
+            $pdo,
+            "SELECT COUNT(*) FROM reports WHERE reporter_user_id = ? AND target_id = ?",
+            [$userId, $adminId],
+        ) === 0,
+);
+
+$shortOther = $userClient->post('/reports', [
+    '_csrf_token' => csrfFor($userClient, '/reports/new?target_type=profile&target_id=' . $adminId),
+    'target_type' => 'profile',
+    'target_id' => (string) $adminId,
+    'reason' => 'other',
+    'details' => 'short',
+]);
+check(
+    'The “Something else” reason requires a useful description',
+    $shortOther['status'] === 422 && contains($shortOther['body'], 'details-error'),
+);
+
+$userReport = submitReport(
+    $userClient,
+    'profile',
+    $adminId,
+    'harassment',
+    'The profile bio contains repeated personal attacks against another adventurer.',
+);
+$userReportRow = row(
+    $pdo,
+    'SELECT * FROM reports WHERE reporter_user_id = ? AND target_type = ? AND target_id = ?',
+    [$userId, 'profile', $adminId],
+);
+$userReportId = (int) ($userReportRow['id'] ?? 0);
+
+if ($userReportId > 0) {
+    $createdReportIds[] = $userReportId;
+}
+
+check(
+    'A signed-in user can report a public profile',
+    $userReport['status'] === 302
+        && str_ends_with((string) ($userReport['headers']['location'] ?? ''), '/u/' . $adminUsername)
+        && $userReportId > 0
+        && (string) ($userReportRow['status'] ?? '') === 'open'
+        && contains((string) ($userReportRow['target_label'] ?? ''), '@' . $adminUsername),
+);
+
+$duplicateReport = $userClient->post('/reports', [
+    '_csrf_token' => csrfFor($userClient, '/dashboard'),
+    'target_type' => 'profile',
+    'target_id' => (string) $adminId,
+    'reason' => 'spam',
+    'details' => 'A second report for the same target must not be stored.',
+]);
+check(
+    'Duplicate reports are rejected',
+    $duplicateReport['status'] === 302
+        && scalar(
+            $pdo,
+            "SELECT COUNT(*) FROM reports WHERE reporter_user_id = ? AND target_type = 'profile' AND target_id = ?",
+            [$userId, $adminId],
+        ) === 1,
+);
+
+$existingReportForm = $userClient->get('/reports/new?target_type=profile&target_id=' . $adminId);
+check(
+    'The report form shows the existing report instead of a duplicate form',
+    $existingReportForm['status'] === 200
+        && contains($existingReportForm['body'], 'You already reported this profile')
+        && !contains($existingReportForm['body'], 'name="reason"'),
+);
+
+$targetReport = submitReport(
+    $adminClient,
+    'profile',
+    $reportTargetId,
+    'spam',
+    'This profile repeatedly posts the same promotional link.',
+);
+$targetReportRow = row(
+    $pdo,
+    'SELECT * FROM reports WHERE reporter_user_id = ? AND target_type = ? AND target_id = ?',
+    [$adminId, 'profile', $reportTargetId],
+);
+$targetReportId = (int) ($targetReportRow['id'] ?? 0);
+
+if ($targetReportId > 0) {
+    $createdReportIds[] = $targetReportId;
+}
+
+check(
+    'An administrator can also file a report',
+    $targetReport['status'] === 302
+        && $targetReportId > 0
+        && (string) ($targetReportRow['reason'] ?? '') === 'spam',
+);
+
+$queue = $adminClient->get('/admin/reports');
+check(
+    'The reports queue lists open reports and filters',
+    $queue['status'] === 200
+        && contains($queue['body'], 'Reports queue')
+        && contains($queue['body'], 'name="search"')
+        && contains($queue['body'], 'name="status"')
+        && contains($queue['body'], 'name="target_type"')
+        && contains($queue['body'], 'name="reason"')
+        && contains($queue['body'], reportQueueLink($baseUrl, $userReportId))
+        && contains($queue['body'], '@' . $userUsername),
+);
+check(
+    'The queue shows the report reason and target snapshot',
+    contains($queue['body'], 'Harassment or bullying')
+        && contains($queue['body'], 'Spam or misleading')
+        && contains($queue['body'], '@' . $reportTargetUsername),
+);
+
+$openQueue = $adminClient->get('/admin/reports?status=open');
+check(
+    'The status filter keeps open reports visible',
+    $openQueue['status'] === 200
+        && contains($openQueue['body'], reportQueueLink($baseUrl, $userReportId))
+        && contains($openQueue['body'], reportQueueLink($baseUrl, $targetReportId)),
+);
+
+$spamQueue = $adminClient->get('/admin/reports?reason=spam');
+check(
+    'The reason filter narrows the queue',
+    $spamQueue['status'] === 200
+        && contains($spamQueue['body'], reportQueueLink($baseUrl, $targetReportId))
+        && !contains($spamQueue['body'], reportQueueLink($baseUrl, $userReportId)),
+);
+
+$profileQueue = $adminClient->get('/admin/reports?target_type=profile');
+check(
+    'The target-type filter accepts profile reports',
+    $profileQueue['status'] === 200
+        && contains($profileQueue['body'], reportQueueLink($baseUrl, $userReportId))
+        && contains($profileQueue['body'], reportQueueLink($baseUrl, $targetReportId)),
+);
+
+$searchQueue = $adminClient->get('/admin/reports?search=' . rawurlencode($reportTargetUsername));
+check(
+    'The queue search matches the target snapshot',
+    $searchQueue['status'] === 200
+        && contains($searchQueue['body'], reportQueueLink($baseUrl, $targetReportId))
+        && !contains($searchQueue['body'], reportQueueLink($baseUrl, $userReportId)),
+);
+
+$userReportDetail = $adminClient->get('/admin/reports/' . $userReportId);
+check(
+    'The report detail shows the target, reporter, reason, and actions',
+    $userReportDetail['status'] === 200
+        && contains($userReportDetail['body'], 'Report details')
+        && contains($userReportDetail['body'], 'Reporter')
+        && contains($userReportDetail['body'], 'Harassment or bullying')
+        && contains($userReportDetail['body'], '@' . $adminUsername)
+        && contains($userReportDetail['body'], 'Resolve report')
+        && contains($userReportDetail['body'], 'Dismiss report'),
+);
+
+$resolveReport = $adminClient->post('/admin/reports/' . $userReportId . '/resolve', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/reports/' . $userReportId),
+    'resolution_note' => 'Reviewed the profile and confirmed the reported behaviour.',
+]);
+$resolvedRow = row($pdo, 'SELECT * FROM reports WHERE id = ?', [$userReportId]);
+check(
+    'An administrator can resolve a report with a note',
+    $resolveReport['status'] === 302
+        && (string) ($resolvedRow['status'] ?? '') === 'resolved'
+        && (int) ($resolvedRow['resolved_by_user_id'] ?? 0) === $adminId
+        && (string) ($resolvedRow['resolution_note'] ?? '') === 'Reviewed the profile and confirmed the reported behaviour.'
+        && $resolvedRow['resolved_at'] !== null,
+);
+check(
+    'Report resolution is audited',
+    scalar(
+        $pdo,
+        "SELECT COUNT(*) FROM audit_logs WHERE action = 'report.resolved' AND target_type = 'report' AND target_id = ?",
+        [$userReportId],
+    ) === 1,
+);
+
+$repeatResolve = $adminClient->post('/admin/reports/' . $userReportId . '/resolve', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/reports/' . $userReportId),
+    'resolution_note' => 'A repeated decision must not be recorded twice.',
+]);
+check(
+    'A closed report cannot be resolved twice',
+    $repeatResolve['status'] === 302
+        && scalar(
+            $pdo,
+            "SELECT COUNT(*) FROM audit_logs WHERE action = 'report.resolved' AND target_id = ?",
+            [$userReportId],
+        ) === 1,
+);
+
+$resolvedQueue = $adminClient->get('/admin/reports?status=resolved');
+check(
+    'The resolved filter shows the closed report',
+    $resolvedQueue['status'] === 200
+        && contains($resolvedQueue['body'], reportQueueLink($baseUrl, $userReportId))
+        && !contains($resolvedQueue['body'], reportQueueLink($baseUrl, $targetReportId)),
+);
+
+$pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$reportTargetId]);
+
+$deletedTargetDetail = $adminClient->get('/admin/reports/' . $targetReportId);
+check(
+    'A report against a deleted target keeps its snapshot and shows an empty target state',
+    $deletedTargetDetail['status'] === 200
+        && contains($deletedTargetDetail['body'], 'This target no longer exists')
+        && contains($deletedTargetDetail['body'], '@' . $reportTargetUsername),
+);
+
+$dismissReport = $adminClient->post('/admin/reports/' . $targetReportId . '/dismiss', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/reports/' . $targetReportId),
+    'resolution_note' => 'The target account no longer exists, so no further action is possible.',
+]);
+$dismissedRow = row($pdo, 'SELECT * FROM reports WHERE id = ?', [$targetReportId]);
+check(
+    'An administrator can dismiss a report',
+    $dismissReport['status'] === 302
+        && (string) ($dismissedRow['status'] ?? '') === 'dismissed'
+        && (string) ($dismissedRow['resolution_note'] ?? '') === 'The target account no longer exists, so no further action is possible.',
+);
+check(
+    'Report dismissal is audited',
+    scalar(
+        $pdo,
+        "SELECT COUNT(*) FROM audit_logs WHERE action = 'report.dismissed' AND target_type = 'report' AND target_id = ?",
+        [$targetReportId],
+    ) === 1,
+);
+
+$dismissedQueue = $adminClient->get('/admin/reports?status=dismissed');
+check(
+    'The dismissed filter shows the closed report',
+    $dismissedQueue['status'] === 200
+        && contains($dismissedQueue['body'], reportQueueLink($baseUrl, $targetReportId))
+        && !contains($dismissedQueue['body'], reportQueueLink($baseUrl, $userReportId)),
+);
+
+$noCsrfResolve = $adminClient->post('/admin/reports/' . $userReportId . '/resolve', []);
+check(
+    'Report decisions without a CSRF token return 419 and change nothing',
+    $noCsrfResolve['status'] === 419
+        && (string) (row($pdo, 'SELECT status FROM reports WHERE id = ?', [$userReportId])['status'] ?? '') === 'resolved',
+);
+
+$reportAudit = $adminClient->get('/admin/audit?target_type=report');
+check(
+    'The audit log filters report decisions by target type',
+    $reportAudit['status'] === 200
+        && contains($reportAudit['body'], 'report.resolved')
+        && contains($reportAudit['body'], 'report.dismissed')
+        && contains($reportAudit['body'], 'Resolved report #' . $userReportId),
+);
+
+echo "\n8. Audit trail\n";
 
 $auditPage = $adminClient->get('/admin/audit');
 check(
@@ -1277,7 +1675,7 @@ check(
     Achievement::findById($firstStepsId) !== null,
 );
 
-echo "\n8. CSRF protection on admin mutations\n";
+echo "\n9. CSRF protection on admin mutations\n";
 
 $categoryCountBefore = scalar($pdo, 'SELECT COUNT(*) FROM categories');
 $noCsrfCategory = $adminClient->post('/admin/categories', [
@@ -1333,11 +1731,18 @@ check(
         && (string) (row($pdo, 'SELECT name FROM categories WHERE id = ?', [$workId])['name'] ?? '') === 'Work',
 );
 
-echo "\n9. Cleanup\n";
+echo "\n10. Cleanup\n";
+
+$reportCleanup = array_values(array_filter($createdReportIds, static fn (int $id): bool => $id > 0));
+
+if ($reportCleanup !== []) {
+    $placeholders = implode(', ', array_fill(0, count($reportCleanup), '?'));
+    $pdo->prepare("DELETE FROM reports WHERE id IN ({$placeholders})")->execute($reportCleanup);
+}
 
 $pdo->prepare('DELETE FROM user_achievements WHERE user_id = ? AND achievement_id = ?')->execute([$userId, $firstStepsId]);
 $pdo->prepare('DELETE FROM audit_logs WHERE actor_user_id IN (?, ?)')->execute([$adminId, $userId]);
-$pdo->prepare('DELETE FROM users WHERE id IN (?, ?)')->execute([$adminId, $userId]);
+$pdo->prepare('DELETE FROM users WHERE id IN (?, ?, ?)')->execute([$adminId, $userId, $reportTargetId]);
 
 $categoryCleanup = array_values(array_filter($createdCategoryIds, static fn (int $id): bool => $id > 0));
 $achievementCleanup = array_values(array_filter($createdAchievementIds, static fn (int $id): bool => $id > 0));

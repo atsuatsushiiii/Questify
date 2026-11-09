@@ -35,7 +35,7 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
     </div>
 </section>
 
-<section class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4" data-reveal>
+<section class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-5" data-reveal>
     <article class="app-stat-card">
         <div class="flex items-center justify-between gap-3">
             <p class="app-stat-label">Accounts</p>
@@ -78,6 +78,17 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
         </div>
         <p class="app-stat-value"><?= e(number_format($kpis['xp_awarded'])) ?></p>
         <p class="app-stat-note">Across every account balance.</p>
+    </article>
+
+    <article class="app-stat-card">
+        <div class="flex items-center justify-between gap-3">
+            <p class="app-stat-label">Open reports</p>
+            <span class="app-stat-icon border-ember-400/30 bg-ember-500/10 text-ember-300">
+                <i data-lucide="flag" class="h-4 w-4"></i>
+            </span>
+        </div>
+        <p class="app-stat-value"><?= e(number_format($kpis['open_reports'])) ?></p>
+        <p class="app-stat-note">Reports awaiting administrator review.</p>
     </article>
 </section>
 
@@ -223,7 +234,18 @@ $completionTotal = array_sum(array_column($dashboard['completionSeries'], 'total
     </article>
 </section>
 
-<section class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4" data-reveal>
+<section class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-5" data-reveal>
+    <a href="<?= e(url('/admin/reports')) ?>" class="app-panel group flex items-center gap-4 p-5 transition hover:border-brand-400/35">
+        <span class="app-panel-icon border-ember-400/30 bg-ember-500/10 text-ember-300">
+            <i data-lucide="flag" class="h-4 w-4"></i>
+        </span>
+        <div class="min-w-0 flex-1">
+            <p class="text-sm font-semibold text-white">Reports queue</p>
+            <p class="mt-0.5 text-[11px] text-muted">Review user flags, then resolve or dismiss.</p>
+        </div>
+        <i data-lucide="arrow-right" class="h-4 w-4 shrink-0 text-muted-dim transition group-hover:text-brand-300"></i>
+    </a>
+
     <a href="<?= e(url('/admin/quests')) ?>" class="app-panel group flex items-center gap-4 p-5 transition hover:border-brand-400/35">
         <span class="app-panel-icon border-ember-400/30 bg-ember-500/10 text-ember-300">
             <i data-lucide="scroll-text" class="h-4 w-4"></i>
