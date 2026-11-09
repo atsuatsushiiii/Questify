@@ -54,6 +54,7 @@ $router->post('/reset-password', [PasswordResetController::class, 'reset'], [Gue
 $router->get('/u/{username}', [PublicProfileController::class, 'show']);
 
 // Signed-in reports against public profiles (and future public quests).
+$router->get('/reports', [ReportController::class, 'index'], [AuthMiddleware::class]);
 $router->get('/reports/new', [ReportController::class, 'create'], [AuthMiddleware::class]);
 $router->post('/reports', [ReportController::class, 'store'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 

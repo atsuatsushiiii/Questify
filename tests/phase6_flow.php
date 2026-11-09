@@ -363,6 +363,12 @@ check(
     $guestReportForm['status'] === 302
         && str_ends_with((string) ($guestReportForm['headers']['location'] ?? ''), '/login'),
 );
+$guestMyReports = $guestClient->get('/reports');
+check(
+    'Guest is redirected from My Reports to sign in',
+    $guestMyReports['status'] === 302
+        && str_ends_with((string) ($guestMyReports['headers']['location'] ?? ''), '/login'),
+);
 $guestStats = $guestClient->getJson('/api/admin/stats');
 $guestStatsJson = decodeJson($guestStats['body']);
 check(
@@ -1440,6 +1446,17 @@ check(
         && (string) ($targetReportRow['reason'] ?? '') === 'spam',
 );
 
+$myReports = $userClient->get('/reports');
+check(
+    'The reporter sees their own report history and no one else’s',
+    $myReports['status'] === 200
+        && contains($myReports['body'], 'My reports')
+        && contains($myReports['body'], 'Harassment or bullying')
+        && contains($myReports['body'], '@' . $adminUsername)
+        && contains($myReports['body'], 'Report #' . $userReportId . ' · submitted')
+        && !contains($myReports['body'], 'Report #' . $targetReportId . ' · submitted'),
+);
+
 $queue = $adminClient->get('/admin/reports');
 check(
     'The reports queue lists open reports and filters',
@@ -1525,6 +1542,36 @@ check(
     ) === 1,
 );
 
+$reportNotification = row(
+    $pdo,
+    'SELECT * FROM notifications WHERE user_id = ? AND event_key = ?',
+    [$userId, 'report.closed:' . $userReportId],
+);
+check(
+    'Resolving a report notifies the reporter without leaking the private note',
+    $reportNotification !== null
+        && (string) ($reportNotification['type'] ?? '') === 'report'
+        && (string) ($reportNotification['title'] ?? '') === 'Your report was resolved'
+        && contains((string) ($reportNotification['message'] ?? ''), 'resolved your report')
+        && (string) ($reportNotification['url'] ?? '') === '/reports'
+        && !contains((string) ($reportNotification['message'] ?? ''), 'Reviewed the profile')
+        && $reportNotification['read_at'] === null,
+);
+
+$notificationInbox = $userClient->get('/notifications');
+check(
+    'The report notification appears in the reporter’s inbox',
+    $notificationInbox['status'] === 200
+        && contains($notificationInbox['body'], 'Your report was resolved'),
+);
+
+$resolvedMine = $userClient->get('/reports');
+check(
+    'My Reports reflects the resolved status and closes the loop',
+    $resolvedMine['status'] === 200
+        && contains($resolvedMine['body'], 'marked it resolved'),
+);
+
 $repeatResolve = $adminClient->post('/admin/reports/' . $userReportId . '/resolve', [
     '_csrf_token' => csrfFor($adminClient, '/admin/reports/' . $userReportId),
     'resolution_note' => 'A repeated decision must not be recorded twice.',
@@ -1538,6 +1585,14 @@ check(
             [$userReportId],
         ) === 1,
 );
+check(
+    'A repeated decision does not duplicate the reporter notification',
+    scalar(
+        $pdo,
+        'SELECT COUNT(*) FROM notifications WHERE user_id = ? AND event_key = ?',
+        [$userId, 'report.closed:' . $userReportId],
+    ) === 1,
+);
 
 $resolvedQueue = $adminClient->get('/admin/reports?status=resolved');
 check(
@@ -1546,6 +1601,38 @@ check(
         && contains($resolvedQueue['body'], reportQueueLink($baseUrl, $userReportId))
         && !contains($resolvedQueue['body'], reportQueueLink($baseUrl, $targetReportId)),
 );
+
+$pdo->prepare("DELETE FROM reports WHERE reporter_user_id = ? AND target_label = 'Throttle fixture'")
+    ->execute([$userId]);
+
+$throttleInsert = $pdo->prepare(
+    "INSERT INTO reports (reporter_user_id, target_type, target_id, target_label, reason, details, status, created_at, updated_at)
+     VALUES (?, 'profile', ?, 'Throttle fixture', 'spam', NULL, 'open', UTC_TIMESTAMP(), UTC_TIMESTAMP())",
+);
+
+for ($i = 1; $i <= 10; $i++) {
+    $throttleInsert->execute([$userId, 900000 + $i]);
+}
+
+$throttled = submitReport(
+    $userClient,
+    'profile',
+    $reportTargetId,
+    'spam',
+    'This report should be blocked by the hourly limit.',
+);
+check(
+    'The hourly report limit blocks new submissions',
+    $throttled['status'] === 302
+        && scalar(
+            $pdo,
+            'SELECT COUNT(*) FROM reports WHERE reporter_user_id = ? AND target_type = ? AND target_id = ?',
+            [$userId, 'profile', $reportTargetId],
+        ) === 0,
+);
+
+$pdo->prepare("DELETE FROM reports WHERE reporter_user_id = ? AND target_label = 'Throttle fixture'")
+    ->execute([$userId]);
 
 $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$reportTargetId]);
 

@@ -126,6 +126,29 @@ final class NotificationService
     }
 
     /**
+     * Close the loop for the reporter without revealing the administrator's
+     * private resolution note or the reported account's response.
+     */
+    public static function reportClosed(PDO $db, int $userId, int $reportId, string $targetLabel, bool $resolved): bool
+    {
+        $label = trim($targetLabel) !== '' ? trim($targetLabel) : 'the reported content';
+
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'report',
+            'title' => $resolved ? 'Your report was resolved' : 'Your report was reviewed',
+            'message' => $resolved
+                ? 'An administrator resolved your report against ' . $label . '.'
+                : 'An administrator reviewed your report against ' . $label . ' and took no further action.',
+            'icon' => 'flag',
+            'url' => '/reports',
+            'related_type' => 'report',
+            'related_id' => $reportId,
+            'event_key' => 'report.closed:' . $reportId,
+        ]);
+    }
+
+    /**
      * @param array{user_id: int, type: string, title: string, message: string, icon: string, url?: string|null, related_type?: string|null, related_id?: int|null, event_key: string} $data
      */
     public static function create(PDO $db, array $data): bool

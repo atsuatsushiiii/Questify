@@ -19,6 +19,11 @@ All notable changes to Questify are recorded in this file. The format follows
   target, and reason filters, a detail view, and audited resolve/dismiss
   decisions. Duplicate and self-reports are rejected, and closed reports are
   immutable.
+- Report loop: a private **My Reports** page (`GET /reports`) lists the
+  signed-in reporter's own submissions and statuses, resolving or dismissing a
+  report sends the reporter an idempotent in-app notification that omits the
+  administrator's private note, and submissions are capped at 10 per account per
+  rolling hour. "My reports" is linked from the report form and the account menu.
 
 ### Changed
 

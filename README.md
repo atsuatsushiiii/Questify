@@ -153,11 +153,11 @@ docs/            Architecture plan, security notes, and deployment guide
 | `php tests/quest_flow.php` | Quest engine, ownership, XP, recurring cadences, and locking suite (137 checks) |
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
-| `php tests/phase6_flow.php` | Admin authorization, KPIs, quest/user moderation, catalogue CRUD, reports, audit (177 checks) |
+| `php tests/phase6_flow.php` | Admin authorization, KPIs, quest/user moderation, catalogue CRUD, reports, audit (184 checks) |
 | `php tests/public_profile_flow.php` | Public profile rendering, privacy, 404s, leaderboard links (39 checks) |
 | `php tests/google_oauth_flow.php` | Google start, callback guards, account resolution, linking, CSP (49 checks) |
 | `npm run test:browser` | Chrome browser QA for auth, quests, profiles, mobile navigation, and WCAG scans |
-| `composer test` | Run the unit suite and all eight HTTP suites (700 checks) |
+| `composer test` | Run the unit suite and all eight HTTP suites (707 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -245,7 +245,7 @@ dropping the message.
 The unit suite is database-free and runs without a server:
 
 ```powershell
-php vendor/bin/phpunit --no-coverage   # 63 tests, 259 assertions
+php vendor/bin/phpunit --no-coverage   # 78 tests, 333 assertions
 ```
 
 The remaining suites drive the real HTTP surface, so start MySQL, migrate, build
@@ -262,7 +262,7 @@ php tests/app_shell.php       # shell and Phase 4-6 pages (69 checks)
 php tests/quest_flow.php      # quests only (137 checks)
 php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leaderboard (78 checks)
 php tests/phase5_flow.php     # settings/email/sessions/export/deletion (96 checks)
-php tests/phase6_flow.php     # admin authorization/moderation/catalogue/reports/audit (177 checks)
+php tests/phase6_flow.php     # admin authorization/moderation/catalogue/reports/audit (184 checks)
 php tests/public_profile_flow.php  # public profiles/privacy/leaderboard links (39 checks)
 ```
 
@@ -367,6 +367,8 @@ Every authenticated page renders inside `app/Views/layouts/app.php`:
 | `/achievements` | Live — catalogue, progress, and category filters |
 | `/leaderboard` | Live — all-time, weekly, and monthly boards with pagination |
 | `/profile` | Live — owner-only editor, avatar, streak history, visibility |
+| `/reports` | Live — the signed-in reporter's own report history and status |
+| `/reports/new` | Live — report a public profile with a reason and optional details |
 | `/notifications` | Live — owner-scoped inbox with read/unread filters |
 | `/settings` | Live — password, verified email, preferences, sessions, export, deletion |
 
@@ -415,7 +417,10 @@ the authenticated account.
 ### Notifications
 
 - In-app events (achievement, level-up, streak milestone, profile, leaderboard
-  rank) are stored per user with `UNIQUE(user_id, event_key)` deduplication.
+  rank, and report closure) are stored per user with `UNIQUE(user_id, event_key)`
+  deduplication. Report-closure notifications are always delivered, independent
+  of the achievement/streak/leaderboard preference gates, and never include the
+  administrator's private resolution note.
 - The inbox is ownership-scoped; another user's notification cannot be read or
   marked read (`404`). JavaScript enhances mark-read/mark-all without a reload,
   and the forms still submit normally without it.
@@ -521,10 +526,14 @@ account menu only render the Administration section for admins.
   reason whitelist is harassment, hate, impersonation, spam, inappropriate,
   privacy, and other; “other” needs at least 10 characters of detail. Self-reports
   and duplicate reports are rejected by the service and the
-  `uq_reports_reporter_target` unique index. Admins can resolve or dismiss an open
-  report with a note; closed reports are immutable and every decision writes a
-  `report.resolved` / `report.dismissed` audit entry against the `report` target
-  type. The target label is snapshotted so the queue survives a rename or delete.
+  `uq_reports_reporter_target` unique index, and submissions are capped at 10 per
+  account per rolling hour (`auth.report_per_hour`). Admins can resolve or dismiss
+  an open report with a note; closed reports are immutable and every decision
+  writes a `report.resolved` / `report.dismissed` audit entry against the
+  `report` target type. The target label is snapshotted so the queue survives a
+  rename or delete. `GET /reports` gives the reporter a private history of their
+  own submissions and statuses, and resolving or dismissing a report creates an
+  idempotent `report.closed:{id}` notification for the reporter.
 - **Categories:** CRUD validates name, slug, six-digit colour, Lucide icon, sort
   order, and active state. Quests select an active category on create/edit and can
   filter by category slug. Deactivating hides a category from new quests while
@@ -581,13 +590,13 @@ php scripts/seed_demo.php
 
 ### Tests
 
-- `phpunit.xml` + `tests/Unit` provide 78 DB-free tests / 332 assertions over
+- `phpunit.xml` + `tests/Unit` provide 78 DB-free tests / 333 assertions over
   `Progression`, `Validator`, `StreakService`, `Recurrence`, `MailService`,
   `GoogleAuthService`, and the route authorization table.
 - `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
-  before the eight HTTP suites (700 checks total).
-- `npm run test:browser` adds a headless Chrome pass with 71 functional checks
-  and 20 axe-core WCAG 2.0/2.1 A+AA scans. It lives outside `composer test`
+  before the eight HTTP suites (707 checks total).
+- `npm run test:browser` adds a headless Chrome pass with 72 functional checks
+  and 21 axe-core WCAG 2.0/2.1 A+AA scans. It lives outside `composer test`
   because it needs the app served by a web server.
 - `tests/bootstrap.php` boots configuration and autoloading without starting a
   session or opening a database connection.

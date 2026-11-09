@@ -22,10 +22,16 @@ $errorClass = static fn (string $field): string => isset($errors[$field]) ? ' is
 $statusLabels = ['open' => 'Open', 'resolved' => 'Resolved', 'dismissed' => 'Dismissed'];
 ?>
 <section class="mx-auto max-w-4xl" data-reveal>
-    <a href="<?= e(url($backPath)) ?>" class="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted transition hover:text-brand-300">
-        <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
-        Back to <?= $target['type'] === 'profile' ? 'profile' : 'dashboard' ?>
-    </a>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <a href="<?= e(url($backPath)) ?>" class="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted transition hover:text-brand-300">
+            <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+            Back to <?= $target['type'] === 'profile' ? 'profile' : 'dashboard' ?>
+        </a>
+        <a href="<?= e(url('/reports')) ?>" class="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted transition hover:text-brand-300">
+            <i data-lucide="flag" class="h-3.5 w-3.5"></i>
+            My reports
+        </a>
+    </div>
 
     <div class="mt-4">
         <p class="eyebrow">

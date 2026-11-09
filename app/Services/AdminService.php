@@ -323,6 +323,16 @@ final class AdminService
             'ip_address' => $ipAddress,
         ]);
 
+        if ($report['reporter_user_id'] !== null) {
+            NotificationService::reportClosed(
+                Database::connection(),
+                (int) $report['reporter_user_id'],
+                $reportId,
+                (string) $report['target_label'],
+                $status === 'resolved',
+            );
+        }
+
         return [
             'ok' => true,
             'message' => $status === 'resolved'

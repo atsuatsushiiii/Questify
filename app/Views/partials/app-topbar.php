@@ -132,6 +132,10 @@
                             <i data-lucide="user-round" class="h-4 w-4 text-muted"></i>
                             <span class="flex-1">My Profile</span>
                         </a>
+                        <a href="<?= e(url('/reports')) ?>" class="flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm text-slate-300 transition hover:bg-brand-400/[0.06] hover:text-white">
+                            <i data-lucide="flag" class="h-4 w-4 text-muted"></i>
+                            <span class="flex-1">My Reports</span>
+                        </a>
                         <a href="<?= e(url('/settings')) ?>" class="flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm text-slate-300 transition hover:bg-brand-400/[0.06] hover:text-white">
                             <i data-lucide="settings" class="h-4 w-4 text-muted"></i>
                             <span class="flex-1">Settings</span>

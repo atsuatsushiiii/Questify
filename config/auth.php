@@ -22,6 +22,8 @@ return [
     'max_login_attempts_per_ip' => 20,
     'login_decay' => 60 * 15,
 
+    'report_per_hour' => 10,
+
     'min_password_length' => 10,
     'max_password_length' => 72,
 ];

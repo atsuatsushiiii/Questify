@@ -65,9 +65,12 @@ working exploit. Include the route, the request, and the observed behaviour.
 - Reports are scoped to signed-in accounts and resolve only reachable targets: an
   active `show_profile = 1` profile or an existing quest. Self-reports and
   duplicates are rejected before insert (`uq_reports_reporter_target` is the
-  backstop), the reporter's identity is visible only to administrators, and
-  resolve/dismiss is an audited, CSRF-protected admin mutation that only applies
-  while the report is open.
+  backstop), submissions are capped at 10 per account per rolling hour
+  (`auth.report_per_hour`), the reporter's identity is visible only to
+  administrators, and resolve/dismiss is an audited, CSRF-protected admin
+  mutation that only applies while the report is open. `GET /reports` is scoped
+  to the signed-in reporter, and report-closure notifications never include the
+  administrator's private resolution note.
 - Admin mutations enforce self-protection and last-administrator rules
   server-side; the disabled buttons are not the security boundary.
 - `tests/Unit/RouteAuthorizationTest.php` fails if an `/admin` route is added

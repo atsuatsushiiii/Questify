@@ -15,11 +15,27 @@ use App\Models\Report;
 use App\Services\ReportService;
 
 /**
- * Signed-in report submission for public profiles and, when a public quest
- * surface exists, quests.
+ * Signed-in report submission and the reporter's own report history.
  */
 final class ReportController
 {
+    public function index(Request $request): Response
+    {
+        $actor = $this->actor();
+        $page = filter_var($request->input('page', '1'), FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1],
+        ]);
+        $directory = Report::paginateForReporter((int) $actor['id'], $page === false ? 1 : (int) $page);
+
+        return view('pages/reports/index', [
+            'title' => 'My reports — Questify',
+            'description' => 'Track the reports you have submitted and their moderation status.',
+            'directory' => $directory,
+            'statusCounts' => Report::statusCountsForReporter((int) $actor['id']),
+            'reasons' => Report::REASONS,
+        ], 'layouts/app');
+    }
+
     public function create(Request $request): Response
     {
         $actor = $this->actor();
@@ -70,7 +86,7 @@ final class ReportController
             throw HttpException::notFound($result['message']);
         }
 
-        if (($result['status'] ?? 0) === 409) {
+        if (in_array($result['status'] ?? 0, [409, 429], true)) {
             Flash::error((string) $result['message']);
 
             return redirect($this->targetPath($result['target']));

@@ -104,6 +104,76 @@ final class Report
     }
 
     /**
+     * @return array{items: list<array<string, mixed>>, total: int, page: int, pages: int, perPage: int}
+     */
+    public static function paginateForReporter(int $reporterId, int $page, int $perPage = 20): array
+    {
+        $perPage = max(1, min(50, $perPage));
+
+        $count = Database::connection()->prepare(
+            'SELECT COUNT(*) FROM reports WHERE reporter_user_id = ?',
+        );
+        $count->execute([$reporterId]);
+        $total = (int) $count->fetchColumn();
+        $pages = max(1, (int) ceil($total / $perPage));
+        $page = min(max(1, $page), $pages);
+        $offset = ($page - 1) * $perPage;
+
+        $statement = Database::connection()->prepare(
+            self::SELECT_WITH_ACTORS
+            . ' WHERE r.reporter_user_id = ?
+                ORDER BY r.created_at DESC, r.id DESC
+                LIMIT ' . $perPage . ' OFFSET ' . $offset,
+        );
+        $statement->execute([$reporterId]);
+
+        return [
+            'items' => $statement->fetchAll(PDO::FETCH_ASSOC),
+            'total' => $total,
+            'page' => $page,
+            'pages' => $pages,
+            'perPage' => $perPage,
+        ];
+    }
+
+    /**
+     * @return array{open: int, resolved: int, dismissed: int}
+     */
+    public static function statusCountsForReporter(int $reporterId): array
+    {
+        $counts = ['open' => 0, 'resolved' => 0, 'dismissed' => 0];
+
+        $statement = Database::connection()->prepare(
+            'SELECT status, COUNT(*) AS total FROM reports WHERE reporter_user_id = ? GROUP BY status',
+        );
+        $statement->execute([$reporterId]);
+
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $status = (string) ($row['status'] ?? '');
+
+            if (array_key_exists($status, $counts)) {
+                $counts[$status] = (int) ($row['total'] ?? 0);
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Submission throttle window. Counting stored rows keeps the limit honest
+     * even when a report is submitted from several devices.
+     */
+    public static function countForReporterSince(int $reporterId, int $seconds): int
+    {
+        $statement = Database::connection()->prepare(
+            'SELECT COUNT(*) FROM reports WHERE reporter_user_id = ? AND created_at >= ?',
+        );
+        $statement->execute([$reporterId, gmdate('Y-m-d H:i:s', time() - max(1, $seconds))]);
+
+        return (int) $statement->fetchColumn();
+    }
+
+    /**
      * @param array{search?: string, status?: string, target_type?: string, reason?: string} $filters
      * @return list<array<string, mixed>>
      */

@@ -133,6 +133,17 @@ final class ReportService
             return ['ok' => false, 'status' => 409, 'message' => 'You have already reported this target.', 'target' => $target];
         }
 
+        $perHour = max(1, (int) config('auth.report_per_hour', 10));
+
+        if (Report::countForReporterSince((int) $reporter['id'], 60 * 60) >= $perHour) {
+            return [
+                'ok' => false,
+                'status' => 429,
+                'message' => 'You have submitted too many reports in the last hour. Please wait before reporting again.',
+                'target' => $target,
+            ];
+        }
+
         try {
             $id = Report::create([
                 'reporter_user_id' => (int) $reporter['id'],

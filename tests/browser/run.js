@@ -565,6 +565,7 @@ async function run() {
     await scanPage('achievements', '/achievements');
     await scanPage('leaderboard', '/leaderboard');
     await scanPage('settings', '/settings');
+    await scanPage('my-reports', '/reports');
   });
 
   await step('Mobile drawer and bottom navigation work', async () => {

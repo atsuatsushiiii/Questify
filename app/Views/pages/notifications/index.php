@@ -27,7 +27,7 @@ $query = static fn (array $overrides = []): string => url('/notifications?' . ht
             </p>
             <h1 class="mt-3 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Notifications</h1>
             <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-                Achievements, level-ups, streak milestones, and profile events, newest first.
+                Achievements, level-ups, streak milestones, profile events, and report updates, newest first.
             </p>
         </div>
 
