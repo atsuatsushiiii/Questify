@@ -65,6 +65,7 @@ final class AdminReportController
             'description' => 'Reported content, reporter context, resolution actions, and moderation history.',
             'detail' => $detail,
             'reasons' => Report::REASONS,
+            'suspensionOptions' => AdminService::SUSPENSION_OPTIONS,
         ], 'layouts/app');
     }
 
@@ -76,6 +77,57 @@ final class AdminReportController
     public function dismiss(Request $request, string $id): Response
     {
         return $this->moderate($request, $id, 'dismissed');
+    }
+
+    public function warn(Request $request, string $id): Response
+    {
+        $reportId = $this->idOr404($id);
+        $message = $request->input('message', '');
+        $message = is_string($message) ? trim($message) : null;
+        $result = (new AdminService())->warnReportedUser(
+            $this->actor(),
+            $reportId,
+            $message,
+            $request->ip(),
+        );
+
+        return $this->accountActionResponse($reportId, $result);
+    }
+
+    public function suspend(Request $request, string $id): Response
+    {
+        $reportId = $this->idOr404($id);
+        $duration = $request->input('duration', '');
+        $duration = is_string($duration) ? trim($duration) : null;
+        $message = $request->input('message', '');
+        $message = is_string($message) ? trim($message) : null;
+        $result = (new AdminService())->suspendReportedUser(
+            $this->actor(),
+            $reportId,
+            $duration,
+            $message,
+            $request->ip(),
+        );
+
+        return $this->accountActionResponse($reportId, $result);
+    }
+
+    /**
+     * @param array{ok: bool, status?: int, message: string} $result
+     */
+    private function accountActionResponse(int $reportId, array $result): Response
+    {
+        if ($result['ok']) {
+            Flash::success($result['message']);
+        } else {
+            if (($result['status'] ?? 0) === 404) {
+                throw HttpException::notFound($result['message']);
+            }
+
+            Flash::error($result['message']);
+        }
+
+        return redirect('/admin/reports/' . $reportId);
     }
 
     private function moderate(Request $request, string $id, string $decision): Response

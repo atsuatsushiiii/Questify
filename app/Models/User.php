@@ -86,6 +86,8 @@ final class User
      */
     public static function findPublicByUsername(string $username): ?array
     {
+        self::liftExpiredSuspensions();
+
         $statement = Database::connection()->prepare(
             "SELECT id, username, display_name, avatar_path, xp_total,
                     current_streak, longest_streak, last_streak_date, timezone, created_at
@@ -107,6 +109,8 @@ final class User
      */
     public static function findPublicById(int $id): ?array
     {
+        self::liftExpiredSuspensions();
+
         $statement = Database::connection()->prepare(
             "SELECT id, username, display_name, avatar_path, status, show_profile, created_at
              FROM users
@@ -387,6 +391,7 @@ final class User
 
         $statement = Database::connection()->prepare(
             'SELECT id, username, email, display_name, avatar_path, role, status,
+                    suspended_until,
                     xp_total, level, current_streak, longest_streak, created_at, updated_at, last_login_at
              FROM users'
             . $where
@@ -441,14 +446,74 @@ final class User
         return $series;
     }
 
-    public static function setStatus(int $id, string $status): bool
+    /**
+     * Set the account status. A suspended account can carry an expiry; active
+     * accounts always clear it.
+     */
+    public static function setStatus(int $id, string $status, ?string $suspendedUntil = null): bool
     {
         $statement = Database::connection()->prepare(
-            'UPDATE users SET status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?',
+            'UPDATE users
+             SET status = ?, suspended_until = ?, updated_at = UTC_TIMESTAMP()
+             WHERE id = ?',
         );
-        $statement->execute([$status, $id]);
+
+        return $statement->execute([
+            $status,
+            $status === 'suspended' ? $suspendedUntil : null,
+            $id,
+        ]);
+    }
+
+    /**
+     * Lift every suspension whose expiry has passed. Called on login and on
+     * public-profile reads so a timed suspension ends even without an admin.
+     */
+    public static function liftExpiredSuspensions(): void
+    {
+        $statement = Database::connection()->prepare(
+            "UPDATE users
+             SET status = 'active', suspended_until = NULL, updated_at = UTC_TIMESTAMP()
+             WHERE status = 'suspended'
+               AND suspended_until IS NOT NULL
+               AND suspended_until <= UTC_TIMESTAMP()",
+        );
+        $statement->execute();
+    }
+
+    /**
+     * Lift a single suspension if it has expired, returning whether it changed.
+     */
+    public static function liftSuspensionIfExpired(int $id): bool
+    {
+        $statement = Database::connection()->prepare(
+            "UPDATE users
+             SET status = 'active', suspended_until = NULL, updated_at = UTC_TIMESTAMP()
+             WHERE id = ?
+               AND status = 'suspended'
+               AND suspended_until IS NOT NULL
+               AND suspended_until <= UTC_TIMESTAMP()",
+        );
+        $statement->execute([$id]);
 
         return $statement->rowCount() === 1;
+    }
+
+    /**
+     * @param array<string, mixed> $user
+     */
+    public static function suspensionExpired(array $user): bool
+    {
+        if ((string) ($user['status'] ?? '') !== 'suspended') {
+            return false;
+        }
+
+        $until = $user['suspended_until'] ?? null;
+
+        return is_string($until)
+            && $until !== ''
+            && strtotime($until . ' UTC') !== false
+            && strtotime($until . ' UTC') <= time();
     }
 
     public static function setRole(int $id, string $role): bool

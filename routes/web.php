@@ -124,6 +124,8 @@ $router->get('/admin/reports', [AdminReportController::class, 'index'], [AuthMid
 $router->get('/admin/reports/{id}', [AdminReportController::class, 'show'], [AuthMiddleware::class, AdminMiddleware::class]);
 $router->post('/admin/reports/{id}/resolve', [AdminReportController::class, 'resolve'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/admin/reports/{id}/dismiss', [AdminReportController::class, 'dismiss'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/reports/{id}/warn', [AdminReportController::class, 'warn'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/reports/{id}/suspend', [AdminReportController::class, 'suspend'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 
 $router->get('/admin/categories', [AdminCategoryController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
 $router->get('/admin/categories/create', [AdminCategoryController::class, 'create'], [AuthMiddleware::class, AdminMiddleware::class]);

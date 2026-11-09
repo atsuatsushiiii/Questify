@@ -6,6 +6,7 @@
  *
  * @var array{report: array<string, mixed>, target: array<string, mixed>|null, audit: list<array<string, mixed>>} $detail
  * @var array<string, string> $reasons
+ * @var array<string, string> $suspensionOptions
  */
 $report = $detail['report'];
 $target = $detail['target'];
@@ -254,6 +255,81 @@ $reporterAvatar = avatar_url(isset($report['reporter_avatar_path']) ? (string) $
         </article>
     </div>
 </section>
+
+<?php if ($status === 'open' && $target !== null && $target['type'] === 'profile'): ?>
+    <?php
+    $account = $target['record'];
+    $targetName = (string) ($account['display_name'] ?? $account['username'] ?? 'this account');
+    $targetSuspendedUntil = isset($account['suspended_until']) && $account['suspended_until'] !== null
+        ? format_datetime((string) $account['suspended_until'], 'UTC', 'j M Y, H:i')
+        : null;
+    ?>
+    <section class="mt-4" data-reveal>
+        <article class="app-panel overflow-hidden">
+            <div class="flex items-center gap-3 border-b border-line px-5 py-4">
+                <span class="app-panel-icon border-ember-400/30 bg-ember-500/10 text-ember-300">
+                    <i data-lucide="gavel" class="h-4 w-4"></i>
+                </span>
+                <div>
+                    <h2 class="font-display text-sm font-semibold text-white">Account actions</h2>
+                    <p class="text-[11px] text-muted">Warn or suspend <?= e($targetName) ?> without closing this report.</p>
+                </div>
+            </div>
+
+            <div class="grid gap-5 p-5 lg:grid-cols-2">
+                <form method="POST" action="<?= e(url('/admin/reports/' . (int) $report['id'] . '/warn')) ?>" class="space-y-3">
+                    <?= csrf_field() ?>
+                    <div>
+                        <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Send a warning</p>
+                        <p class="mt-1 text-[11px] text-muted">The account gets an in-app notification. The reporter is never identified.</p>
+                    </div>
+                    <div>
+                        <label for="warn_message" class="field-label">Message (optional)</label>
+                        <textarea id="warn_message" name="message" rows="2" maxlength="500" class="app-field resize-y" placeholder="What should they change?"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-app-ghost px-4 py-2 text-xs">
+                        <i data-lucide="triangle-alert" class="h-3.5 w-3.5"></i>
+                        Send warning
+                    </button>
+                </form>
+
+                <form method="POST" action="<?= e(url('/admin/reports/' . (int) $report['id'] . '/suspend')) ?>" class="space-y-3 border-t border-line pt-5 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0" data-confirm="Suspend this account? Every active session and remember-me token will be revoked.">
+                    <?= csrf_field() ?>
+                    <div>
+                        <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Suspend the account</p>
+                        <p class="mt-1 text-[11px] text-muted">
+                            <?php if ($account['status'] === 'suspended'): ?>
+                                Currently suspended <?= $targetSuspendedUntil !== null ? 'until ' . e($targetSuspendedUntil) . ' UTC' : 'indefinitely' ?>.
+                            <?php else: ?>
+                                Revokes every active session and remember-me token immediately.
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                    <div>
+                        <label for="suspend_duration" class="field-label">Length</label>
+                        <select id="suspend_duration" name="duration" class="app-field py-2 text-xs">
+                            <?php foreach ($suspensionOptions as $value => $label): ?>
+                                <option value="<?= e($value) ?>" <?= $value === 'permanent' ? 'selected' : '' ?>><?= e($label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="suspend_message" class="field-label">Message (optional)</label>
+                        <textarea id="suspend_message" name="message" rows="2" maxlength="500" class="app-field resize-y" placeholder="Explain the suspension to the account."></textarea>
+                    </div>
+                    <button type="submit" class="btn px-4 py-2 text-xs text-ember-300 hover:bg-ember-500/10 hover:text-ember-200">
+                        <i data-lucide="ban" class="h-3.5 w-3.5"></i>
+                        Suspend account
+                    </button>
+                </form>
+            </div>
+
+            <p class="border-t border-line px-5 py-3 text-[11px] text-muted-dim">
+                These actions do not close the report. Resolve or dismiss it below when you are done. The reporter is never identified to the reported account.
+            </p>
+        </article>
+    </section>
+<?php endif; ?>
 
 <?php if ($status !== 'open'): ?>
     <section class="mt-4" data-reveal>

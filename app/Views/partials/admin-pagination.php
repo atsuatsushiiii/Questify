@@ -33,7 +33,7 @@ $link = static function (int $target) use ($basePath, $query): string {
                 Previous
             </a>
         <?php else: ?>
-            <span class="btn btn-app-ghost cursor-not-allowed px-3 py-1.5 text-[11px] opacity-40">
+            <span class="btn btn-app-ghost cursor-not-allowed border-dashed px-3 py-1.5 text-[11px] text-muted" aria-disabled="true">
                 <i data-lucide="chevron-left" class="h-3.5 w-3.5"></i>
                 Previous
             </span>
@@ -47,7 +47,7 @@ $link = static function (int $target) use ($basePath, $query): string {
                 <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
             </a>
         <?php else: ?>
-            <span class="btn btn-app-ghost cursor-not-allowed px-3 py-1.5 text-[11px] opacity-40">
+            <span class="btn btn-app-ghost cursor-not-allowed border-dashed px-3 py-1.5 text-[11px] text-muted" aria-disabled="true">
                 Next
                 <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
             </span>

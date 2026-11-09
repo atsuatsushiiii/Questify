@@ -28,7 +28,11 @@ working exploit. Include the route, the request, and the observed behaviour.
 - A successful password change or reset revokes every session and remember-me
   token for the account.
 - Suspended accounts are rejected at sign-in and any existing session is
-  revoked, so the target is signed out on its next request.
+  revoked, so the target is signed out on its next request. Timed suspensions
+  store `users.suspended_until`; an expired suspension is lifted lazily on the
+  next sign-in, authenticated request, or public-profile lookup, so the account
+  returns to `active` without an administrator action. Permanent suspensions
+  keep `suspended_until` null.
 - Google sign-in uses OpenID Connect with the authorization-code grant, PKCE
   (`S256`), a single-use session-bound `state`, and a `nonce`. The ID token is
   received directly from Google's token endpoint over TLS; issuer, audience,
@@ -71,6 +75,12 @@ working exploit. Include the route, the request, and the observed behaviour.
   mutation that only applies while the report is open. `GET /reports` is scoped
   to the signed-in reporter, and report-closure notifications never include the
   administrator's private resolution note.
+- Warning and suspension from a report are separate audited admin mutations that
+  only apply to an open **profile** report and never change the report's own
+  status. The reported account receives an in-app notification that names the
+  reason and, for a suspension, its expiry, but never the reporter's identity or
+  the private resolution note. Suspending from a report uses the same
+  session/token revocation and `suspended_until` rules as the user detail page.
 - Admin mutations enforce self-protection and last-administrator rules
   server-side; the disabled buttons are not the security boundary.
 - `tests/Unit/RouteAuthorizationTest.php` fails if an `/admin` route is added

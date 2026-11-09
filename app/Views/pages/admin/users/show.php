@@ -5,6 +5,7 @@
  * Admin user detail.
  *
  * @var array<string, mixed> $detail
+ * @var array<string, string> $suspensionOptions
  */
 $account = $detail['user'];
 $questCounts = $detail['questCounts'];
@@ -19,6 +20,9 @@ $lastLogin = format_datetime(
     'j M Y, H:i',
 );
 $timezone = (string) ($account['timezone'] ?? 'UTC');
+$suspendedUntil = isset($account['suspended_until']) && $account['suspended_until'] !== null
+    ? format_datetime((string) $account['suspended_until'], 'UTC', 'j M Y, H:i')
+    : null;
 ?>
 <section class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between" data-reveal>
     <div class="min-w-0">
@@ -61,6 +65,12 @@ $timezone = (string) ($account['timezone'] ?? 'UTC');
                     <span class="inline-flex items-center gap-1.5"><i data-lucide="calendar-days" class="h-3 w-3"></i> Joined <?= e($joined ?? '—') ?> UTC</span>
                     <span class="inline-flex items-center gap-1.5"><i data-lucide="clock" class="h-3 w-3"></i> Last login <?= e($lastLogin ?? 'never') ?></span>
                     <span class="inline-flex items-center gap-1.5"><i data-lucide="globe" class="h-3 w-3"></i> <?= e($timezone) ?></span>
+                    <?php if ($account['status'] === 'suspended'): ?>
+                        <span class="inline-flex items-center gap-1.5 text-ember-300">
+                            <i data-lucide="clock" class="h-3 w-3"></i>
+                            <?= $suspendedUntil !== null ? 'Suspended until ' . e($suspendedUntil) . ' UTC' : 'Suspended indefinitely' ?>
+                        </span>
+                    <?php endif; ?>
                 </p>
             </div>
         </div>
@@ -69,8 +79,16 @@ $timezone = (string) ($account['timezone'] ?? 'UTC');
     <div class="flex shrink-0 flex-wrap items-center gap-2">
         <?php if (!$isSelf): ?>
             <?php if ($account['status'] === 'active'): ?>
-                <form method="POST" action="<?= e(url('/admin/users/' . (int) $account['id'] . '/suspend')) ?>" data-confirm="Suspend this account? Every active session and remember-me token will be revoked.">
+                <form method="POST" action="<?= e(url('/admin/users/' . (int) $account['id'] . '/suspend')) ?>" class="flex flex-wrap items-end gap-2" data-confirm="Suspend this account? Every active session and remember-me token will be revoked.">
                     <?= csrf_field() ?>
+                    <label class="block">
+                        <span class="sr-only">Suspension length</span>
+                        <select name="duration" class="app-field py-2 text-xs">
+                            <?php foreach ($suspensionOptions as $value => $label): ?>
+                                <option value="<?= e($value) ?>" <?= $value === 'permanent' ? 'selected' : '' ?>><?= e($label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
                     <button type="submit" class="btn px-3 py-2 text-xs text-ember-300 hover:bg-ember-500/10 hover:text-ember-200">
                         <i data-lucide="ban" class="h-3.5 w-3.5"></i>
                         Suspend

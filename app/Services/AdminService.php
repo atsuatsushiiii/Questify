@@ -26,6 +26,17 @@ use App\Models\UserSession;
  */
 final class AdminService
 {
+    /** Suspension lengths offered in the moderation UI. */
+    public const SUSPENSION_OPTIONS = [
+        '1' => '1 day',
+        '2' => '2 days',
+        '3' => '3 days',
+        '7' => '7 days',
+        '14' => '14 days',
+        '30' => '30 days',
+        'permanent' => 'Permanent',
+    ];
+
     /** @return array<string, mixed> */
     public function dashboard(int $seriesDays = 14): array
     {
@@ -194,7 +205,7 @@ final class AdminService
         return [
             'report' => $report,
             'target' => $this->reportTarget($report),
-            'audit' => AuditLog::forTarget('report', $reportId, 15),
+            'audit' => AuditLog::forReport($reportId, 15),
         ];
     }
 
@@ -481,10 +492,29 @@ final class AdminService
      * @param array<string, mixed> $actor
      * @return array{ok: bool, status?: int, message: string}
      */
-    public function setStatus(array $actor, int $targetId, string $status, string $ipAddress): array
+    public function setStatus(
+        array $actor,
+        int $targetId,
+        string $status,
+        string $ipAddress,
+        ?string $duration = null,
+        ?string $message = null,
+    ): array
     {
         if (!in_array($status, ['active', 'suspended'], true)) {
             return ['ok' => false, 'status' => 422, 'message' => 'Choose a valid account status.'];
+        }
+
+        $duration = $duration === null || $duration === '' ? 'permanent' : $duration;
+
+        if ($status === 'suspended' && !array_key_exists($duration, self::SUSPENSION_OPTIONS)) {
+            return ['ok' => false, 'status' => 422, 'message' => 'Choose a valid suspension length.'];
+        }
+
+        $message = $message !== null ? trim($message) : '';
+
+        if (mb_strlen($message) > 500) {
+            return ['ok' => false, 'status' => 422, 'message' => 'The message to the account must be 500 characters or fewer.'];
         }
 
         $actorId = (int) $actor['id'];
@@ -500,27 +530,46 @@ final class AdminService
         }
 
         $current = (string) $target['status'];
+        $currentUntil = isset($target['suspended_until']) && $target['suspended_until'] !== null
+            ? (string) $target['suspended_until']
+            : null;
+        $suspendedUntil = $status === 'suspended' && $duration !== 'permanent'
+            ? gmdate('Y-m-d H:i:s', time() + ((int) $duration) * 86400)
+            : null;
 
-        if ($current === $status) {
-            return ['ok' => true, 'message' => $status === 'active' ? 'This account is already active.' : 'This account is already suspended.'];
+        if ($current === $status && ($status === 'active' || $currentUntil === $suspendedUntil)) {
+            return ['ok' => true, 'message' => $status === 'active' ? 'This account is already active.' : 'This account is already suspended for that length.'];
         }
 
-        if (!User::setStatus($targetId, $status)) {
+        if (!User::setStatus($targetId, $status, $suspendedUntil)) {
             return ['ok' => false, 'status' => 409, 'message' => 'That account could not be updated.'];
         }
 
         if ($status === 'suspended') {
             User::revokeSessions($targetId);
             RememberToken::deleteForUser($targetId);
+            NotificationService::moderationSuspended(
+                Database::connection(),
+                $targetId,
+                null,
+                'community standards',
+                $suspendedUntil,
+                $message !== '' ? $message : null,
+            );
         }
 
         $action = $status === 'active' ? 'user.activated' : 'user.suspended';
-        $summary = sprintf(
-            '%s %s @%s',
-            $status === 'active' ? 'Activated' : 'Suspended',
-            (string) $target['display_name'],
-            (string) $target['username'],
-        );
+        $expiryLabel = $suspendedUntil !== null
+            ? (format_datetime($suspendedUntil, 'UTC', 'j M Y, H:i') ?? $suspendedUntil) . ' UTC'
+            : null;
+        $summary = $status === 'active'
+            ? sprintf('Activated %s @%s', (string) $target['display_name'], (string) $target['username'])
+            : sprintf(
+                'Suspended %s @%s %s',
+                (string) $target['display_name'],
+                (string) $target['username'],
+                $expiryLabel !== null ? 'until ' . $expiryLabel : 'indefinitely',
+            );
 
         AuditLog::record([
             'actor_user_id' => $actorId,
@@ -528,7 +577,13 @@ final class AdminService
             'target_type' => 'user',
             'target_id' => $targetId,
             'summary' => $summary,
-            'metadata' => ['from' => $current, 'to' => $status],
+            'metadata' => [
+                'from' => $current,
+                'to' => $status,
+                'suspended_until' => $suspendedUntil,
+                'duration' => $status === 'suspended' ? $duration : null,
+                'message' => $message !== '' ? $message : null,
+            ],
             'ip_address' => $ipAddress,
         ]);
 
@@ -536,8 +591,194 @@ final class AdminService
             'ok' => true,
             'message' => $status === 'active'
                 ? 'Account activated. The user can sign in again.'
-                : 'Account suspended. Every active session was revoked.',
+                : ($expiryLabel !== null
+                    ? 'Account suspended until ' . $expiryLabel . '. Every active session was revoked.'
+                    : 'Account suspended indefinitely. Every active session was revoked.'),
         ];
+    }
+
+    /**
+     * Send a warning notification to the account named in an open profile report.
+     *
+     * @param array<string, mixed> $actor
+     * @return array{ok: bool, status?: int, message: string}
+     */
+    public function warnReportedUser(array $actor, int $reportId, ?string $message, string $ipAddress): array
+    {
+        $context = $this->accountActionTarget($actor, $reportId);
+
+        if (isset($context['error'])) {
+            return $context['error'];
+        }
+
+        $report = $context['report'];
+        $target = $context['target'];
+        $message = $message !== null ? trim($message) : '';
+
+        if (mb_strlen($message) > 500) {
+            return ['ok' => false, 'status' => 422, 'message' => 'The message to the account must be 500 characters or fewer.'];
+        }
+
+        $reasonLabel = Report::REASONS[(string) $report['reason']] ?? ucfirst((string) $report['reason']);
+
+        NotificationService::moderationWarning(
+            Database::connection(),
+            (int) $target['id'],
+            $reportId,
+            $reasonLabel,
+            $message !== '' ? $message : null,
+        );
+
+        AuditLog::record([
+            'actor_user_id' => (int) $actor['id'],
+            'action' => 'user.warned',
+            'target_type' => 'user',
+            'target_id' => (int) $target['id'],
+            'summary' => sprintf(
+                'Warned %s @%s from report #%d',
+                (string) $target['display_name'],
+                (string) $target['username'],
+                $reportId,
+            ),
+            'metadata' => [
+                'report_id' => $reportId,
+                'reason' => (string) $report['reason'],
+                'message' => $message !== '' ? $message : null,
+            ],
+            'ip_address' => $ipAddress,
+        ]);
+
+        return [
+            'ok' => true,
+            'message' => 'Warning sent to @' . (string) $target['username'] . '. The reporter is not identified.',
+        ];
+    }
+
+    /**
+     * Suspend the account named in an open profile report for a chosen length.
+     *
+     * @param array<string, mixed> $actor
+     * @return array{ok: bool, status?: int, message: string}
+     */
+    public function suspendReportedUser(
+        array $actor,
+        int $reportId,
+        ?string $duration,
+        ?string $message,
+        string $ipAddress,
+    ): array
+    {
+        $duration = $duration === null || $duration === '' ? 'permanent' : $duration;
+
+        if (!array_key_exists($duration, self::SUSPENSION_OPTIONS)) {
+            return ['ok' => false, 'status' => 422, 'message' => 'Choose a valid suspension length.'];
+        }
+
+        $context = $this->accountActionTarget($actor, $reportId);
+
+        if (isset($context['error'])) {
+            return $context['error'];
+        }
+
+        $report = $context['report'];
+        $target = $context['target'];
+        $message = $message !== null ? trim($message) : '';
+
+        if (mb_strlen($message) > 500) {
+            return ['ok' => false, 'status' => 422, 'message' => 'The message to the account must be 500 characters or fewer.'];
+        }
+
+        $suspendedUntil = $duration === 'permanent'
+            ? null
+            : gmdate('Y-m-d H:i:s', time() + ((int) $duration) * 86400);
+
+        if (!User::setStatus((int) $target['id'], 'suspended', $suspendedUntil)) {
+            return ['ok' => false, 'status' => 409, 'message' => 'That account could not be updated.'];
+        }
+
+        User::revokeSessions((int) $target['id']);
+        RememberToken::deleteForUser((int) $target['id']);
+
+        $reasonLabel = Report::REASONS[(string) $report['reason']] ?? ucfirst((string) $report['reason']);
+
+        NotificationService::moderationSuspended(
+            Database::connection(),
+            (int) $target['id'],
+            $reportId,
+            $reasonLabel,
+            $suspendedUntil,
+            $message !== '' ? $message : null,
+        );
+
+        $expiryLabel = $suspendedUntil !== null
+            ? (format_datetime($suspendedUntil, 'UTC', 'j M Y, H:i') ?? $suspendedUntil) . ' UTC'
+            : null;
+
+        AuditLog::record([
+            'actor_user_id' => (int) $actor['id'],
+            'action' => 'user.suspended',
+            'target_type' => 'user',
+            'target_id' => (int) $target['id'],
+            'summary' => sprintf(
+                'Suspended %s @%s %s from report #%d',
+                (string) $target['display_name'],
+                (string) $target['username'],
+                $expiryLabel !== null ? 'until ' . $expiryLabel : 'indefinitely',
+                $reportId,
+            ),
+            'metadata' => [
+                'report_id' => $reportId,
+                'reason' => (string) $report['reason'],
+                'duration' => $duration,
+                'suspended_until' => $suspendedUntil,
+                'message' => $message !== '' ? $message : null,
+            ],
+            'ip_address' => $ipAddress,
+        ]);
+
+        return [
+            'ok' => true,
+            'message' => $expiryLabel !== null
+                ? 'Account suspended until ' . $expiryLabel . '. Every active session was revoked.'
+                : 'Account suspended indefinitely. Every active session was revoked.',
+        ];
+    }
+
+    /**
+     * Resolve an open profile report and its target for account actions.
+     *
+     * @param array<string, mixed> $actor
+     * @return array{report?: array<string, mixed>, target?: array<string, mixed>, error?: array{ok: false, status: int, message: string}}
+     */
+    private function accountActionTarget(array $actor, int $reportId): array
+    {
+        $report = Report::find($reportId);
+
+        if ($report === null) {
+            return ['error' => ['ok' => false, 'status' => 404, 'message' => 'That report could not be found.']];
+        }
+
+        if ((string) $report['status'] !== 'open') {
+            return ['error' => ['ok' => false, 'status' => 409, 'message' => 'Only open reports can trigger account actions.']];
+        }
+
+        if ((string) $report['target_type'] !== 'profile') {
+            return ['error' => ['ok' => false, 'status' => 422, 'message' => 'Account actions are only available for profile reports.']];
+        }
+
+        if ((int) $report['target_id'] === (int) $actor['id']) {
+            return ['error' => ['ok' => false, 'status' => 409, 'message' => 'You cannot moderate your own account from a report.']];
+        }
+
+        $target = User::find((int) $report['target_id']);
+
+        if ($target === null) {
+            return ['error' => ['ok' => false, 'status' => 404, 'message' => 'The reported account no longer exists.']];
+        }
+
+        unset($target['password_hash']);
+
+        return ['report' => $report, 'target' => $target];
     }
 
     /**

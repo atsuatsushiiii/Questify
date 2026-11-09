@@ -588,9 +588,10 @@ $suspend = $adminClient->post('/admin/users/' . $userId . '/suspend', [
     '_csrf_token' => csrfFor($adminClient, '/admin/users/' . $adminId),
 ]);
 check(
-    'Administrator can suspend a normal account',
+    'Administrator can suspend a normal account permanently by default',
     $suspend['status'] === 302
-        && (string) (row($pdo, 'SELECT status FROM users WHERE id = ?', [$userId])['status'] ?? '') === 'suspended',
+        && (string) (row($pdo, 'SELECT status FROM users WHERE id = ?', [$userId])['status'] ?? '') === 'suspended'
+        && (row($pdo, 'SELECT suspended_until FROM users WHERE id = ?', [$userId])['suspended_until'] ?? null) === null,
 );
 check(
     'Suspension revokes the target sessions',
@@ -1455,6 +1456,159 @@ check(
         && contains($myReports['body'], '@' . $adminUsername)
         && contains($myReports['body'], 'Report #' . $userReportId . ' · submitted')
         && !contains($myReports['body'], 'Report #' . $targetReportId . ' · submitted'),
+);
+
+$targetReportDetail = $adminClient->get('/admin/reports/' . $targetReportId);
+check(
+    'An open profile report offers warning and timed-suspension actions',
+    $targetReportDetail['status'] === 200
+        && contains($targetReportDetail['body'], 'Account actions')
+        && contains($targetReportDetail['body'], 'Send warning')
+        && contains($targetReportDetail['body'], 'Suspend account')
+        && contains($targetReportDetail['body'], 'name="duration"')
+        && contains($targetReportDetail['body'], '>1 day</option>')
+        && contains($targetReportDetail['body'], '>2 days</option>')
+        && contains($targetReportDetail['body'], '>30 days</option>')
+        && contains($targetReportDetail['body'], '>Permanent</option>'),
+);
+
+$warnNoCsrf = $adminClient->post('/admin/reports/' . $targetReportId . '/warn', [
+    'message' => 'Missing CSRF must be rejected.',
+]);
+check(
+    'Account actions without a CSRF token return 419 and change nothing',
+    $warnNoCsrf['status'] === 419
+        && scalar(
+            $pdo,
+            'SELECT COUNT(*) FROM notifications WHERE user_id = ? AND event_key = ?',
+            [$reportTargetId, 'moderation.warning:report:' . $targetReportId],
+        ) === 0,
+);
+
+$warningMessage = 'Please remove the promotional links from your profile.';
+$warnReported = $adminClient->post('/admin/reports/' . $targetReportId . '/warn', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/reports/' . $targetReportId),
+    'message' => $warningMessage,
+]);
+$warningRow = row(
+    $pdo,
+    'SELECT * FROM notifications WHERE user_id = ? AND event_key = ?',
+    [$reportTargetId, 'moderation.warning:report:' . $targetReportId],
+);
+check(
+    'A warning from a report notifies the reported account without identifying the reporter',
+    $warnReported['status'] === 302
+        && str_ends_with((string) ($warnReported['headers']['location'] ?? ''), '/admin/reports/' . $targetReportId)
+        && $warningRow !== null
+        && (string) ($warningRow['type'] ?? '') === 'warning'
+        && (string) ($warningRow['title'] ?? '') === 'Moderation warning'
+        && contains((string) ($warningRow['message'] ?? ''), 'Spam or misleading')
+        && contains((string) ($warningRow['message'] ?? ''), $warningMessage)
+        && !contains((string) ($warningRow['message'] ?? ''), $adminUsername)
+        && (string) ($warningRow['url'] ?? '') === '/notifications',
+);
+check(
+    'The warning is audited against both the report and the account',
+    scalar(
+        $pdo,
+        "SELECT COUNT(*) FROM audit_logs
+         WHERE action = 'user.warned' AND target_type = 'user' AND target_id = ?
+           AND JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.report_id')) = ?",
+        [$reportTargetId, (string) $targetReportId],
+    ) === 1,
+);
+
+$suspendReported = $adminClient->post('/admin/reports/' . $targetReportId . '/suspend', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/reports/' . $targetReportId),
+    'duration' => '2',
+    'message' => 'Two days to review the community guidelines.',
+]);
+$suspendedTarget = row($pdo, 'SELECT * FROM users WHERE id = ?', [$reportTargetId]);
+$suspendedUntil = isset($suspendedTarget['suspended_until']) ? (string) $suspendedTarget['suspended_until'] : '';
+$suspendedAt = $suspendedUntil !== '' ? strtotime($suspendedUntil . ' UTC') : false;
+$reportAfterSuspend = row($pdo, 'SELECT * FROM reports WHERE id = ?', [$targetReportId]);
+check(
+    'A timed suspension from a report sets the expiry and keeps the report open',
+    $suspendReported['status'] === 302
+        && (string) ($suspendedTarget['status'] ?? '') === 'suspended'
+        && $suspendedAt !== false
+        && $suspendedAt > time() + (2 * 86400) - 120
+        && $suspendedAt < time() + (2 * 86400) + 120
+        && (string) ($reportAfterSuspend['status'] ?? '') === 'open',
+);
+$suspensionNotice = row(
+    $pdo,
+    'SELECT * FROM notifications WHERE user_id = ? AND type = ? ORDER BY id DESC LIMIT 1',
+    [$reportTargetId, 'moderation'],
+);
+check(
+    'The suspended account is told why and until when',
+    $suspensionNotice !== null
+        && (string) ($suspensionNotice['type'] ?? '') === 'moderation'
+        && (string) ($suspensionNotice['title'] ?? '') === 'Account suspended'
+        && contains((string) ($suspensionNotice['message'] ?? ''), 'suspended until')
+        && contains((string) ($suspensionNotice['message'] ?? ''), 'Spam or misleading')
+        && contains((string) ($suspensionNotice['message'] ?? ''), 'Two days to review the community guidelines.')
+        && (string) ($suspensionNotice['url'] ?? '') === '/notifications',
+);
+check(
+    'Suspension from a report revokes sessions and remember-me tokens',
+    scalar($pdo, 'SELECT COUNT(*) FROM sessions WHERE user_id = ?', [$reportTargetId]) === 0
+        && scalar($pdo, 'SELECT COUNT(*) FROM remember_tokens WHERE user_id = ?', [$reportTargetId]) === 0,
+);
+check(
+    'The suspension is audited with its report, duration, and expiry',
+    scalar(
+        $pdo,
+        "SELECT COUNT(*) FROM audit_logs
+         WHERE action = 'user.suspended' AND target_type = 'user' AND target_id = ?
+           AND JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.report_id')) = ?
+           AND JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.duration')) = '2'
+           AND JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.suspended_until')) IS NOT NULL",
+        [$reportTargetId, (string) $targetReportId],
+    ) === 1,
+);
+
+$blockedReportClient = new HttpClient($baseUrl);
+$blockedLogin = loginAccount($blockedReportClient, $reportTargetEmail, $password);
+check(
+    'A temporarily suspended account cannot sign in before the expiry',
+    $blockedLogin['status'] === 403 && contains($blockedLogin['body'], 'suspended'),
+);
+
+$reactivateTarget = $adminClient->post('/admin/users/' . $reportTargetId . '/activate', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/users/' . $reportTargetId),
+]);
+$reactivatedTarget = row($pdo, 'SELECT * FROM users WHERE id = ?', [$reportTargetId]);
+check(
+    'Activating an account clears its suspension expiry',
+    $reactivateTarget['status'] === 302
+        && (string) ($reactivatedTarget['status'] ?? '') === 'active'
+        && $reactivatedTarget['suspended_until'] === null,
+);
+
+$invalidDuration = $adminClient->post('/admin/reports/' . $targetReportId . '/suspend', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/reports/' . $targetReportId),
+    'duration' => '999',
+]);
+$invalidDurationPage = $adminClient->get('/admin/reports/' . $targetReportId);
+check(
+    'An unknown suspension length is rejected without changing the account',
+    $invalidDuration['status'] === 302
+        && (string) (row($pdo, 'SELECT status FROM users WHERE id = ?', [$reportTargetId])['status'] ?? '') === 'active'
+        && contains($invalidDurationPage['body'], 'Choose a valid suspension length.'),
+);
+
+$pdo->prepare(
+    "UPDATE users SET status = 'suspended', suspended_until = UTC_TIMESTAMP() - INTERVAL 1 MINUTE WHERE id = ?",
+)->execute([$reportTargetId]);
+$expiredProfile = $guestClient->get('/u/' . rawurlencode($reportTargetUsername));
+$expiredTarget = row($pdo, 'SELECT * FROM users WHERE id = ?', [$reportTargetId]);
+check(
+    'An expired timed suspension is lifted on the next public profile visit',
+    $expiredProfile['status'] === 200
+        && (string) ($expiredTarget['status'] ?? '') === 'active'
+        && $expiredTarget['suspended_until'] === null,
 );
 
 $queue = $adminClient->get('/admin/reports');

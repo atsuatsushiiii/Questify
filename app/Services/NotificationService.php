@@ -149,6 +149,78 @@ final class NotificationService
     }
 
     /**
+     * Send a moderator warning to a reported account. The reporter is never
+     * identified and the private resolution note is never included.
+     */
+    public static function moderationWarning(
+        PDO $db,
+        int $userId,
+        int $reportId,
+        string $reasonLabel,
+        ?string $message = null,
+    ): bool
+    {
+        $body = 'An administrator reviewed a report about your account for ' . $reasonLabel . '.';
+        $message = $message !== null ? trim($message) : '';
+
+        if ($message !== '') {
+            $body .= ' ' . $message;
+        }
+
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'warning',
+            'title' => 'Moderation warning',
+            'message' => $body,
+            'icon' => 'triangle-alert',
+            'url' => '/notifications',
+            'related_type' => 'report',
+            'related_id' => $reportId,
+            'event_key' => 'moderation.warning:report:' . $reportId,
+        ]);
+    }
+
+    /**
+     * Tell an account it has been suspended, and for how long. The notification
+     * is stored even though the account cannot sign in until it ends.
+     */
+    public static function moderationSuspended(
+        PDO $db,
+        int $userId,
+        ?int $reportId,
+        string $reasonLabel,
+        ?string $until,
+        ?string $message = null,
+    ): bool
+    {
+        $message = $message !== null ? trim($message) : '';
+        $duration = $until === null || $until === ''
+            ? 'indefinitely'
+            : 'until ' . (format_datetime($until, 'UTC', 'j M Y, H:i') ?? $until) . ' UTC';
+        $body = 'Your account was suspended ' . $duration . ' after a review for ' . $reasonLabel . '.';
+
+        if ($message !== '') {
+            $body .= ' ' . $message;
+        }
+
+        $key = $reportId !== null
+            ? 'moderation.suspended:report:' . $reportId . ':' . ($until ?? 'permanent')
+            : 'moderation.suspended:user:' . $userId . ':' . gmdate('YmdHis');
+
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'moderation',
+            'title' => 'Account suspended',
+            'message' => $body,
+            'icon' => 'ban',
+            'url' => '/notifications',
+            'related_type' => $reportId !== null ? 'report' : 'user',
+            'related_id' => $reportId ?? $userId,
+            'event_key' => $key,
+        ]);
+    }
+
+    /**
      * @param array{user_id: int, type: string, title: string, message: string, icon: string, url?: string|null, related_type?: string|null, related_id?: int|null, event_key: string} $data
      */
     public static function create(PDO $db, array $data): bool

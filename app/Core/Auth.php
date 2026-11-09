@@ -37,6 +37,12 @@ final class Auth
         if (is_numeric($sessionId)) {
             $user = User::find((int) $sessionId);
 
+            if ($user !== null && User::suspensionExpired($user)) {
+                if (User::liftSuspensionIfExpired((int) $user['id'])) {
+                    $user = User::find((int) $user['id']);
+                }
+            }
+
             if ($user !== null && ($user['status'] ?? '') === 'active') {
                 self::$user = self::sanitize($user);
 
@@ -208,6 +214,12 @@ final class Auth
         }
 
         $user = User::find((int) $token['user_id']);
+
+        if ($user !== null && User::suspensionExpired($user)) {
+            if (User::liftSuspensionIfExpired((int) $user['id'])) {
+                $user = User::find((int) $user['id']);
+            }
+        }
 
         if ($user === null || ($user['status'] ?? '') !== 'active') {
             RememberToken::deleteBySelector($selector);

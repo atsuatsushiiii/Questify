@@ -124,6 +124,33 @@ final class AuditLog
     }
 
     /**
+     * Audit entries for a report plus account actions that reference it.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function forReport(int $reportId, int $limit = 20): array
+    {
+        $statement = Database::connection()->prepare(
+            "SELECT a.id, a.actor_user_id, a.action, a.target_type, a.target_id, a.summary,
+                    a.metadata, a.ip_address, a.created_at,
+                    u.username AS actor_username, u.display_name AS actor_display_name
+             FROM audit_logs a
+             LEFT JOIN users u ON u.id = a.actor_user_id
+             WHERE (a.target_type = 'report' AND a.target_id = ?)
+                OR (a.target_type = 'user'
+                    AND JSON_UNQUOTE(JSON_EXTRACT(a.metadata, '$.report_id')) = ?)
+             ORDER BY a.created_at DESC, a.id DESC
+             LIMIT ?",
+        );
+        $statement->bindValue(1, $reportId, PDO::PARAM_INT);
+        $statement->bindValue(2, (string) $reportId);
+        $statement->bindValue(3, max(1, $limit), PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * @return list<string>
      */
     public static function actions(): array

@@ -207,6 +207,12 @@ final class AuthService
         }
 
         if (($user['status'] ?? '') !== 'active') {
+            if (User::suspensionExpired($user) && User::liftSuspensionIfExpired((int) $user['id'])) {
+                $user = User::findByLogin($identifier) ?? $user;
+            }
+        }
+
+        if (($user['status'] ?? '') !== 'active') {
             return [
                 'ok' => false,
                 'status' => 403,

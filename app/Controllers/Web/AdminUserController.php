@@ -49,6 +49,7 @@ final class AdminUserController
             'title' => (string) $detail['user']['display_name'] . ' — Admin — Questify',
             'description' => 'Account statistics, quests, ledger activity, sessions, and audit history.',
             'detail' => $detail,
+            'suspensionOptions' => AdminService::SUSPENSION_OPTIONS,
         ], 'layouts/app');
     }
 
@@ -76,7 +77,16 @@ final class AdminUserController
     {
         $userId = $this->idOr404($id);
         $actor = $this->actor();
-        $result = (new AdminService())->setStatus($actor, $userId, $status, $request->ip());
+        $duration = $status === 'suspended' ? $this->stringInput($request, 'duration') : null;
+        $message = $status === 'suspended' ? $this->stringInput($request, 'message') : null;
+        $result = (new AdminService())->setStatus(
+            $actor,
+            $userId,
+            $status,
+            $request->ip(),
+            $duration !== '' ? $duration : null,
+            $message !== '' ? $message : null,
+        );
 
         if ($result['ok']) {
             Flash::success($result['message']);

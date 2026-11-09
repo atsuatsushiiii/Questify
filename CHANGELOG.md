@@ -24,12 +24,27 @@ All notable changes to Questify are recorded in this file. The format follows
   report sends the reporter an idempotent in-app notification that omits the
   administrator's private note, and submissions are capped at 10 per account per
   rolling hour. "My reports" is linked from the report form and the account menu.
+- Report account actions: an open profile report now offers a moderator warning
+  notification and a timed suspension (1, 2, 3, 7, 14, 30 days, or permanent)
+  with an optional message. Timed suspensions store `users.suspended_until` and
+  lift automatically after expiry; both actions are audited against the report
+  and never identify the reporter.
+- The admin user detail accepts a suspension length, and the report detail shows
+  the reported account's current suspension state.
 
 ### Changed
 
 - The static showcase and both favicons now use the Expedition Ledger system.
 - Admin charts and the emergency error fallback use the warm brass palette.
 - The default category colour is now brass (`#C9993F`).
+
+### Fixed
+
+- Admin sidebar rows now render every icon; the bundled Lucide set was missing
+  `flag` (Reports), `gavel`, `tag`, `send`, `repeat`, `external-link`,
+  `archive-restore`, `circle-slash`, and `triangle-alert`.
+- Disabled admin pagination controls no longer rely on reduced opacity, which
+  failed WCAG AA colour contrast on the users and audit pages.
 
 ## [1.0.0] - 2026-11-07
 

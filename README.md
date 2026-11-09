@@ -289,7 +289,8 @@ single-use tokens, preference gating, per-device session revocation, export
 redaction, and account deletion cascade. The Phase 6 suite proves that guests are
 redirected and normal users receive `403` on every `/admin` route and API, then
 covers KPI data, user search/filter/pagination, suspend/activate and
-promote/demote rules, category CRUD with quest assignment and filtering,
+promote/demote rules, timed suspension expiry, warning and suspension actions
+from an open report, category CRUD with quest assignment and filtering,
 achievement CRUD with unlock-safe deletion, audit filters, and CSRF rejection on
 admin mutations. The public profile suite covers guest rendering, completed
 stats and achievements, dedicated privacy opt-out, suspended-account 404s,
@@ -487,8 +488,8 @@ account menu only render the Administration section for admins.
 | `GET /api/admin/stats` | JSON KPI + 7–30-day series for the dashboard chart |
 | `GET /admin/users` | Search, role/status filters, pagination |
 | `GET /admin/users/{id}` | Stats, recent quests, sessions, and moderation history |
-| `POST /admin/users/{id}/suspend` | Suspend an account and revoke its sessions/tokens |
-| `POST /admin/users/{id}/activate` | Restore sign-in access |
+| `POST /admin/users/{id}/suspend` | Suspend an account for 1, 2, 3, 7, 14, or 30 days (or permanently) and revoke its sessions/tokens |
+| `POST /admin/users/{id}/activate` | Restore sign-in access and clear any suspension expiry |
 | `POST /admin/users/{id}/promote` | Grant administrator access |
 | `POST /admin/users/{id}/demote` | Remove administrator access |
 | `GET /admin/quests` | Search, status/difficulty/category filters, pagination |
@@ -500,6 +501,8 @@ account menu only render the Administration section for admins.
 | `GET /admin/reports/{id}` | Reported content, reporter context, decision form, and history |
 | `POST /admin/reports/{id}/resolve` | Close an open report as resolved with an optional note |
 | `POST /admin/reports/{id}/dismiss` | Close an open report as dismissed with an optional note |
+| `POST /admin/reports/{id}/warn` | Send the reported profile a moderation warning notification |
+| `POST /admin/reports/{id}/suspend` | Suspend the reported profile for a chosen length without closing the report |
 | `GET/POST /admin/categories` | List and create categories |
 | `GET/POST /admin/categories/{id}` | Edit a category (`_method=PUT`) |
 | `POST /admin/categories/{id}/delete` | Delete a category without deleting quests |
@@ -511,9 +514,13 @@ account menu only render the Administration section for admins.
 - **Dashboard:** every KPI is a live database aggregate. The Chart.js growth chart
   fetches `/api/admin/stats`; the KPI cards remain accurate without JavaScript.
 - **Moderation:** an admin cannot suspend or demote themselves, and the last
-  administrator cannot be demoted. Suspension revokes database sessions and
-  remember-me tokens immediately. Promotions and demotions take effect on the
-  target's next request.
+  administrator cannot be demoted. Suspension sets `status = suspended`, revokes
+  database sessions and remember-me tokens immediately, blocks sign-in, and hides
+  the public profile. The moderator can choose 1, 2, 3, 7, 14, or 30 days, or a
+  permanent suspension; timed suspensions store `suspended_until` and are lifted
+  automatically on the next sign-in, authenticated request, or public-profile
+  lookup after the expiry. Activation clears the expiry. Promotions and demotions
+  take effect on the target's next request.
 - **Quest moderation:** every quest is searchable by title, description, owner,
   status, difficulty, and category. Archiving hides a quest from the owner's
   board without touching its XP; restoring a completed quest returns it to
@@ -533,7 +540,12 @@ account menu only render the Administration section for admins.
   `report` target type. The target label is snapshotted so the queue survives a
   rename or delete. `GET /reports` gives the reporter a private history of their
   own submissions and statuses, and resolving or dismissing a report creates an
-  idempotent `report.closed:{id}` notification for the reporter.
+  idempotent `report.closed:{id}` notification for the reporter. An open profile
+  report also exposes **Account actions**: a moderator can send a warning
+  notification, or suspend the reported profile for a chosen length, with an
+  optional message. These actions are independent of resolve/dismiss, are
+  audited as `user.warned` / `user.suspended` with the `report_id` in metadata,
+  and never reveal the reporter's identity or the private resolution note.
 - **Categories:** CRUD validates name, slug, six-digit colour, Lucide icon, sort
   order, and active state. Quests select an active category on create/edit and can
   filter by category slug. Deactivating hides a category from new quests while
@@ -687,7 +699,8 @@ the server; a submitted `xp_reward` field is ignored.
   and password-plus-phrase account deletion (Phase 5)
 - Role-gated `/admin` pages and JSON APIs with admin-before-CSRF ordering,
   self-moderation and last-administrator guards, immediate session/token
-  revocation on suspension, whitelist-validated achievement definitions,
+  revocation on suspension, automatic expiry of timed suspensions,
+  whitelist-validated achievement definitions,
   unlock-safe deletion, and an append-only audit trail (Phase 6)
 - A DB-free unit suite covering progression, validation, streaks, and route
   authorization ordering, plus a production checklist and backup/restore
