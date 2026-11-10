@@ -5,7 +5,7 @@
  * Authenticated sidebar. On desktop it collapses to an icon rail; below the lg
  * breakpoint the same element becomes an off-canvas drawer.
  *
- * @var array<int, array{label: string, items: array<int, array{label: string, href: string, icon: string, phase: int|null}>}> $appNav
+ * @var array<int, array{label: string, items: array<int, array{label: string, href: string, icon: string, phase: int|null, exact?: bool}>}> $appNav
  * @var array<string, mixed> $currentUser
  * @var string $displayName
  * @var string $username
@@ -63,7 +63,7 @@
                     <ul class="space-y-1">
                         <?php foreach ($section['items'] as $item): ?>
                             <?php
-                            $active = nav_active($item['href']);
+                            $active = nav_active($item['href'], (bool) ($item['exact'] ?? false));
                             $phase = $item['phase'];
                             $tooltip = $item['label'] . ($phase !== null ? ' — planned for Phase ' . $phase : '');
                             ?>

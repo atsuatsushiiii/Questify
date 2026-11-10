@@ -112,6 +112,36 @@ final class AdminReportController
         return $this->accountActionResponse($reportId, $result);
     }
 
+    public function restrict(Request $request, string $id): Response
+    {
+        $reportId = $this->idOr404($id);
+        $message = $request->input('message', '');
+        $message = is_string($message) ? trim($message) : null;
+        $result = (new AdminService())->restrictReportedUser(
+            $this->actor(),
+            $reportId,
+            $message,
+            $request->ip(),
+        );
+
+        return $this->accountActionResponse($reportId, $result);
+    }
+
+    public function unrestrict(Request $request, string $id): Response
+    {
+        $reportId = $this->idOr404($id);
+        $message = $request->input('message', '');
+        $message = is_string($message) ? trim($message) : null;
+        $result = (new AdminService())->unrestrictReportedUser(
+            $this->actor(),
+            $reportId,
+            $message,
+            $request->ip(),
+        );
+
+        return $this->accountActionResponse($reportId, $result);
+    }
+
     /**
      * @param array{ok: bool, status?: int, message: string} $result
      */

@@ -194,6 +194,9 @@ $reporterAvatar = avatar_url(isset($report['reporter_avatar_path']) ? (string) $
                     <div class="mt-3 flex flex-wrap gap-2">
                         <span class="rounded-sm border border-line bg-white/[0.03] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-400"><?= e(ucfirst((string) $account['status'])) ?></span>
                         <span class="rounded-sm border border-line bg-white/[0.03] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-400"><?= (int) $account['show_profile'] === 1 ? 'Profile public' : 'Profile hidden' ?></span>
+                        <?php if (account_restricted($account)): ?>
+                            <span class="rounded-sm border border-ember-400/30 bg-ember-500/[0.08] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-ember-300">Read-only</span>
+                        <?php endif; ?>
                     </div>
                     <div class="mt-4 grid gap-2">
                         <a href="<?= e(url((string) $target['admin_url'])) ?>" class="btn btn-app-ghost w-full px-3 py-2 text-xs">
@@ -263,6 +266,7 @@ $reporterAvatar = avatar_url(isset($report['reporter_avatar_path']) ? (string) $
     $targetSuspendedUntil = isset($account['suspended_until']) && $account['suspended_until'] !== null
         ? format_datetime((string) $account['suspended_until'], 'UTC', 'j M Y, H:i')
         : null;
+    $targetRestricted = account_restricted($account);
     ?>
     <section class="mt-4" data-reveal>
         <article class="app-panel overflow-hidden">
@@ -272,7 +276,7 @@ $reporterAvatar = avatar_url(isset($report['reporter_avatar_path']) ? (string) $
                 </span>
                 <div>
                     <h2 class="font-display text-sm font-semibold text-white">Account actions</h2>
-                    <p class="text-[11px] text-muted">Warn or suspend <?= e($targetName) ?> without closing this report.</p>
+                    <p class="text-[11px] text-muted">Warn, suspend, or limit <?= e($targetName) ?> without closing this report.</p>
                 </div>
             </div>
 
@@ -320,6 +324,33 @@ $reporterAvatar = avatar_url(isset($report['reporter_avatar_path']) ? (string) $
                     <button type="submit" class="btn px-4 py-2 text-xs text-ember-300 hover:bg-ember-500/10 hover:text-ember-200">
                         <i data-lucide="ban" class="h-3.5 w-3.5"></i>
                         Suspend account
+                    </button>
+                </form>
+
+                <form
+                    method="POST"
+                    action="<?= e(url('/admin/reports/' . (int) $report['id'] . ($targetRestricted ? '/unrestrict' : '/restrict'))) ?>"
+                    class="space-y-3 border-t border-line pt-5 lg:col-span-2"
+                    <?= $targetRestricted ? '' : 'data-confirm="Limit this account to read-only access? It keeps its sessions but cannot change quests or submit reports."' ?>
+                >
+                    <?= csrf_field() ?>
+                    <div>
+                        <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Read-only access</p>
+                        <p class="mt-1 text-[11px] text-muted">
+                            <?php if ($targetRestricted): ?>
+                                Currently read-only. Restoring full access lets the account change quests and submit reports again.
+                            <?php else: ?>
+                                Keeps the account signed in but blocks quest changes and report submission.
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                    <div>
+                        <label for="restrict_message" class="field-label">Message (optional)</label>
+                        <textarea id="restrict_message" name="message" rows="2" maxlength="500" class="app-field resize-y" placeholder="<?= $targetRestricted ? 'Explain that full access is restored.' : 'Explain the limit to the account.' ?>"></textarea>
+                    </div>
+                    <button type="submit" class="btn <?= $targetRestricted ? 'btn-app-primary' : '' ?> px-4 py-2 text-xs <?= $targetRestricted ? '' : 'text-ember-300 hover:bg-ember-500/10 hover:text-ember-200' ?>">
+                        <i data-lucide="<?= $targetRestricted ? 'shield-check' : 'eye-off' ?>" class="h-3.5 w-3.5"></i>
+                        <?= $targetRestricted ? 'Restore full access' : 'Limit to read-only' ?>
                     </button>
                 </form>
             </div>

@@ -133,8 +133,11 @@ if (!function_exists('abort')) {
 if (!function_exists('nav_active')) {
     /**
      * True when the current request path matches, or sits below, the target.
+     *
+     * Pass `$exact = true` for index pages such as `/admin` so a child route
+     * (`/admin/users`) does not keep the parent highlighted.
      */
-    function nav_active(string $path): bool
+    function nav_active(string $path, bool $exact = false): bool
     {
         $current = '/' . trim((string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH), '/');
 
@@ -143,6 +146,10 @@ if (!function_exists('nav_active')) {
         }
 
         $target = '/' . trim($path, '/');
+
+        if ($exact) {
+            return $current === $target;
+        }
 
         return $current === $target || str_starts_with($current, $target . '/');
     }
@@ -162,6 +169,23 @@ if (!function_exists('auth_check')) {
     function auth_check(): bool
     {
         return Auth::check();
+    }
+}
+
+if (!function_exists('account_restricted')) {
+    /**
+     * True when an account is limited to read-only access by a moderator.
+     *
+     * @param array<string, mixed>|null $user
+     */
+    function account_restricted(?array $user = null): bool
+    {
+        $user ??= auth_user();
+
+        return $user !== null
+            && isset($user['restricted_at'])
+            && $user['restricted_at'] !== null
+            && $user['restricted_at'] !== '';
     }
 }
 

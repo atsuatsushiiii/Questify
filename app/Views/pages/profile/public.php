@@ -18,7 +18,9 @@ $avatarPath = isset($account['avatar_path']) ? (string) $account['avatar_path'] 
 $avatarUrl = avatar_url($avatarPath);
 $initial = mb_strtoupper(mb_substr($displayName, 0, 1));
 $viewer = auth_user();
-$canReport = $viewer !== null && (int) ($viewer['id'] ?? 0) !== (int) ($account['id'] ?? 0);
+$canReport = $viewer !== null
+    && !account_restricted($viewer)
+    && (int) ($viewer['id'] ?? 0) !== (int) ($account['id'] ?? 0);
 $timezone = 'UTC';
 $stats = [
     ['label' => 'Total XP', 'value' => number_format((int) $progression['xp']), 'tone' => 'text-white'],

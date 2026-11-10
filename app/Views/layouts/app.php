@@ -30,7 +30,7 @@ $pageHeading = 'Dashboard';
 
 foreach ($appNav as $section) {
     foreach ($section['items'] as $item) {
-        if (nav_active($item['href'])) {
+        if (nav_active($item['href'], (bool) ($item['exact'] ?? false))) {
             $pageHeading = $item['label'];
             break 2;
         }
@@ -41,6 +41,7 @@ foreach ($appNav as $section) {
 // collapsed-sidebar flash on navigation and needs no inline script under CSP.
 $sidebarState = ($_COOKIE['questify_sidebar'] ?? '') === 'collapsed' ? 'collapsed' : 'expanded';
 $isAdminSurface = nav_active('/admin');
+$isRestricted = account_restricted($currentUser);
 ?>
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
@@ -93,6 +94,20 @@ $isAdminSurface = nav_active('/admin');
                     $message = $flash['message'];
                     require __DIR__ . '/../partials/alert.php';
                     ?>
+                <?php endif; ?>
+
+                <?php if ($isRestricted): ?>
+                    <div class="mb-6 flex items-start gap-3 rounded-sm border border-ember-400/30 border-l-2 border-l-ember-400 bg-ember-500/[0.06] px-4 py-3 text-sm leading-relaxed text-ember-100" role="status">
+                        <i data-lucide="eye-off" class="mt-0.5 h-4 w-4 shrink-0 text-ember-300"></i>
+                        <div class="min-w-0">
+                            <p class="font-semibold text-ember-200">Read-only account</p>
+                            <p class="mt-0.5 text-ember-100/90">
+                                A moderator has limited this account while it is reviewed. You can still sign in, browse,
+                                and review your quests, but creating, editing, completing, archiving, restoring, or deleting
+                                quests and submitting reports is disabled.
+                            </p>
+                        </div>
+                    </div>
                 <?php endif; ?>
 
                 <?= $content ?>

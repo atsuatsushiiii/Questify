@@ -11,6 +11,7 @@
 use App\Support\Recurrence;
 
 $questId = (int) $quest['id'];
+$isRestricted = account_restricted($user);
 $status = (string) $quest['status'];
 $difficulty = (string) $quest['difficulty'];
 $reward = (int) $quest['xp_reward'];
@@ -170,61 +171,68 @@ $isoDate = iso_datetime($dateValue);
                 View
             </a>
 
-            <?php if ($status === 'active' && $doneThisPeriod): ?>
-                <button type="button" class="btn btn-app-ghost ml-auto cursor-default px-2.5 py-1.5 text-[10px] opacity-70" disabled>
-                    <i data-lucide="circle-check" class="h-3.5 w-3.5"></i>
-                    <?= e(Recurrence::doneLabel($recurrence)) ?>
-                </button>
-            <?php elseif ($status === 'active'): ?>
-                <a href="<?= e(url('/quests/' . $questId . '/edit')) ?>" class="btn btn-app-ghost px-2.5 py-1.5 text-[10px]">
-                    <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
-                    Edit
-                </a>
-                <form method="POST" action="<?= e(url('/quests/' . $questId . '/complete')) ?>" data-quest-action class="ml-auto">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-app-primary px-2.5 py-1.5 text-[10px]" data-loading-label="Claiming…">
-                        <i data-lucide="check" class="h-3.5 w-3.5"></i>
-                        Complete
-                    </button>
-                </form>
-            <?php endif; ?>
-
-            <?php if ($status !== 'archived'): ?>
-                <form
-                    method="POST"
-                    action="<?= e(url('/quests/' . $questId . '/archive')) ?>"
-                    data-quest-action
-                    data-confirm="<?= $isCompleted ? 'Archive this completed quest? Its XP stays on your account.' : 'Archive this quest? You can restore it later.' ?>"
-                    class="<?= $status === 'completed' ? 'ml-auto' : '' ?>"
-                >
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-app-ghost px-2.5 py-1.5 text-[10px]" data-loading-label="Archiving…">
-                        <i data-lucide="archive" class="h-3.5 w-3.5"></i>
-                        Archive
-                    </button>
-                </form>
+            <?php if ($isRestricted): ?>
+                <span class="ml-auto inline-flex items-center gap-1.5 rounded-sm border border-line bg-white/[0.02] px-2.5 py-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-muted">
+                    <i data-lucide="eye-off" class="h-3.5 w-3.5"></i>
+                    Read-only
+                </span>
             <?php else: ?>
-                <form method="POST" action="<?= e(url('/quests/' . $questId . '/restore')) ?>" data-quest-action>
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-app-ghost px-2.5 py-1.5 text-[10px]" data-loading-label="Restoring…">
-                        <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>
-                        Restore
+                <?php if ($status === 'active' && $doneThisPeriod): ?>
+                    <button type="button" class="btn btn-app-ghost ml-auto cursor-default px-2.5 py-1.5 text-[10px] opacity-70" disabled>
+                        <i data-lucide="circle-check" class="h-3.5 w-3.5"></i>
+                        <?= e(Recurrence::doneLabel($recurrence)) ?>
                     </button>
-                </form>
-
-                <?php if ($completedAt === null): ?>
-                    <form
-                        method="POST"
-                        action="<?= e(url('/quests/' . $questId . '/delete')) ?>"
-                        data-quest-action
-                        data-confirm="Delete this quest permanently? This cannot be undone."
-                    >
+                <?php elseif ($status === 'active'): ?>
+                    <a href="<?= e(url('/quests/' . $questId . '/edit')) ?>" class="btn btn-app-ghost px-2.5 py-1.5 text-[10px]">
+                        <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                        Edit
+                    </a>
+                    <form method="POST" action="<?= e(url('/quests/' . $questId . '/complete')) ?>" data-quest-action class="ml-auto">
                         <?= csrf_field() ?>
-                        <button type="submit" class="btn px-2.5 py-1.5 text-[10px] text-ember-300 hover:bg-ember-500/10 hover:text-ember-200" data-loading-label="Deleting…">
-                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
-                            Delete
+                        <button type="submit" class="btn btn-app-primary px-2.5 py-1.5 text-[10px]" data-loading-label="Claiming…">
+                            <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                            Complete
                         </button>
                     </form>
+                <?php endif; ?>
+
+                <?php if ($status !== 'archived'): ?>
+                    <form
+                        method="POST"
+                        action="<?= e(url('/quests/' . $questId . '/archive')) ?>"
+                        data-quest-action
+                        data-confirm="<?= $isCompleted ? 'Archive this completed quest? Its XP stays on your account.' : 'Archive this quest? You can restore it later.' ?>"
+                        class="<?= $status === 'completed' ? 'ml-auto' : '' ?>"
+                    >
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-app-ghost px-2.5 py-1.5 text-[10px]" data-loading-label="Archiving…">
+                            <i data-lucide="archive" class="h-3.5 w-3.5"></i>
+                            Archive
+                        </button>
+                    </form>
+                <?php else: ?>
+                    <form method="POST" action="<?= e(url('/quests/' . $questId . '/restore')) ?>" data-quest-action>
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-app-ghost px-2.5 py-1.5 text-[10px]" data-loading-label="Restoring…">
+                            <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>
+                            Restore
+                        </button>
+                    </form>
+
+                    <?php if ($completedAt === null): ?>
+                        <form
+                            method="POST"
+                            action="<?= e(url('/quests/' . $questId . '/delete')) ?>"
+                            data-quest-action
+                            data-confirm="Delete this quest permanently? This cannot be undone."
+                        >
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn px-2.5 py-1.5 text-[10px] text-ember-300 hover:bg-ember-500/10 hover:text-ember-200" data-loading-label="Deleting…">
+                                <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                                Delete
+                            </button>
+                        </form>
+                    <?php endif; ?>
                 <?php endif; ?>
             <?php endif; ?>
         </div>

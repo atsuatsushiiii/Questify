@@ -598,6 +598,45 @@ final class AdminService
     }
 
     /**
+     * Limit an account to read-only access, or restore full access, without
+     * suspending it. Sessions are intentionally preserved.
+     *
+     * @param array<string, mixed> $actor
+     * @return array{ok: bool, status?: int, message: string}
+     */
+    public function setRestricted(
+        array $actor,
+        int $targetId,
+        bool $restricted,
+        string $ipAddress,
+        ?string $message = null,
+    ): array {
+        $actorId = (int) $actor['id'];
+
+        if ($targetId === $actorId) {
+            return ['ok' => false, 'status' => 409, 'message' => 'You cannot change your own read-only access.'];
+        }
+
+        $target = User::find($targetId);
+
+        if ($target === null) {
+            return ['ok' => false, 'status' => 404, 'message' => 'That account could not be found.'];
+        }
+
+        unset($target['password_hash']);
+
+        return $this->applyRestriction(
+            $actor,
+            $target,
+            $restricted,
+            null,
+            'community standards',
+            $message,
+            $ipAddress,
+        );
+    }
+
+    /**
      * Send a warning notification to the account named in an open profile report.
      *
      * @param array<string, mixed> $actor
@@ -741,6 +780,170 @@ final class AdminService
             'message' => $expiryLabel !== null
                 ? 'Account suspended until ' . $expiryLabel . '. Every active session was revoked.'
                 : 'Account suspended indefinitely. Every active session was revoked.',
+        ];
+    }
+
+    /**
+     * Limit the account named in an open profile report to read-only access.
+     *
+     * @param array<string, mixed> $actor
+     * @return array{ok: bool, status?: int, message: string}
+     */
+    public function restrictReportedUser(
+        array $actor,
+        int $reportId,
+        ?string $message,
+        string $ipAddress,
+    ): array {
+        $context = $this->accountActionTarget($actor, $reportId);
+
+        if (isset($context['error'])) {
+            return $context['error'];
+        }
+
+        $report = $context['report'];
+        $reasonLabel = Report::REASONS[(string) $report['reason']] ?? ucfirst((string) $report['reason']);
+
+        return $this->applyRestriction(
+            $actor,
+            $context['target'],
+            true,
+            $reportId,
+            $reasonLabel,
+            $message,
+            $ipAddress,
+        );
+    }
+
+    /**
+     * Restore full access for the account named in an open profile report.
+     *
+     * @param array<string, mixed> $actor
+     * @return array{ok: bool, status?: int, message: string}
+     */
+    public function unrestrictReportedUser(
+        array $actor,
+        int $reportId,
+        ?string $message,
+        string $ipAddress,
+    ): array {
+        $context = $this->accountActionTarget($actor, $reportId);
+
+        if (isset($context['error'])) {
+            return $context['error'];
+        }
+
+        $report = $context['report'];
+        $reasonLabel = Report::REASONS[(string) $report['reason']] ?? ucfirst((string) $report['reason']);
+
+        return $this->applyRestriction(
+            $actor,
+            $context['target'],
+            false,
+            $reportId,
+            $reasonLabel,
+            $message,
+            $ipAddress,
+        );
+    }
+
+    /**
+     * Shared restriction transition: guard, persist, notify, and audit.
+     *
+     * @param array<string, mixed> $actor
+     * @param array<string, mixed> $target
+     * @return array{ok: bool, status?: int, message: string}
+     */
+    private function applyRestriction(
+        array $actor,
+        array $target,
+        bool $restricted,
+        ?int $reportId,
+        string $reasonLabel,
+        ?string $message,
+        string $ipAddress,
+    ): array {
+        $actorId = (int) $actor['id'];
+        $targetId = (int) $target['id'];
+
+        if ($targetId === $actorId) {
+            return ['ok' => false, 'status' => 409, 'message' => 'You cannot change your own read-only access.'];
+        }
+
+        $message = $message !== null ? trim($message) : '';
+
+        if (mb_strlen($message) > 500) {
+            return ['ok' => false, 'status' => 422, 'message' => 'The message to the account must be 500 characters or fewer.'];
+        }
+
+        $current = User::isRestricted($target);
+
+        if ($current === $restricted) {
+            return [
+                'ok' => true,
+                'message' => $restricted
+                    ? 'This account is already limited to read-only access.'
+                    : 'This account already has full access.',
+            ];
+        }
+
+        if (!User::setRestricted($targetId, $restricted)) {
+            return ['ok' => false, 'status' => 409, 'message' => 'That account could not be updated.'];
+        }
+
+        if ($restricted) {
+            NotificationService::moderationRestricted(
+                Database::connection(),
+                $targetId,
+                $reportId,
+                $reasonLabel,
+                $message !== '' ? $message : null,
+            );
+        } else {
+            NotificationService::moderationUnrestricted(
+                Database::connection(),
+                $targetId,
+                $reportId,
+                $reasonLabel,
+                $message !== '' ? $message : null,
+            );
+        }
+
+        $reportSuffix = $reportId !== null ? ' from report #' . $reportId : '';
+        $summary = $restricted
+            ? sprintf(
+                'Limited %s @%s to read-only access%s',
+                (string) $target['display_name'],
+                (string) $target['username'],
+                $reportSuffix,
+            )
+            : sprintf(
+                'Restored full access for %s @%s%s',
+                (string) $target['display_name'],
+                (string) $target['username'],
+                $reportSuffix,
+            );
+
+        AuditLog::record([
+            'actor_user_id' => $actorId,
+            'action' => $restricted ? 'user.restricted' : 'user.unrestricted',
+            'target_type' => 'user',
+            'target_id' => $targetId,
+            'summary' => $summary,
+            'metadata' => [
+                'report_id' => $reportId,
+                'reason' => $reasonLabel,
+                'read_only' => $restricted,
+                'message' => $message !== '' ? $message : null,
+            ],
+            'ip_address' => $ipAddress,
+        ]);
+
+        return [
+            'ok' => true,
+            'message' => $restricted
+                ? 'Account limited to read-only access. It keeps its sessions and can still browse.'
+                : 'Full access restored. The account can create and complete quests again.',
         ];
     }
 

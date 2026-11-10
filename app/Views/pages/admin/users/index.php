@@ -18,7 +18,8 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
         <h1 class="mt-3 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">User management</h1>
         <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
             Search the directory, review account state, and moderate access. Suspending an account revokes its
-            sessions and remember-me tokens immediately.
+            sessions and remember-me tokens immediately. A read-only account stays signed in but cannot change quests
+            or submit reports.
         </p>
     </div>
 
@@ -63,6 +64,7 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
                 <option value="">All statuses</option>
                 <option value="active" <?= $filters['status'] === 'active' ? 'selected' : '' ?>>Active</option>
                 <option value="suspended" <?= $filters['status'] === 'suspended' ? 'selected' : '' ?>>Suspended</option>
+                <option value="restricted" <?= $filters['status'] === 'restricted' ? 'selected' : '' ?>>Read-only</option>
             </select>
         </div>
 
@@ -142,12 +144,20 @@ $query = array_filter($filters, static fn (string $value): bool => $value !== ''
                                     </span>
                                 </td>
                                 <td class="px-4 py-3.5">
-                                    <span class="inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] <?= $account['status'] === 'active'
-                                        ? 'border-aqua-400/30 bg-aqua-500/[0.08] text-aqua-300'
-                                        : 'border-ember-400/30 bg-ember-500/[0.08] text-ember-300' ?>">
-                                        <span class="h-1.5 w-1.5 rounded-sm <?= $account['status'] === 'active' ? 'bg-aqua-400' : 'bg-ember-400' ?>"></span>
-                                        <?= e(ucfirst((string) $account['status'])) ?>
-                                    </span>
+                                    <div class="flex flex-wrap items-center gap-1.5">
+                                        <span class="inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] <?= $account['status'] === 'active'
+                                            ? 'border-aqua-400/30 bg-aqua-500/[0.08] text-aqua-300'
+                                            : 'border-ember-400/30 bg-ember-500/[0.08] text-ember-300' ?>">
+                                            <span class="h-1.5 w-1.5 rounded-sm <?= $account['status'] === 'active' ? 'bg-aqua-400' : 'bg-ember-400' ?>"></span>
+                                            <?= e(ucfirst((string) $account['status'])) ?>
+                                        </span>
+                                        <?php if (account_restricted($account)): ?>
+                                            <span class="inline-flex items-center gap-1.5 rounded-sm border border-brand-400/30 bg-brand-400/[0.08] px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-300">
+                                                <i data-lucide="eye-off" class="h-3 w-3"></i>
+                                                Read-only
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3.5">
                                     <p class="font-semibold text-slate-300">Level <?= e((string) $account['level']) ?></p>

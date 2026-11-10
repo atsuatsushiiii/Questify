@@ -5,7 +5,7 @@
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 8 — production readiness complete: 78 PHPUnit unit tests,
+> **Status:** Phase 8 — production readiness complete: 95 PHPUnit unit tests,
 > eight HTTP regression suites, and a headless Chrome browser QA pass with
 > axe-core WCAG scans, alongside a repeatable demo seeder, a written
 > security/threat review with a production checklist, and documented
@@ -146,18 +146,18 @@ docs/            Architecture plan, security notes, and deployment guide
 | `npm run build` | Compile + minify CSS and JS |
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
-| `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, recurrence, mail, Google claims, route authz (78 tests) |
+| `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, recurrence, mail, Google claims, route authz, navigation state (95 tests) |
 | `php scripts/seed_demo.php` | Create/reuse a local demo account with realistic quests |
 | `php tests/auth_flow.php` | End-to-end auth regression suite (55 checks) |
 | `php tests/app_shell.php` | Authenticated shell and Phase 4-6 pages suite (69 checks) |
 | `php tests/quest_flow.php` | Quest engine, ownership, XP, recurring cadences, and locking suite (137 checks) |
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
-| `php tests/phase6_flow.php` | Admin authorization, KPIs, quest/user moderation, catalogue CRUD, reports, audit (184 checks) |
+| `php tests/phase6_flow.php` | Admin authorization, KPIs, quest/user moderation, read-only limits, catalogue CRUD, reports, audit (221 checks) |
 | `php tests/public_profile_flow.php` | Public profile rendering, privacy, 404s, leaderboard links (39 checks) |
 | `php tests/google_oauth_flow.php` | Google start, callback guards, account resolution, linking, CSP (49 checks) |
 | `npm run test:browser` | Chrome browser QA for auth, quests, profiles, mobile navigation, and WCAG scans |
-| `composer test` | Run the unit suite and all eight HTTP suites (707 checks) |
+| `composer test` | Run the unit suite and all eight HTTP suites (744 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -262,7 +262,7 @@ php tests/app_shell.php       # shell and Phase 4-6 pages (69 checks)
 php tests/quest_flow.php      # quests only (137 checks)
 php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leaderboard (78 checks)
 php tests/phase5_flow.php     # settings/email/sessions/export/deletion (96 checks)
-php tests/phase6_flow.php     # admin authorization/moderation/catalogue/reports/audit (184 checks)
+php tests/phase6_flow.php     # admin authorization/moderation/read-only/catalogue/reports/audit (221 checks)
 php tests/public_profile_flow.php  # public profiles/privacy/leaderboard links (39 checks)
 ```
 
@@ -289,12 +289,14 @@ single-use tokens, preference gating, per-device session revocation, export
 redaction, and account deletion cascade. The Phase 6 suite proves that guests are
 redirected and normal users receive `403` on every `/admin` route and API, then
 covers KPI data, user search/filter/pagination, suspend/activate and
-promote/demote rules, timed suspension expiry, warning and suspension actions
-from an open report, category CRUD with quest assignment and filtering,
-achievement CRUD with unlock-safe deletion, audit filters, and CSRF rejection on
-admin mutations. The public profile suite covers guest rendering, completed
-stats and achievements, dedicated privacy opt-out, suspended-account 404s,
-leaderboard links, and hidden-profile 404s. All seven delete their own data.
+promote/demote rules, timed suspension expiry, read-only restrict/unrestrict
+limits that preserve sessions while blocking quest and report mutations,
+warning and suspension actions from an open report, category CRUD with quest
+assignment and filtering, achievement CRUD with unlock-safe deletion, audit
+filters, and CSRF rejection on admin mutations. The public profile suite covers
+guest rendering, completed stats and achievements, dedicated privacy opt-out,
+suspended-account 404s, leaderboard links, and hidden-profile 404s. All seven
+delete their own data.
 
 ### Browser QA
 
@@ -347,8 +349,8 @@ Every authenticated page renders inside `app/Views/layouts/app.php`:
   a notification bell, unread badge, and the account menu.
 - Seven live destinations for everyone: Dashboard, My Quests, Achievements,
   Leaderboard, My Profile, Notifications, and Settings. Administrators also see a
-  conditional Administration section (Dashboard, Users, Categories,
-  Achievements, Audit).
+  conditional Administration section (Dashboard, Users, Quests, Reports,
+  Categories, Achievements, Audit).
 - The dashboard reads real quest counts from the database and builds its recent
   activity feed from the XP ledger. It also shows live achievement progress,
   the real seven-day streak strip, and an all-time leaderboard panel.
@@ -490,6 +492,8 @@ account menu only render the Administration section for admins.
 | `GET /admin/users/{id}` | Stats, recent quests, sessions, and moderation history |
 | `POST /admin/users/{id}/suspend` | Suspend an account for 1, 2, 3, 7, 14, or 30 days (or permanently) and revoke its sessions/tokens |
 | `POST /admin/users/{id}/activate` | Restore sign-in access and clear any suspension expiry |
+| `POST /admin/users/{id}/restrict` | Limit an account to read-only access without revoking its sessions |
+| `POST /admin/users/{id}/unrestrict` | Restore full quest and report access |
 | `POST /admin/users/{id}/promote` | Grant administrator access |
 | `POST /admin/users/{id}/demote` | Remove administrator access |
 | `GET /admin/quests` | Search, status/difficulty/category filters, pagination |
@@ -513,14 +517,20 @@ account menu only render the Administration section for admins.
 
 - **Dashboard:** every KPI is a live database aggregate. The Chart.js growth chart
   fetches `/api/admin/stats`; the KPI cards remain accurate without JavaScript.
-- **Moderation:** an admin cannot suspend or demote themselves, and the last
-  administrator cannot be demoted. Suspension sets `status = suspended`, revokes
-  database sessions and remember-me tokens immediately, blocks sign-in, and hides
-  the public profile. The moderator can choose 1, 2, 3, 7, 14, or 30 days, or a
-  permanent suspension; timed suspensions store `suspended_until` and are lifted
-  automatically on the next sign-in, authenticated request, or public-profile
-  lookup after the expiry. Activation clears the expiry. Promotions and demotions
-  take effect on the target's next request.
+- **Moderation:** an admin cannot suspend, restrict, or demote themselves, and the
+  last administrator cannot be demoted. Suspension sets `status = suspended`,
+  revokes database sessions and remember-me tokens immediately, blocks sign-in,
+  and hides the public profile. The moderator can choose 1, 2, 3, 7, 14, or 30
+  days, or a permanent suspension; timed suspensions store `suspended_until` and
+  are lifted automatically on the next sign-in, authenticated request, or
+  public-profile lookup after the expiry. Activation clears the expiry but
+  deliberately leaves a read-only limit in place. Read-only mode is separate:
+  it stores `restricted_at`, keeps every session and the public profile, and
+  lets the account browse, review its quests, and manage settings while
+  `ReadOnlyMiddleware` blocks quest create/edit/complete/archive/restore/delete
+  and report submission with an explanatory flash and banner. Both transitions
+  notify the account and write `user.restricted` / `user.unrestricted` audit
+  entries. Promotions and demotions take effect on the target's next request.
 - **Quest moderation:** every quest is searchable by title, description, owner,
   status, difficulty, and category. Archiving hides a quest from the owner's
   board without touching its XP; restoring a completed quest returns it to
@@ -542,9 +552,10 @@ account menu only render the Administration section for admins.
   own submissions and statuses, and resolving or dismissing a report creates an
   idempotent `report.closed:{id}` notification for the reporter. An open profile
   report also exposes **Account actions**: a moderator can send a warning
-  notification, or suspend the reported profile for a chosen length, with an
-  optional message. These actions are independent of resolve/dismiss, are
-  audited as `user.warned` / `user.suspended` with the `report_id` in metadata,
+  notification, suspend the reported profile for a chosen length, or limit it to
+  read-only access, each with an optional message. These actions are independent
+  of resolve/dismiss, are audited as `user.warned`, `user.suspended`,
+  `user.restricted`, or `user.unrestricted` with the `report_id` in metadata,
   and never reveal the reporter's identity or the private resolution note.
 - **Categories:** CRUD validates name, slug, six-digit colour, Lucide icon, sort
   order, and active state. Quests select an active category on create/edit and can

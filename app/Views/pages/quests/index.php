@@ -15,6 +15,7 @@
  * @var int $questXp
  */
 $timezone = (string) ($user['timezone'] ?? 'UTC');
+$isRestricted = account_restricted($user);
 $tabs = [
     'active' => ['label' => 'Active', 'icon' => 'target'],
     'completed' => ['label' => 'Completed', 'icon' => 'circle-check'],
@@ -61,10 +62,17 @@ $activeTab = $tabs[$status] ?? $tabs['active'];
     </div>
 
     <div class="flex flex-wrap items-center gap-2.5">
-        <a href="<?= e(url('/quests/create')) ?>" class="btn btn-app-primary group">
-            <i data-lucide="plus" class="h-4 w-4 transition-transform duration-200 group-hover:rotate-90"></i>
-            New quest
-        </a>
+        <?php if (!$isRestricted): ?>
+            <a href="<?= e(url('/quests/create')) ?>" class="btn btn-app-primary group">
+                <i data-lucide="plus" class="h-4 w-4 transition-transform duration-200 group-hover:rotate-90"></i>
+                New quest
+            </a>
+        <?php else: ?>
+            <span class="inline-flex items-center gap-2 rounded-sm border border-line bg-white/[0.02] px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">
+                <i data-lucide="eye-off" class="h-3.5 w-3.5"></i>
+                Read-only
+            </span>
+        <?php endif; ?>
         <a href="<?= e(url('/dashboard')) ?>" class="btn btn-app-ghost">
             <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
             Dashboard
@@ -193,10 +201,17 @@ $activeTab = $tabs[$status] ?? $tabs['active'];
                 </span>
                 <h2 class="mt-5 font-display text-xl font-semibold text-white"><?= e($empty['title']) ?></h2>
                 <p class="mt-2 text-sm leading-relaxed text-muted"><?= e($empty['copy']) ?></p>
-                <a href="<?= e(url($empty['href'])) ?>" class="btn btn-app-primary mt-5 inline-flex">
-                    <i data-lucide="<?= $empty['href'] === '/quests/create' ? 'plus' : 'target' ?>" class="h-4 w-4"></i>
-                    <?= e($empty['cta']) ?>
-                </a>
+                <?php if ($isRestricted && $empty['href'] === '/quests/create'): ?>
+                    <p class="mt-5 inline-flex items-center gap-2 rounded-sm border border-line bg-white/[0.02] px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">
+                        <i data-lucide="eye-off" class="h-3.5 w-3.5"></i>
+                        New quests are disabled
+                    </p>
+                <?php else: ?>
+                    <a href="<?= e(url($empty['href'])) ?>" class="btn btn-app-primary mt-5 inline-flex">
+                        <i data-lucide="<?= $empty['href'] === '/quests/create' ? 'plus' : 'target' ?>" class="h-4 w-4"></i>
+                        <?= e($empty['cta']) ?>
+                    </a>
+                <?php endif; ?>
             </div>
         </div>
     <?php else: ?>

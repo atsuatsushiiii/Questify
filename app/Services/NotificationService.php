@@ -221,6 +221,75 @@ final class NotificationService
     }
 
     /**
+     * Tell an account that it has been limited to read-only access. The
+     * account can still sign in, so this notification is immediately visible.
+     */
+    public static function moderationRestricted(
+        PDO $db,
+        int $userId,
+        ?int $reportId,
+        string $reasonLabel,
+        ?string $message = null,
+    ): bool {
+        $message = $message !== null ? trim($message) : '';
+        $body = 'An administrator limited your account to read-only access after a review for ' . $reasonLabel
+            . '. You can still sign in and browse, but creating, editing, completing, archiving, restoring, or deleting quests and submitting reports is disabled.';
+
+        if ($message !== '') {
+            $body .= ' ' . $message;
+        }
+
+        $key = 'moderation.restricted:' . ($reportId !== null ? 'report:' . $reportId : 'user:' . $userId)
+            . ':' . gmdate('YmdHis') . ':' . bin2hex(random_bytes(4));
+
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'moderation',
+            'title' => 'Account limited to read-only',
+            'message' => $body,
+            'icon' => 'eye-off',
+            'url' => '/notifications',
+            'related_type' => $reportId !== null ? 'report' : 'user',
+            'related_id' => $reportId ?? $userId,
+            'event_key' => $key,
+        ]);
+    }
+
+    /**
+     * Tell an account that its read-only limit has been lifted.
+     */
+    public static function moderationUnrestricted(
+        PDO $db,
+        int $userId,
+        ?int $reportId,
+        string $reasonLabel,
+        ?string $message = null,
+    ): bool {
+        $message = $message !== null ? trim($message) : '';
+        $body = 'An administrator restored full access to your account after a review for ' . $reasonLabel
+            . '. You can create, edit, complete, archive, restore, and delete quests again.';
+
+        if ($message !== '') {
+            $body .= ' ' . $message;
+        }
+
+        $key = 'moderation.unrestricted:' . ($reportId !== null ? 'report:' . $reportId : 'user:' . $userId)
+            . ':' . gmdate('YmdHis') . ':' . bin2hex(random_bytes(4));
+
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'moderation',
+            'title' => 'Read-only limit lifted',
+            'message' => $body,
+            'icon' => 'shield-check',
+            'url' => '/notifications',
+            'related_type' => $reportId !== null ? 'report' : 'user',
+            'related_id' => $reportId ?? $userId,
+            'event_key' => $key,
+        ]);
+    }
+
+    /**
      * @param array{user_id: int, type: string, title: string, message: string, icon: string, url?: string|null, related_type?: string|null, related_id?: int|null, event_key: string} $data
      */
     public static function create(PDO $db, array $data): bool
@@ -235,7 +304,7 @@ final class NotificationService
             'user_id' => (int) $data['user_id'],
             'type' => $type,
             'title' => mb_substr((string) $data['title'], 0, 120),
-            'message' => mb_substr((string) $data['message'], 0, 255),
+            'message' => mb_substr((string) $data['message'], 0, 1000),
             'icon' => mb_substr((string) $data['icon'], 0, 64),
             'url' => isset($data['url']) ? mb_substr((string) $data['url'], 0, 255) : null,
             'related_type' => isset($data['related_type']) ? mb_substr((string) $data['related_type'], 0, 32) : null,

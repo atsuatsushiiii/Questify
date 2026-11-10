@@ -11,7 +11,11 @@ declare(strict_types=1);
  * intentionally a preview until that phase lands. The admin section is only
  * rendered for accounts with the admin role.
  *
- * @return array<int, array{label: string, items: array<int, array{label: string, href: string, icon: string, phase: int|null}>}>
+ * `exact` is true when the item must match the request path exactly instead of
+ * also matching child routes. It keeps `/admin` from staying active on
+ * `/admin/users`.
+ *
+ * @return array<int, array{label: string, items: array<int, array{label: string, href: string, icon: string, phase: int|null, exact?: bool}>}>
  */
 $user = auth_user();
 $nav = [
@@ -38,7 +42,7 @@ if (($user['role'] ?? '') === 'admin') {
     $nav[] = [
         'label' => 'Administration',
         'items' => [
-            ['label' => 'Overview', 'href' => '/admin', 'icon' => 'gauge', 'phase' => null],
+            ['label' => 'Overview', 'href' => '/admin', 'icon' => 'gauge', 'phase' => null, 'exact' => true],
             ['label' => 'Users', 'href' => '/admin/users', 'icon' => 'users', 'phase' => null],
             ['label' => 'Quests', 'href' => '/admin/quests', 'icon' => 'scroll-text', 'phase' => null],
             ['label' => 'Reports', 'href' => '/admin/reports', 'icon' => 'flag', 'phase' => null],

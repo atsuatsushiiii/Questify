@@ -1842,6 +1842,252 @@ check(
         && contains($reportAudit['body'], 'Resolved report #' . $userReportId),
 );
 
+echo "\n7b. Read-only moderation\n";
+
+$adminUsersOverview = $adminClient->get('/admin/users');
+$overviewActivePattern = '#<a\s[^>]*href="' . preg_quote($baseUrl, '#') . '/admin"[^>]*aria-current="page"#';
+$usersActivePattern = '#<a\s[^>]*href="' . preg_quote($baseUrl, '#') . '/admin/users"[^>]*aria-current="page"#';
+check(
+    'The admin sidebar highlights Users without leaving Overview highlighted',
+    preg_match($usersActivePattern, $adminUsersOverview['body']) === 1
+        && preg_match($overviewActivePattern, $adminUsersOverview['body']) === 0,
+);
+
+$questsBeforeRestriction = scalar($pdo, 'SELECT COUNT(*) FROM quests WHERE user_id = ?', [$userId]);
+$restrictUser = $adminClient->post('/admin/users/' . $userId . '/restrict', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/users/' . $userId),
+    'message' => 'Please review the community guidelines before posting again.',
+]);
+$restrictedRow = row($pdo, 'SELECT * FROM users WHERE id = ?', [$userId]);
+check(
+    'Restricting an account sets restricted_at without suspending it',
+    $restrictUser['status'] === 302
+        && (string) ($restrictedRow['status'] ?? '') === 'active'
+        && $restrictedRow['restricted_at'] !== null
+        && $restrictedRow['suspended_until'] === null,
+);
+check(
+    'Restriction keeps the account signed in',
+    $userClient->get('/dashboard')['status'] === 200,
+);
+
+$restrictedNotice = row(
+    $pdo,
+    "SELECT * FROM notifications WHERE user_id = ? AND type = 'moderation' AND title = ? ORDER BY id DESC LIMIT 1",
+    [$userId, 'Account limited to read-only'],
+);
+check(
+    'The read-only account is told why and how to regain access',
+    $restrictedNotice !== null
+        && contains((string) ($restrictedNotice['message'] ?? ''), 'read-only')
+        && contains((string) ($restrictedNotice['message'] ?? ''), 'Please review the community guidelines')
+        && (string) ($restrictedNotice['url'] ?? '') === '/notifications',
+);
+check(
+    'Restriction is audited against the account',
+    scalar(
+        $pdo,
+        "SELECT COUNT(*) FROM audit_logs WHERE action = 'user.restricted' AND target_type = 'user' AND target_id = ?",
+        [$userId],
+    ) === 1,
+);
+
+$restrictedDashboard = $userClient->get('/dashboard');
+check(
+    'A read-only account still sees its dashboard with a read-only banner',
+    $restrictedDashboard['status'] === 200
+        && contains($restrictedDashboard['body'], 'Read-only account')
+        && !contains($restrictedDashboard['body'], '/quests/create'),
+);
+
+$blockedCreateForm = $userClient->get('/quests/create');
+check(
+    'A read-only account is redirected away from the quest form',
+    $blockedCreateForm['status'] === 302
+        && str_ends_with((string) ($blockedCreateForm['headers']['location'] ?? ''), '/quests'),
+);
+
+$blockedCreate = $userClient->post('/quests', [
+    '_csrf_token' => csrfFor($userClient, '/dashboard'),
+    'title' => 'Blocked read-only quest ' . $suffix,
+    'description' => 'A read-only account must not be able to create this quest.',
+    'difficulty' => 'easy',
+    'category_id' => '',
+    'xp_reward' => '9999',
+]);
+check(
+    'A read-only account cannot create a quest',
+    $blockedCreate['status'] === 302
+        && scalar($pdo, 'SELECT COUNT(*) FROM quests WHERE user_id = ?', [$userId]) === $questsBeforeRestriction,
+);
+
+$blockedComplete = $userClient->post('/quests/' . $questId . '/complete', [
+    '_csrf_token' => csrfFor($userClient, '/dashboard'),
+]);
+check(
+    'A read-only account cannot complete a quest',
+    $blockedComplete['status'] === 302
+        && (string) (row($pdo, 'SELECT status FROM quests WHERE id = ?', [$questId])['status'] ?? '') === 'active'
+        && scalar($pdo, 'SELECT COUNT(*) FROM xp_transactions WHERE quest_id = ?', [$questId]) === 0,
+);
+
+$blockedArchive = $userClient->post('/quests/' . $questId . '/archive', [
+    '_csrf_token' => csrfFor($userClient, '/dashboard'),
+]);
+check(
+    'A read-only account cannot archive a quest',
+    $blockedArchive['status'] === 302
+        && (string) (row($pdo, 'SELECT status FROM quests WHERE id = ?', [$questId])['status'] ?? '') === 'active',
+);
+
+$blockedReportForm = $userClient->get('/reports/new?target_type=profile&target_id=' . $adminId);
+check(
+    'A read-only account cannot open the report form',
+    $blockedReportForm['status'] === 302
+        && str_ends_with((string) ($blockedReportForm['headers']['location'] ?? ''), '/reports'),
+);
+
+$blockedReport = $userClient->post('/reports', [
+    '_csrf_token' => csrfFor($userClient, '/reports'),
+    'target_type' => 'profile',
+    'target_id' => (string) $adminId,
+    'reason' => 'spam',
+    'details' => 'A read-only account must not be able to submit this report.',
+]);
+check(
+    'A read-only account cannot submit a report',
+    $blockedReport['status'] === 302
+        && scalar(
+            $pdo,
+            "SELECT COUNT(*) FROM reports WHERE reporter_user_id = ? AND target_type = 'profile' AND target_id = ? AND reason = 'spam'",
+            [$userId, $adminId],
+        ) === 0,
+);
+
+$restrictedFilter = $adminClient->get('/admin/users?status=restricted');
+check(
+    'The read-only filter lists the restricted account',
+    $restrictedFilter['status'] === 200
+        && contains($restrictedFilter['body'], '@' . $userUsername)
+        && contains($restrictedFilter['body'], 'Read-only'),
+);
+
+$restrictedDetail = $adminClient->get('/admin/users/' . $userId);
+check(
+    'The admin user detail shows the read-only state and restore control',
+    $restrictedDetail['status'] === 200
+        && contains($restrictedDetail['body'], 'Read-only access')
+        && contains($restrictedDetail['body'], 'Restore full access')
+        && contains($restrictedDetail['body'], 'Read-only since'),
+);
+
+$publicReadOnly = $guestClient->get('/u/' . rawurlencode($userUsername));
+check(
+    'Read-only accounts keep their public profile',
+    $publicReadOnly['status'] === 200,
+);
+
+$unrestrictUser = $adminClient->post('/admin/users/' . $userId . '/unrestrict', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/users/' . $userId),
+    'message' => 'Your account is in good standing again.',
+]);
+$unrestrictedRow = row($pdo, 'SELECT * FROM users WHERE id = ?', [$userId]);
+check(
+    'Restoring full access clears restricted_at',
+    $unrestrictUser['status'] === 302 && $unrestrictedRow['restricted_at'] === null,
+);
+check(
+    'The unrestricted account is notified',
+    scalar(
+        $pdo,
+        "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND type = 'moderation' AND title = ?",
+        [$userId, 'Read-only limit lifted'],
+    ) === 1,
+);
+check(
+    'Restoring full access is audited',
+    scalar(
+        $pdo,
+        "SELECT COUNT(*) FROM audit_logs WHERE action = 'user.unrestricted' AND target_type = 'user' AND target_id = ?",
+        [$userId],
+    ) === 1,
+);
+check(
+    'The account can create quests again after the limit is lifted',
+    $userClient->get('/quests/create')['status'] === 200,
+);
+
+$restrictedReport = submitReport(
+    $adminClient,
+    'profile',
+    $userId,
+    'spam',
+    'A report that will limit this account to read-only access.',
+);
+$restrictedReportRow = row(
+    $pdo,
+    'SELECT * FROM reports WHERE reporter_user_id = ? AND target_type = ? AND target_id = ? AND reason = ?',
+    [$adminId, 'profile', $userId, 'spam'],
+);
+$restrictedReportId = (int) ($restrictedReportRow['id'] ?? 0);
+
+if ($restrictedReportId > 0) {
+    $createdReportIds[] = $restrictedReportId;
+}
+
+check(
+    'A moderator can file the report used for the report-based restriction',
+    $restrictedReport['status'] === 302 && $restrictedReportId > 0,
+);
+
+$reportRestrict = $adminClient->post('/admin/reports/' . $restrictedReportId . '/restrict', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/reports/' . $restrictedReportId),
+    'message' => 'Limited while the report is reviewed.',
+]);
+check(
+    'An open report can limit the reported account to read-only',
+    $reportRestrict['status'] === 302
+        && (string) (row($pdo, 'SELECT restricted_at FROM users WHERE id = ?', [$userId])['restricted_at'] ?? '') !== ''
+        && (string) (row($pdo, 'SELECT status FROM reports WHERE id = ?', [$restrictedReportId])['status'] ?? '') === 'open',
+);
+check(
+    'The report-based restriction is audited with the report id',
+    scalar(
+        $pdo,
+        "SELECT COUNT(*) FROM audit_logs
+         WHERE action = 'user.restricted' AND target_type = 'user' AND target_id = ?
+           AND JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.report_id')) = ?",
+        [$userId, (string) $restrictedReportId],
+    ) === 1,
+);
+
+$reportRestrictedDetail = $adminClient->get('/admin/reports/' . $restrictedReportId);
+check(
+    'The report detail shows the read-only state and restore control',
+    $reportRestrictedDetail['status'] === 200
+        && contains($reportRestrictedDetail['body'], 'Read-only')
+        && contains($reportRestrictedDetail['body'], 'Restore full access'),
+);
+
+$reportUnrestrict = $adminClient->post('/admin/reports/' . $restrictedReportId . '/unrestrict', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/reports/' . $restrictedReportId),
+    'message' => 'The review is complete.',
+]);
+check(
+    'An open report can restore full access',
+    $reportUnrestrict['status'] === 302
+        && row($pdo, 'SELECT restricted_at FROM users WHERE id = ?', [$userId])['restricted_at'] === null,
+);
+
+$selfRestrict = $adminClient->post('/admin/users/' . $adminId . '/restrict', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/users/' . $adminId),
+]);
+check(
+    'An administrator cannot limit their own account',
+    $selfRestrict['status'] === 302
+        && row($pdo, 'SELECT restricted_at FROM users WHERE id = ?', [$adminId])['restricted_at'] === null,
+);
+
 echo "\n8. Audit trail\n";
 
 $auditPage = $adminClient->get('/admin/audit');

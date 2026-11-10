@@ -391,7 +391,7 @@ final class User
 
         $statement = Database::connection()->prepare(
             'SELECT id, username, email, display_name, avatar_path, role, status,
-                    suspended_until,
+                    suspended_until, restricted_at,
                     xp_total, level, current_streak, longest_streak, created_at, updated_at, last_login_at
              FROM users'
             . $where
@@ -516,6 +516,32 @@ final class User
             && strtotime($until . ' UTC') <= time();
     }
 
+    /**
+     * Limit an account to read-only access without suspending it. The account
+     * keeps its sessions and can still sign in, browse, and manage settings.
+     */
+    public static function setRestricted(int $id, bool $restricted): bool
+    {
+        $statement = Database::connection()->prepare(
+            'UPDATE users
+             SET restricted_at = ' . ($restricted ? 'UTC_TIMESTAMP()' : 'NULL') . ',
+                 updated_at = UTC_TIMESTAMP()
+             WHERE id = ?',
+        );
+
+        return $statement->execute([$id]);
+    }
+
+    /**
+     * @param array<string, mixed> $user
+     */
+    public static function isRestricted(array $user): bool
+    {
+        return isset($user['restricted_at'])
+            && $user['restricted_at'] !== null
+            && $user['restricted_at'] !== '';
+    }
+
     public static function setRole(int $id, string $role): bool
     {
         $statement = Database::connection()->prepare(
@@ -550,7 +576,9 @@ final class User
             $parameters[] = $filters['role'];
         }
 
-        if (in_array($filters['status'] ?? '', ['active', 'suspended'], true)) {
+        if (($filters['status'] ?? '') === 'restricted') {
+            $clauses[] = 'restricted_at IS NOT NULL';
+        } elseif (in_array($filters['status'] ?? '', ['active', 'suspended'], true)) {
             $clauses[] = 'status = ?';
             $parameters[] = $filters['status'];
         }

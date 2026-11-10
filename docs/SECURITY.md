@@ -33,6 +33,15 @@ working exploit. Include the route, the request, and the observed behaviour.
   next sign-in, authenticated request, or public-profile lookup, so the account
   returns to `active` without an administrator action. Permanent suspensions
   keep `suspended_until` null.
+- Read-only accounts are a separate, non-suspending control: `users.restricted_at`
+  is set while `status` stays `active`, so the account keeps its session, sign-in,
+  public profile, and settings. `ReadOnlyMiddleware` is applied after
+  authentication and before CSRF on every quest mutation and on report form
+  access/submission, returning a `403` for JSON callers and an explanatory flash
+  redirect for browsers. Browsing, dashboards, achievements, leaderboards,
+  notifications, and settings remain available. A read-only account cannot
+  escalate its own state; only an administrator can set or clear the timestamp,
+  and each transition is audited as `user.restricted` / `user.unrestricted`.
 - Google sign-in uses OpenID Connect with the authorization-code grant, PKCE
   (`S256`), a single-use session-bound `state`, and a `nonce`. The ID token is
   received directly from Google's token endpoint over TLS; issuer, audience,
@@ -75,12 +84,14 @@ working exploit. Include the route, the request, and the observed behaviour.
   mutation that only applies while the report is open. `GET /reports` is scoped
   to the signed-in reporter, and report-closure notifications never include the
   administrator's private resolution note.
-- Warning and suspension from a report are separate audited admin mutations that
-  only apply to an open **profile** report and never change the report's own
-  status. The reported account receives an in-app notification that names the
-  reason and, for a suspension, its expiry, but never the reporter's identity or
-  the private resolution note. Suspending from a report uses the same
-  session/token revocation and `suspended_until` rules as the user detail page.
+- Warning, suspension, and read-only limits from a report are separate audited
+  admin mutations that only apply to an open **profile** report and never change
+  the report's own status. The reported account receives an in-app notification
+  that names the reason and, for a suspension, its expiry, but never the
+  reporter's identity or the private resolution note. Suspending from a report
+  uses the same session/token revocation and `suspended_until` rules as the user
+  detail page; restricting from a report sets `restricted_at` without revoking
+  sessions.
 - Admin mutations enforce self-protection and last-administrator rules
   server-side; the disabled buttons are not the security boundary.
 - `tests/Unit/RouteAuthorizationTest.php` fails if an `/admin` route is added

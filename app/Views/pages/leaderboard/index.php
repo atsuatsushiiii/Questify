@@ -10,6 +10,7 @@
  * @var array<string, string> $periods
  */
 $timezone = (string) ($user['timezone'] ?? 'UTC');
+$isRestricted = account_restricted($user);
 $period = (string) $board['period'];
 $rows = $board['rows'];
 $podium = array_slice($board['podium'], 0, 3);
@@ -165,10 +166,12 @@ $query = static fn (array $overrides = []): string => url('/leaderboard?' . http
                         ? 'Complete a quest to put the first XP on the board.'
                         : 'Nobody has earned XP in this period yet. The board resets on the next UTC boundary.' ?>
                 </p>
-                <a href="<?= e(url('/quests/create')) ?>" class="mt-4 inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-300 transition hover:text-brand-200">
-                    Create a quest
-                    <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
-                </a>
+                <?php if (!$isRestricted): ?>
+                    <a href="<?= e(url('/quests/create')) ?>" class="mt-4 inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-300 transition hover:text-brand-200">
+                        Create a quest
+                        <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                    </a>
+                <?php endif; ?>
             </div>
         <?php else: ?>
             <div class="space-y-2 p-4">

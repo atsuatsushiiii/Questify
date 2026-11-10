@@ -28,6 +28,7 @@ use App\Core\Router;
 use App\Middleware\AdminMiddleware;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\GuestMiddleware;
+use App\Middleware\ReadOnlyMiddleware;
 use App\Middleware\VerifyCsrfToken;
 
 /** @var Router $router */
@@ -55,23 +56,23 @@ $router->get('/u/{username}', [PublicProfileController::class, 'show']);
 
 // Signed-in reports against public profiles (and future public quests).
 $router->get('/reports', [ReportController::class, 'index'], [AuthMiddleware::class]);
-$router->get('/reports/new', [ReportController::class, 'create'], [AuthMiddleware::class]);
-$router->post('/reports', [ReportController::class, 'store'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->get('/reports/new', [ReportController::class, 'create'], [AuthMiddleware::class, ReadOnlyMiddleware::class]);
+$router->post('/reports', [ReportController::class, 'store'], [AuthMiddleware::class, ReadOnlyMiddleware::class, VerifyCsrfToken::class]);
 
 // Authenticated routes.
 $router->get('/dashboard', [DashboardController::class, 'index'], [AuthMiddleware::class]);
 
 // Quest log. Every read and write is scoped to the authenticated owner.
 $router->get('/quests', [QuestController::class, 'index'], [AuthMiddleware::class]);
-$router->get('/quests/create', [QuestController::class, 'create'], [AuthMiddleware::class]);
-$router->post('/quests', [QuestController::class, 'store'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->get('/quests/create', [QuestController::class, 'create'], [AuthMiddleware::class, ReadOnlyMiddleware::class]);
+$router->post('/quests', [QuestController::class, 'store'], [AuthMiddleware::class, ReadOnlyMiddleware::class, VerifyCsrfToken::class]);
 $router->get('/quests/{id}', [QuestController::class, 'show'], [AuthMiddleware::class]);
-$router->get('/quests/{id}/edit', [QuestController::class, 'edit'], [AuthMiddleware::class]);
-$router->put('/quests/{id}', [QuestController::class, 'update'], [AuthMiddleware::class, VerifyCsrfToken::class]);
-$router->post('/quests/{id}/complete', [QuestController::class, 'complete'], [AuthMiddleware::class, VerifyCsrfToken::class]);
-$router->post('/quests/{id}/archive', [QuestController::class, 'archive'], [AuthMiddleware::class, VerifyCsrfToken::class]);
-$router->post('/quests/{id}/restore', [QuestController::class, 'restore'], [AuthMiddleware::class, VerifyCsrfToken::class]);
-$router->post('/quests/{id}/delete', [QuestController::class, 'destroy'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->get('/quests/{id}/edit', [QuestController::class, 'edit'], [AuthMiddleware::class, ReadOnlyMiddleware::class]);
+$router->put('/quests/{id}', [QuestController::class, 'update'], [AuthMiddleware::class, ReadOnlyMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/quests/{id}/complete', [QuestController::class, 'complete'], [AuthMiddleware::class, ReadOnlyMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/quests/{id}/archive', [QuestController::class, 'archive'], [AuthMiddleware::class, ReadOnlyMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/quests/{id}/restore', [QuestController::class, 'restore'], [AuthMiddleware::class, ReadOnlyMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/quests/{id}/delete', [QuestController::class, 'destroy'], [AuthMiddleware::class, ReadOnlyMiddleware::class, VerifyCsrfToken::class]);
 
 // Phase 4: achievements, profiles, notifications and leaderboards.
 $router->get('/achievements', [AchievementController::class, 'index'], [AuthMiddleware::class]);
@@ -111,6 +112,8 @@ $router->get('/admin/users', [AdminUserController::class, 'index'], [AuthMiddlew
 $router->get('/admin/users/{id}', [AdminUserController::class, 'show'], [AuthMiddleware::class, AdminMiddleware::class]);
 $router->post('/admin/users/{id}/suspend', [AdminUserController::class, 'suspend'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/admin/users/{id}/activate', [AdminUserController::class, 'activate'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/users/{id}/restrict', [AdminUserController::class, 'restrict'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/users/{id}/unrestrict', [AdminUserController::class, 'unrestrict'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/admin/users/{id}/promote', [AdminUserController::class, 'promote'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/admin/users/{id}/demote', [AdminUserController::class, 'demote'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 
@@ -126,6 +129,8 @@ $router->post('/admin/reports/{id}/resolve', [AdminReportController::class, 'res
 $router->post('/admin/reports/{id}/dismiss', [AdminReportController::class, 'dismiss'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/admin/reports/{id}/warn', [AdminReportController::class, 'warn'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/admin/reports/{id}/suspend', [AdminReportController::class, 'suspend'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/reports/{id}/restrict', [AdminReportController::class, 'restrict'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/reports/{id}/unrestrict', [AdminReportController::class, 'unrestrict'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 
 $router->get('/admin/categories', [AdminCategoryController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
 $router->get('/admin/categories/create', [AdminCategoryController::class, 'create'], [AuthMiddleware::class, AdminMiddleware::class]);

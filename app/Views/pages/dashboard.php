@@ -35,6 +35,7 @@ $nextRank = (string) ($progression['next_rank'] ?? 'Mythic');
 $nextRankLevel = $progression['next_rank_level'] ?? null;
 $atMaxLevel = $progression['next_level'] === null;
 $dossierNumber = str_pad((string) ($user['id'] ?? 0), 4, '0', STR_PAD_LEFT);
+$isRestricted = account_restricted($user);
 ?>
 <section class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between" data-reveal>
     <div class="min-w-0">
@@ -58,10 +59,12 @@ $dossierNumber = str_pad((string) ($user['id'] ?? 0), 4, '0', STR_PAD_LEFT);
     </div>
 
     <div class="flex flex-wrap items-center gap-2.5">
-        <a href="<?= e(url('/quests/create')) ?>" class="btn btn-app-primary group">
-            <i data-lucide="plus" class="h-4 w-4 transition-transform duration-200 group-hover:rotate-90"></i>
-            New quest
-        </a>
+        <?php if (!$isRestricted): ?>
+            <a href="<?= e(url('/quests/create')) ?>" class="btn btn-app-primary group">
+                <i data-lucide="plus" class="h-4 w-4 transition-transform duration-200 group-hover:rotate-90"></i>
+                New quest
+            </a>
+        <?php endif; ?>
         <a href="<?= e(url('/quests')) ?>" class="btn btn-app-ghost">
             <i data-lucide="scroll-text" class="h-4 w-4"></i>
             Quest log
@@ -297,10 +300,17 @@ $dossierNumber = str_pad((string) ($user['id'] ?? 0), 4, '0', STR_PAD_LEFT);
                         Complete a quest and its XP award will appear here with the time it was claimed.
                         Nothing is fabricated while your log is empty.
                     </p>
-                    <a href="<?= e(url('/quests/create')) ?>" class="mt-4 inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-300 transition hover:text-brand-200">
-                        Create your first quest
-                        <i data-lucide="arrow-right" class="h-3.5 w-3.5" aria-hidden="true"></i>
-                    </a>
+                    <?php if (!$isRestricted): ?>
+                        <a href="<?= e(url('/quests/create')) ?>" class="mt-4 inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-300 transition hover:text-brand-200">
+                            Create your first quest
+                            <i data-lucide="arrow-right" class="h-3.5 w-3.5" aria-hidden="true"></i>
+                        </a>
+                    <?php else: ?>
+                        <p class="mt-4 inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">
+                            <i data-lucide="eye-off" class="h-3.5 w-3.5" aria-hidden="true"></i>
+                            New quests are disabled
+                        </p>
+                    <?php endif; ?>
                 </div>
             <?php else: ?>
                 <ol class="divide-y divide-line">

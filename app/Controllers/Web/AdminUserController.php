@@ -63,6 +63,16 @@ final class AdminUserController
         return $this->moderate($request, $id, 'active');
     }
 
+    public function restrict(Request $request, string $id): Response
+    {
+        return $this->changeRestriction($request, $id, true);
+    }
+
+    public function unrestrict(Request $request, string $id): Response
+    {
+        return $this->changeRestriction($request, $id, false);
+    }
+
     public function promote(Request $request, string $id): Response
     {
         return $this->changeRole($request, $id, 'admin');
@@ -85,6 +95,32 @@ final class AdminUserController
             $status,
             $request->ip(),
             $duration !== '' ? $duration : null,
+            $message !== '' ? $message : null,
+        );
+
+        if ($result['ok']) {
+            Flash::success($result['message']);
+        } else {
+            if (($result['status'] ?? 0) === 404) {
+                throw HttpException::notFound($result['message']);
+            }
+
+            Flash::error($result['message']);
+        }
+
+        return redirect('/admin/users/' . $userId);
+    }
+
+    private function changeRestriction(Request $request, string $id, bool $restricted): Response
+    {
+        $userId = $this->idOr404($id);
+        $actor = $this->actor();
+        $message = $this->stringInput($request, 'message');
+        $result = (new AdminService())->setRestricted(
+            $actor,
+            $userId,
+            $restricted,
+            $request->ip(),
             $message !== '' ? $message : null,
         );
 

@@ -11,6 +11,7 @@
 use App\Support\Recurrence;
 
 $timezone = (string) ($user['timezone'] ?? 'UTC');
+$isRestricted = account_restricted($user);
 $questId = (int) $quest['id'];
 $status = (string) $quest['status'];
 $difficulty = (string) $quest['difficulty'];
@@ -100,11 +101,16 @@ $awardedLabel = $award !== null
         </div>
 
         <div class="flex shrink-0 flex-wrap items-center gap-2">
-            <?php if ($status === 'active'): ?>
+            <?php if ($status === 'active' && !$isRestricted): ?>
                 <a href="<?= e(url('/quests/' . $questId . '/edit')) ?>" class="btn btn-app-ghost">
                     <i data-lucide="pencil" class="h-4 w-4"></i>
                     Edit
                 </a>
+            <?php elseif ($isRestricted): ?>
+                <span class="inline-flex items-center gap-2 rounded-sm border border-line bg-white/[0.02] px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">
+                    <i data-lucide="eye-off" class="h-3.5 w-3.5"></i>
+                    Read-only
+                </span>
             <?php endif; ?>
         </div>
     </div>
@@ -186,13 +192,20 @@ $awardedLabel = $award !== null
                             Completing this quest awards XP exactly once and recalculates your level and rank.
                         <?php endif; ?>
                     </p>
-                    <form method="POST" action="<?= e(url('/quests/' . $questId . '/complete')) ?>" class="mt-4" data-quest-action>
-                        <?= csrf_field() ?>
-                        <button type="submit" class="btn btn-app-primary w-full" data-loading-label="Claiming…">
-                            <i data-lucide="check" class="h-4 w-4"></i>
-                            Complete quest
-                        </button>
-                    </form>
+                    <?php if ($isRestricted): ?>
+                        <p class="mt-4 inline-flex items-center gap-2 rounded-sm border border-line bg-white/[0.02] px-3 py-2 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">
+                            <i data-lucide="eye-off" class="h-3.5 w-3.5"></i>
+                            Completion is disabled
+                        </p>
+                    <?php else: ?>
+                        <form method="POST" action="<?= e(url('/quests/' . $questId . '/complete')) ?>" class="mt-4" data-quest-action>
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-app-primary w-full" data-loading-label="Claiming…">
+                                <i data-lucide="check" class="h-4 w-4"></i>
+                                Complete quest
+                            </button>
+                        </form>
+                    <?php endif; ?>
                 </div>
             </div>
         <?php elseif ($isCompleted): ?>
@@ -230,6 +243,12 @@ $awardedLabel = $award !== null
         <div class="app-panel p-5">
             <p class="app-stat-label">Manage quest</p>
             <div class="mt-3 space-y-2">
+                <?php if ($isRestricted): ?>
+                    <p class="rounded-sm border border-dashed border-line bg-white/[0.01] px-3 py-4 text-[11px] leading-relaxed text-muted">
+                        This account is read-only. Editing, completing, archiving, restoring, and deleting are disabled
+                        while a moderator reviews it.
+                    </p>
+                <?php else: ?>
                 <?php if ($status !== 'archived'): ?>
                     <form
                         method="POST"
@@ -266,6 +285,7 @@ $awardedLabel = $award !== null
                             </button>
                         </form>
                     <?php endif; ?>
+                <?php endif; ?>
                 <?php endif; ?>
             </div>
 

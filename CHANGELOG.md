@@ -29,6 +29,15 @@ All notable changes to Questify are recorded in this file. The format follows
   with an optional message. Timed suspensions store `users.suspended_until` and
   lift automatically after expiry; both actions are audited against the report
   and never identify the reporter.
+- Read-only moderation: admins can limit an account to read-only access with
+  `users.restricted_at` instead of suspending it. The account keeps its sessions,
+  sign-in, public profile, and settings, but `ReadOnlyMiddleware` blocks quest
+  create/edit/complete/archive/restore/delete and report submission with an
+  explanatory banner and flash. The limit can be applied from the user detail or
+  an open profile report and is lifted with a matching unrestricted action; both
+  transitions notify the account and write `user.restricted` /
+  `user.unrestricted` audit entries. A **Read-only** filter and badge are
+  available in the user directory.
 - The admin user detail accepts a suspension length, and the report detail shows
   the reported account's current suspension state.
 
@@ -43,8 +52,12 @@ All notable changes to Questify are recorded in this file. The format follows
 - Admin sidebar rows now render every icon; the bundled Lucide set was missing
   `flag` (Reports), `gavel`, `tag`, `send`, `repeat`, `external-link`,
   `archive-restore`, `circle-slash`, and `triangle-alert`.
+- The admin sidebar no longer leaves **Overview** highlighted while **Users** or
+  another child section is active; `nav_active()` supports an exact-match flag.
 - Disabled admin pagination controls no longer rely on reduced opacity, which
   failed WCAG AA colour contrast on the users and audit pages.
+- Notification messages are no longer truncated at 255 characters, so moderation
+  warnings and read-only notices keep the moderator's full optional message.
 
 ## [1.0.0] - 2026-11-07
 

@@ -23,6 +23,10 @@ $timezone = (string) ($account['timezone'] ?? 'UTC');
 $suspendedUntil = isset($account['suspended_until']) && $account['suspended_until'] !== null
     ? format_datetime((string) $account['suspended_until'], 'UTC', 'j M Y, H:i')
     : null;
+$isRestricted = account_restricted($account);
+$restrictedAt = isset($account['restricted_at']) && $account['restricted_at'] !== null
+    ? format_datetime((string) $account['restricted_at'], 'UTC', 'j M Y, H:i')
+    : null;
 ?>
 <section class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between" data-reveal>
     <div class="min-w-0">
@@ -54,6 +58,12 @@ $suspendedUntil = isset($account['suspended_until']) && $account['suspended_unti
                         <i data-lucide="<?= $account['role'] === 'admin' ? 'shield-check' : 'user-round' ?>" class="h-3 w-3"></i>
                         <?= $account['role'] === 'admin' ? 'Administrator' : 'User' ?>
                     </span>
+                    <?php if ($isRestricted): ?>
+                        <span class="inline-flex items-center gap-1.5 rounded-sm border border-ember-400/30 bg-ember-500/[0.08] px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-ember-300">
+                            <i data-lucide="eye-off" class="h-3 w-3"></i>
+                            Read-only
+                        </span>
+                    <?php endif; ?>
                     <?php if ($isSelf): ?>
                         <span class="rounded-sm border border-line bg-white/[0.03] px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400">You</span>
                     <?php endif; ?>
@@ -69,6 +79,12 @@ $suspendedUntil = isset($account['suspended_until']) && $account['suspended_unti
                         <span class="inline-flex items-center gap-1.5 text-ember-300">
                             <i data-lucide="clock" class="h-3 w-3"></i>
                             <?= $suspendedUntil !== null ? 'Suspended until ' . e($suspendedUntil) . ' UTC' : 'Suspended indefinitely' ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if ($isRestricted): ?>
+                        <span class="inline-flex items-center gap-1.5 text-ember-300">
+                            <i data-lucide="eye-off" class="h-3 w-3"></i>
+                            Read-only since <?= e($restrictedAt ?? '—') ?> UTC
                         </span>
                     <?php endif; ?>
                 </p>
@@ -214,6 +230,40 @@ $suspendedUntil = isset($account['suspended_until']) && $account['suspended_unti
     </article>
 
     <div class="flex min-w-0 flex-col gap-4">
+        <?php if (!$isSelf): ?>
+            <article class="app-panel overflow-hidden">
+                <div class="flex items-center gap-3 border-b border-line px-5 py-4">
+                    <span class="app-panel-icon border-ember-400/20 bg-ember-500/10 text-ember-300">
+                        <i data-lucide="eye-off" class="h-4 w-4"></i>
+                    </span>
+                    <div>
+                        <h2 class="font-display text-sm font-semibold text-white">Read-only access</h2>
+                        <p class="text-[11px] text-muted">
+                            <?= $isRestricted
+                                ? 'This account can browse but cannot change quests or submit reports.'
+                                : 'Limit this account without revoking its sessions.' ?>
+                        </p>
+                    </div>
+                </div>
+                <form
+                    method="POST"
+                    action="<?= e(url('/admin/users/' . (int) $account['id'] . ($isRestricted ? '/unrestrict' : '/restrict'))) ?>"
+                    class="space-y-3 p-4"
+                    <?= $isRestricted ? '' : 'data-confirm="Limit this account to read-only access? It keeps its sessions but cannot create, edit, complete, archive, restore, or delete quests or submit reports."' ?>
+                >
+                    <?= csrf_field() ?>
+                    <div>
+                        <label for="restrict_message" class="field-label">Message to the account (optional)</label>
+                        <textarea id="restrict_message" name="message" rows="2" maxlength="500" class="app-field resize-y" placeholder="<?= $isRestricted ? 'Explain that full access is restored.' : 'Explain the limit to the account.' ?>"></textarea>
+                    </div>
+                    <button type="submit" class="btn <?= $isRestricted ? 'btn-app-primary' : '' ?> px-4 py-2 text-xs <?= $isRestricted ? '' : 'text-ember-300 hover:bg-ember-500/10 hover:text-ember-200' ?>">
+                        <i data-lucide="<?= $isRestricted ? 'shield-check' : 'eye-off' ?>" class="h-3.5 w-3.5"></i>
+                        <?= $isRestricted ? 'Restore full access' : 'Limit to read-only' ?>
+                    </button>
+                </form>
+            </article>
+        <?php endif; ?>
+
         <article class="app-panel overflow-hidden">
             <div class="flex items-center gap-3 border-b border-line px-5 py-4">
                 <span class="app-panel-icon border-brand-400/30 bg-brand-400/10 text-brand-300">
