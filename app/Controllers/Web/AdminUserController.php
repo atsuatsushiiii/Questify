@@ -50,6 +50,7 @@ final class AdminUserController
             'description' => 'Account statistics, quests, ledger activity, sessions, and audit history.',
             'detail' => $detail,
             'suspensionOptions' => AdminService::SUSPENSION_OPTIONS,
+            'restrictionOptions' => AdminService::RESTRICTION_OPTIONS,
         ], 'layouts/app');
     }
 
@@ -116,12 +117,14 @@ final class AdminUserController
         $userId = $this->idOr404($id);
         $actor = $this->actor();
         $message = $this->stringInput($request, 'message');
+        $duration = $restricted ? $this->stringInput($request, 'duration') : '';
         $result = (new AdminService())->setRestricted(
             $actor,
             $userId,
             $restricted,
             $request->ip(),
             $message !== '' ? $message : null,
+            $duration !== '' ? $duration : null,
         );
 
         if ($result['ok']) {

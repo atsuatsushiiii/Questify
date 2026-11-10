@@ -21,7 +21,7 @@ use App\Models\User;
  */
 final class ReadOnlyMiddleware
 {
-    public const MESSAGE = 'Your account is read-only. You can browse and review your quests, but creating, editing, completing, archiving, restoring, or deleting quests and submitting reports is disabled while a moderator reviews your account.';
+    public const MESSAGE = 'Your account is read-only. You can browse and review your quests, but creating, editing, completing, archiving, restoring, or deleting quests and submitting reports is disabled while a moderator reviews your account. You can request a review from the read-only banner.';
 
     public function handle(Request $request, callable $next): Response
     {

@@ -2042,12 +2042,14 @@ check(
 
 $reportRestrict = $adminClient->post('/admin/reports/' . $restrictedReportId . '/restrict', [
     '_csrf_token' => csrfFor($adminClient, '/admin/reports/' . $restrictedReportId),
+    'duration' => '7',
     'message' => 'Limited while the report is reviewed.',
 ]);
 check(
     'An open report can limit the reported account to read-only',
     $reportRestrict['status'] === 302
         && (string) (row($pdo, 'SELECT restricted_at FROM users WHERE id = ?', [$userId])['restricted_at'] ?? '') !== ''
+        && (string) (row($pdo, 'SELECT restricted_until FROM users WHERE id = ?', [$userId])['restricted_until'] ?? '') !== ''
         && (string) (row($pdo, 'SELECT status FROM reports WHERE id = ?', [$restrictedReportId])['status'] ?? '') === 'open',
 );
 check(
@@ -2086,6 +2088,241 @@ check(
     'An administrator cannot limit their own account',
     $selfRestrict['status'] === 302
         && row($pdo, 'SELECT restricted_at FROM users WHERE id = ?', [$adminId])['restricted_at'] === null,
+);
+
+echo "\n7c. Timed read-only limits and appeals\n";
+
+$timedRestrict = $adminClient->post('/admin/users/' . $userId . '/restrict', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/users/' . $userId),
+    'duration' => '1',
+    'message' => 'A one-day read-only limit for this test.',
+]);
+$timedRow = row($pdo, 'SELECT restricted_at, restricted_until FROM users WHERE id = ?', [$userId]);
+$timedUntil = (string) ($timedRow['restricted_until'] ?? '');
+check(
+    'A timed restriction stores an expiry in the future',
+    $timedRestrict['status'] === 302
+        && (string) ($timedRow['restricted_at'] ?? '') !== ''
+        && $timedUntil !== ''
+        && strtotime($timedUntil . ' UTC') > time(),
+);
+
+$timedDashboard = $userClient->get('/dashboard');
+check(
+    'The read-only banner shows the expiry for a timed limit',
+    $timedDashboard['status'] === 200
+        && contains($timedDashboard['body'], 'This limit ends on'),
+);
+
+$timedDetail = $adminClient->get('/admin/users/' . $userId);
+check(
+    'The admin user detail shows the expiry for a timed limit',
+    $timedDetail['status'] === 200 && contains($timedDetail['body'], 'Read-only until'),
+);
+
+$pdo->prepare('UPDATE users SET restricted_until = ? WHERE id = ?')
+    ->execute([gmdate('Y-m-d H:i:s', time() - 60), $userId]);
+$expiredDashboard = $userClient->get('/dashboard');
+check(
+    'An expired timed restriction lifts on the next authenticated request',
+    $expiredDashboard['status'] === 200
+        && !contains($expiredDashboard['body'], 'Read-only account')
+        && row($pdo, 'SELECT restricted_at FROM users WHERE id = ?', [$userId])['restricted_at'] === null,
+);
+
+$appealRestrict = $adminClient->post('/admin/users/' . $userId . '/restrict', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/users/' . $userId),
+    'duration' => '7',
+    'message' => 'Read-only while the appeal test runs.',
+]);
+check(
+    'The account is read-only again for the appeal flow',
+    $appealRestrict['status'] === 302
+        && (string) (row($pdo, 'SELECT restricted_at FROM users WHERE id = ?', [$userId])['restricted_at'] ?? '') !== '',
+);
+
+$guestAppeal = $guestClient->get('/appeal');
+check(
+    'A guest is redirected from the appeal page to sign in',
+    $guestAppeal['status'] === 302
+        && str_ends_with((string) ($guestAppeal['headers']['location'] ?? ''), '/login'),
+);
+
+$adminAppealPage = $adminClient->get('/appeal');
+check(
+    'An account with full access is redirected away from the appeal form',
+    $adminAppealPage['status'] === 302
+        && str_ends_with((string) ($adminAppealPage['headers']['location'] ?? ''), '/dashboard'),
+);
+
+$appealPage = $userClient->get('/appeal');
+check(
+    'A read-only account can open the appeal form',
+    $appealPage['status'] === 200
+        && contains($appealPage['body'], 'Request a review')
+        && contains($appealPage['body'], 'name="message"'),
+);
+
+$shortAppeal = $userClient->post('/appeal', [
+    '_csrf_token' => csrfFor($userClient, '/dashboard'),
+    'message' => 'Too short.',
+]);
+check(
+    'An appeal shorter than the minimum is rejected',
+    $shortAppeal['status'] === 302
+        && scalar($pdo, 'SELECT COUNT(*) FROM account_appeals WHERE user_id = ?', [$userId]) === 0,
+);
+
+$appealMessage = 'I believe the read-only limit on my account was applied by mistake and would like it reviewed.';
+$validAppeal = $userClient->post('/appeal', [
+    '_csrf_token' => csrfFor($userClient, '/dashboard'),
+    'message' => $appealMessage,
+]);
+$firstAppeal = row($pdo, 'SELECT * FROM account_appeals WHERE user_id = ? ORDER BY id ASC LIMIT 1', [$userId]);
+$firstAppealId = (int) ($firstAppeal['id'] ?? 0);
+check(
+    'A read-only account can submit an appeal',
+    $validAppeal['status'] === 302
+        && $firstAppealId > 0
+        && (string) ($firstAppeal['status'] ?? '') === 'open',
+);
+check(
+    'Submitting an appeal is audited and acknowledged',
+    scalar(
+        $pdo,
+        "SELECT COUNT(*) FROM audit_logs WHERE action = 'appeal.submitted' AND target_type = 'appeal' AND target_id = ?",
+        [$firstAppealId],
+    ) === 1
+        && scalar(
+            $pdo,
+            "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND type = 'moderation' AND title = 'Appeal received'",
+            [$userId],
+        ) === 1,
+);
+
+$duplicateAppeal = $userClient->post('/appeal', [
+    '_csrf_token' => csrfFor($userClient, '/dashboard'),
+    'message' => 'A second appeal while the first one is still waiting for a moderator.',
+]);
+check(
+    'Only one appeal can be open at a time',
+    $duplicateAppeal['status'] === 302
+        && scalar($pdo, 'SELECT COUNT(*) FROM account_appeals WHERE user_id = ?', [$userId]) === 1,
+);
+
+$appealsQueue = $adminClient->get('/admin/appeals');
+check(
+    'The admin appeals queue lists the open appeal',
+    $appealsQueue['status'] === 200
+        && contains($appealsQueue['body'], 'Appeals queue')
+        && contains($appealsQueue['body'], '@' . $userUsername),
+);
+
+$appealDetail = $adminClient->get('/admin/appeals/' . $firstAppealId);
+check(
+    'The admin appeal detail shows the message and decision controls',
+    $appealDetail['status'] === 200
+        && contains($appealDetail['body'], $appealMessage)
+        && contains($appealDetail['body'], 'Accept and restore access')
+        && contains($appealDetail['body'], 'Deny appeal'),
+);
+
+check(
+    'A normal account cannot open the admin appeals queue',
+    $userClient->get('/admin/appeals')['status'] === 403,
+);
+
+$denyAppeal = $adminClient->post('/admin/appeals/' . $firstAppealId . '/deny', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/appeals/' . $firstAppealId),
+    'resolution_note' => 'The limit stays until the review is complete.',
+]);
+check(
+    'Denying an appeal keeps the read-only limit',
+    $denyAppeal['status'] === 302
+        && (string) (row($pdo, 'SELECT status FROM account_appeals WHERE id = ?', [$firstAppealId])['status'] ?? '') === 'denied'
+        && (string) (row($pdo, 'SELECT restricted_at FROM users WHERE id = ?', [$userId])['restricted_at'] ?? '') !== '',
+);
+check(
+    'A denied appeal is audited and the account is notified',
+    scalar($pdo, "SELECT COUNT(*) FROM audit_logs WHERE action = 'appeal.denied' AND target_id = ?", [$firstAppealId]) === 1
+        && scalar(
+            $pdo,
+            "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND type = 'moderation' AND title = 'Appeal denied'",
+            [$userId],
+        ) === 1,
+);
+
+$cooldownAppeal = $userClient->post('/appeal', [
+    '_csrf_token' => csrfFor($userClient, '/dashboard'),
+    'message' => 'I would like to appeal again immediately after the decision.',
+]);
+check(
+    'A new appeal is blocked during the 24-hour cooldown',
+    $cooldownAppeal['status'] === 302
+        && scalar($pdo, 'SELECT COUNT(*) FROM account_appeals WHERE user_id = ?', [$userId]) === 1,
+);
+
+$pdo->prepare('UPDATE account_appeals SET resolved_at = ?, updated_at = ? WHERE id = ?')
+    ->execute([
+        gmdate('Y-m-d H:i:s', time() - 90000),
+        gmdate('Y-m-d H:i:s', time() - 90000),
+        $firstAppealId,
+    ]);
+$secondAppeal = $userClient->post('/appeal', [
+    '_csrf_token' => csrfFor($userClient, '/dashboard'),
+    'message' => 'The earlier decision is now outside the cooldown, so I am requesting another review.',
+]);
+$secondAppealRow = row($pdo, 'SELECT * FROM account_appeals WHERE user_id = ? ORDER BY id DESC LIMIT 1', [$userId]);
+$secondAppealId = (int) ($secondAppealRow['id'] ?? 0);
+check(
+    'A second appeal is allowed after the cooldown',
+    $secondAppeal['status'] === 302
+        && $secondAppealId > $firstAppealId
+        && (string) ($secondAppealRow['status'] ?? '') === 'open',
+);
+
+$acceptAppeal = $adminClient->post('/admin/appeals/' . $secondAppealId . '/accept', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/appeals/' . $secondAppealId),
+    'resolution_note' => 'Thanks for the context. Your full access is restored.',
+]);
+check(
+    'Accepting an appeal lifts the read-only limit',
+    $acceptAppeal['status'] === 302
+        && (string) (row($pdo, 'SELECT status FROM account_appeals WHERE id = ?', [$secondAppealId])['status'] ?? '') === 'accepted'
+        && row($pdo, 'SELECT restricted_at FROM users WHERE id = ?', [$userId])['restricted_at'] === null,
+);
+check(
+    'Accepting an appeal is audited as a decision and an unrestricted account',
+    scalar($pdo, "SELECT COUNT(*) FROM audit_logs WHERE action = 'appeal.accepted' AND target_id = ?", [$secondAppealId]) === 1
+        && scalar(
+            $pdo,
+            "SELECT COUNT(*) FROM audit_logs
+             WHERE action = 'user.unrestricted' AND target_type = 'user' AND target_id = ?
+               AND JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.appeal_id')) = ?",
+            [$userId, (string) $secondAppealId],
+        ) === 1,
+);
+check(
+    'The accepted appeal notifies the account',
+    scalar(
+        $pdo,
+        "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND type = 'moderation' AND title = 'Appeal accepted'",
+        [$userId],
+    ) === 1,
+);
+check(
+    'The account can create quests again after the appeal is accepted',
+    $userClient->get('/quests/create')['status'] === 200,
+);
+
+$repeatDeny = $adminClient->post('/admin/appeals/' . $secondAppealId . '/deny', [
+    '_csrf_token' => csrfFor($adminClient, '/admin/appeals/' . $secondAppealId),
+    'resolution_note' => 'This decision should not be possible.',
+]);
+check(
+    'A decided appeal cannot be reviewed again',
+    $repeatDeny['status'] === 302
+        && (string) (row($pdo, 'SELECT status FROM account_appeals WHERE id = ?', [$secondAppealId])['status'] ?? '') === 'accepted',
 );
 
 echo "\n8. Audit trail\n";
@@ -2139,10 +2376,13 @@ check(
         && contains($auditUnknownActor['body'], 'No audit entries match'),
 );
 
+$recentAuditSummary = (string) (AuditLog::paginate(['actor' => $adminUsername], 1, 1)[0]['summary'] ?? '');
 $auditInvalidTarget = $adminClient->get('/admin/audit?target_type=not-a-target');
 check(
     'Audit log ignores unknown target types and still lists entries',
-    $auditInvalidTarget['status'] === 200 && contains($auditInvalidTarget['body'], 'Created category'),
+    $auditInvalidTarget['status'] === 200
+        && $recentAuditSummary !== ''
+        && contains($auditInvalidTarget['body'], $recentAuditSummary),
 );
 
 check(

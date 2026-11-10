@@ -46,6 +46,7 @@ if (($user['role'] ?? '') === 'admin') {
             ['label' => 'Users', 'href' => '/admin/users', 'icon' => 'users', 'phase' => null],
             ['label' => 'Quests', 'href' => '/admin/quests', 'icon' => 'scroll-text', 'phase' => null],
             ['label' => 'Reports', 'href' => '/admin/reports', 'icon' => 'flag', 'phase' => null],
+            ['label' => 'Appeals', 'href' => '/admin/appeals', 'icon' => 'scale', 'phase' => null],
             ['label' => 'Categories', 'href' => '/admin/categories', 'icon' => 'folder-tree', 'phase' => null],
             ['label' => 'Achievements', 'href' => '/admin/achievements', 'icon' => 'award', 'phase' => null],
             ['label' => 'Audit log', 'href' => '/admin/audit', 'icon' => 'history', 'phase' => null],

@@ -195,7 +195,10 @@ $reporterAvatar = avatar_url(isset($report['reporter_avatar_path']) ? (string) $
                         <span class="rounded-sm border border-line bg-white/[0.03] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-400"><?= e(ucfirst((string) $account['status'])) ?></span>
                         <span class="rounded-sm border border-line bg-white/[0.03] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-400"><?= (int) $account['show_profile'] === 1 ? 'Profile public' : 'Profile hidden' ?></span>
                         <?php if (account_restricted($account)): ?>
-                            <span class="rounded-sm border border-ember-400/30 bg-ember-500/[0.08] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-ember-300">Read-only</span>
+                            <?php $badgeRestrictedUntil = isset($account['restricted_until']) && $account['restricted_until'] !== null
+                                ? format_datetime((string) $account['restricted_until'], 'UTC', 'j M Y, H:i')
+                                : null; ?>
+                            <span class="rounded-sm border border-ember-400/30 bg-ember-500/[0.08] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-ember-300">Read-only<?= $badgeRestrictedUntil !== null ? ' until ' . e($badgeRestrictedUntil) . ' UTC' : '' ?></span>
                         <?php endif; ?>
                     </div>
                     <div class="mt-4 grid gap-2">
@@ -267,6 +270,9 @@ $reporterAvatar = avatar_url(isset($report['reporter_avatar_path']) ? (string) $
         ? format_datetime((string) $account['suspended_until'], 'UTC', 'j M Y, H:i')
         : null;
     $targetRestricted = account_restricted($account);
+    $targetRestrictedUntil = isset($account['restricted_until']) && $account['restricted_until'] !== null
+        ? format_datetime((string) $account['restricted_until'], 'UTC', 'j M Y, H:i')
+        : null;
     ?>
     <section class="mt-4" data-reveal>
         <article class="app-panel overflow-hidden">
@@ -338,12 +344,22 @@ $reporterAvatar = avatar_url(isset($report['reporter_avatar_path']) ? (string) $
                         <p class="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-dim">Read-only access</p>
                         <p class="mt-1 text-[11px] text-muted">
                             <?php if ($targetRestricted): ?>
-                                Currently read-only. Restoring full access lets the account change quests and submit reports again.
+                                Currently read-only<?= $targetRestrictedUntil !== null ? ' until ' . e($targetRestrictedUntil) . ' UTC' : '' ?>. Restoring full access lets the account change quests and submit reports again.
                             <?php else: ?>
                                 Keeps the account signed in but blocks quest changes and report submission.
                             <?php endif; ?>
                         </p>
                     </div>
+                    <?php if (!$targetRestricted): ?>
+                        <div>
+                            <label for="restrict_duration" class="field-label">Read-only length</label>
+                            <select id="restrict_duration" name="duration" class="app-field py-2 text-xs">
+                                <?php foreach ($restrictionOptions as $value => $label): ?>
+                                    <option value="<?= e($value) ?>" <?= $value === 'permanent' ? 'selected' : '' ?>><?= e($label) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endif; ?>
                     <div>
                         <label for="restrict_message" class="field-label">Message (optional)</label>
                         <textarea id="restrict_message" name="message" rows="2" maxlength="500" class="app-field resize-y" placeholder="<?= $targetRestricted ? 'Explain that full access is restored.' : 'Explain the limit to the account.' ?>"></textarea>

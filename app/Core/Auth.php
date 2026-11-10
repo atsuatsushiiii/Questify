@@ -43,6 +43,12 @@ final class Auth
                 }
             }
 
+            if ($user !== null && User::restrictionExpired($user)) {
+                if (User::liftRestrictionIfExpired((int) $user['id'])) {
+                    $user = User::find((int) $user['id']);
+                }
+            }
+
             if ($user !== null && ($user['status'] ?? '') === 'active') {
                 self::$user = self::sanitize($user);
 
@@ -217,6 +223,12 @@ final class Auth
 
         if ($user !== null && User::suspensionExpired($user)) {
             if (User::liftSuspensionIfExpired((int) $user['id'])) {
+                $user = User::find((int) $user['id']);
+            }
+        }
+
+        if ($user !== null && User::restrictionExpired($user)) {
+            if (User::liftRestrictionIfExpired((int) $user['id'])) {
                 $user = User::find((int) $user['id']);
             }
         }

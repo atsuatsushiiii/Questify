@@ -229,11 +229,16 @@ final class NotificationService
         int $userId,
         ?int $reportId,
         string $reasonLabel,
+        ?string $until = null,
         ?string $message = null,
     ): bool {
         $message = $message !== null ? trim($message) : '';
-        $body = 'An administrator limited your account to read-only access after a review for ' . $reasonLabel
-            . '. You can still sign in and browse, but creating, editing, completing, archiving, restoring, or deleting quests and submitting reports is disabled.';
+        $duration = $until === null || $until === ''
+            ? 'indefinitely'
+            : 'until ' . (format_datetime($until, 'UTC', 'j M Y, H:i') ?? $until) . ' UTC';
+        $body = 'An administrator limited your account to read-only access ' . $duration
+            . ' after a review for ' . $reasonLabel
+            . '. You can still sign in and browse, but creating, editing, completing, archiving, restoring, or deleting quests and submitting reports is disabled. You can request a review from the read-only banner.';
 
         if ($message !== '') {
             $body .= ' ' . $message;
@@ -286,6 +291,77 @@ final class NotificationService
             'related_type' => $reportId !== null ? 'report' : 'user',
             'related_id' => $reportId ?? $userId,
             'event_key' => $key,
+        ]);
+    }
+
+    /**
+     * Confirm that a read-only account's appeal was received.
+     */
+    public static function appealReceived(PDO $db, int $userId, int $appealId): bool
+    {
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'moderation',
+            'title' => 'Appeal received',
+            'message' => 'Your appeal was received. A moderator will review the read-only limit on your account and reply here.',
+            'icon' => 'scale',
+            'url' => '/appeal',
+            'related_type' => 'appeal',
+            'related_id' => $appealId,
+            'event_key' => 'appeal.received:' . $appealId,
+        ]);
+    }
+
+    /**
+     * Tell an account that its appeal succeeded and full access is restored.
+     */
+    public static function appealAccepted(PDO $db, int $userId, int $appealId, ?string $note = null): bool
+    {
+        $note = $note !== null ? trim($note) : '';
+        $body = 'A moderator reviewed your appeal and restored full access to your account. '
+            . 'You can create, edit, complete, archive, restore, and delete quests again.';
+
+        if ($note !== '') {
+            $body .= ' ' . $note;
+        }
+
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'moderation',
+            'title' => 'Appeal accepted',
+            'message' => $body,
+            'icon' => 'shield-check',
+            'url' => '/notifications',
+            'related_type' => 'appeal',
+            'related_id' => $appealId,
+            'event_key' => 'appeal.accepted:' . $appealId,
+        ]);
+    }
+
+    /**
+     * Tell an account that its appeal was denied and the limit stays.
+     */
+    public static function appealDenied(PDO $db, int $userId, int $appealId, ?string $note = null): bool
+    {
+        $note = $note !== null ? trim($note) : '';
+        $body = 'A moderator reviewed your appeal and kept the read-only limit in place.';
+
+        if ($note !== '') {
+            $body .= ' ' . $note;
+        }
+
+        $body .= ' You can submit another appeal after 24 hours.';
+
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'moderation',
+            'title' => 'Appeal denied',
+            'message' => $body,
+            'icon' => 'gavel',
+            'url' => '/appeal',
+            'related_type' => 'appeal',
+            'related_id' => $appealId,
+            'event_key' => 'appeal.denied:' . $appealId,
         ]);
     }
 

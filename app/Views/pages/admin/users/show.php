@@ -6,6 +6,7 @@
  *
  * @var array<string, mixed> $detail
  * @var array<string, string> $suspensionOptions
+ * @var array<string, string> $restrictionOptions
  */
 $account = $detail['user'];
 $questCounts = $detail['questCounts'];
@@ -27,6 +28,16 @@ $isRestricted = account_restricted($account);
 $restrictedAt = isset($account['restricted_at']) && $account['restricted_at'] !== null
     ? format_datetime((string) $account['restricted_at'], 'UTC', 'j M Y, H:i')
     : null;
+$restrictedUntil = isset($account['restricted_until']) && $account['restricted_until'] !== null
+    ? format_datetime((string) $account['restricted_until'], 'UTC', 'j M Y, H:i')
+    : null;
+$appeals = $detail['appeals'] ?? [];
+$appealStatusTones = [
+    'open' => 'border-ember-400/30 bg-ember-500/[0.08] text-ember-300',
+    'accepted' => 'border-aqua-400/30 bg-aqua-500/[0.08] text-aqua-300',
+    'denied' => 'border-line bg-white/[0.03] text-slate-400',
+];
+$appealStatusLabels = ['open' => 'Open', 'accepted' => 'Accepted', 'denied' => 'Denied'];
 ?>
 <section class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between" data-reveal>
     <div class="min-w-0">
@@ -84,7 +95,9 @@ $restrictedAt = isset($account['restricted_at']) && $account['restricted_at'] !=
                     <?php if ($isRestricted): ?>
                         <span class="inline-flex items-center gap-1.5 text-ember-300">
                             <i data-lucide="eye-off" class="h-3 w-3"></i>
-                            Read-only since <?= e($restrictedAt ?? '—') ?> UTC
+                            <?= $restrictedUntil !== null
+                                ? 'Read-only until ' . e($restrictedUntil) . ' UTC'
+                                : 'Read-only since ' . e($restrictedAt ?? '—') . ' UTC' ?>
                         </span>
                     <?php endif; ?>
                 </p>
@@ -252,6 +265,17 @@ $restrictedAt = isset($account['restricted_at']) && $account['restricted_at'] !=
                     <?= $isRestricted ? '' : 'data-confirm="Limit this account to read-only access? It keeps its sessions but cannot create, edit, complete, archive, restore, or delete quests or submit reports."' ?>
                 >
                     <?= csrf_field() ?>
+                    <?php if (!$isRestricted): ?>
+                        <div>
+                            <label for="restrict_duration" class="field-label">Read-only length</label>
+                            <select id="restrict_duration" name="duration" class="app-field py-2 text-xs">
+                                <?php foreach ($restrictionOptions as $value => $label): ?>
+                                    <option value="<?= e($value) ?>" <?= $value === 'permanent' ? 'selected' : '' ?>><?= e($label) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="mt-1.5 text-[10px] text-muted-dim">Timed limits lift automatically; permanent limits wait for a moderator.</p>
+                        </div>
+                    <?php endif; ?>
                     <div>
                         <label for="restrict_message" class="field-label">Message to the account (optional)</label>
                         <textarea id="restrict_message" name="message" rows="2" maxlength="500" class="app-field resize-y" placeholder="<?= $isRestricted ? 'Explain that full access is restored.' : 'Explain the limit to the account.' ?>"></textarea>
@@ -261,6 +285,47 @@ $restrictedAt = isset($account['restricted_at']) && $account['restricted_at'] !=
                         <?= $isRestricted ? 'Restore full access' : 'Limit to read-only' ?>
                     </button>
                 </form>
+            </article>
+
+            <article class="app-panel overflow-hidden">
+                <div class="flex items-center gap-3 border-b border-line px-5 py-4">
+                    <span class="app-panel-icon border-brand-400/30 bg-brand-400/10 text-brand-300">
+                        <i data-lucide="scale" class="h-4 w-4"></i>
+                    </span>
+                    <div>
+                        <h2 class="font-display text-sm font-semibold text-white">Account appeals</h2>
+                        <p class="text-[11px] text-muted">
+                            <?= $appeals === []
+                                ? 'This account has not requested a review.'
+                                : 'The newest requests from this account.' ?>
+                        </p>
+                    </div>
+                </div>
+                <?php if ($appeals !== []): ?>
+                    <ol class="divide-y divide-white/[0.04]">
+                        <?php foreach ($appeals as $appeal): ?>
+                            <?php $appealStatus = (string) $appeal['status']; ?>
+                            <li class="px-4 py-3">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <a href="<?= e(url('/admin/appeals/' . (int) $appeal['id'])) ?>" class="font-mono text-[10px] font-semibold text-brand-300/80 transition hover:text-brand-200">#<?= e((string) $appeal['id']) ?></a>
+                                    <span class="inline-flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5 font-mono text-[8px] font-semibold uppercase tracking-[0.12em] <?= e($appealStatusTones[$appealStatus] ?? $appealStatusTones['denied']) ?>">
+                                        <?= e($appealStatusLabels[$appealStatus] ?? ucfirst($appealStatus)) ?>
+                                    </span>
+                                </div>
+                                <p class="mt-1 truncate text-[11px] text-muted"><?= e((string) $appeal['message']) ?></p>
+                                <p class="mt-1 font-mono text-[9px] uppercase tracking-[0.08em] text-muted-dim">
+                                    <?= e(format_datetime((string) $appeal['created_at'], 'UTC', 'j M Y, H:i') ?? '—') ?> UTC
+                                </p>
+                            </li>
+                        <?php endforeach; ?>
+                    </ol>
+                <?php endif; ?>
+                <div class="border-t border-line p-3">
+                    <a href="<?= e(url('/admin/appeals?search=' . rawurlencode((string) $account['username']))) ?>" class="btn btn-app-ghost w-full px-3 py-2 text-xs">
+                        <i data-lucide="scale" class="h-3.5 w-3.5"></i>
+                        All appeals for this account
+                    </a>
+                </div>
             </article>
         <?php endif; ?>
 

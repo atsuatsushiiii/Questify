@@ -391,7 +391,7 @@ final class User
 
         $statement = Database::connection()->prepare(
             'SELECT id, username, email, display_name, avatar_path, role, status,
-                    suspended_until, restricted_at,
+                    suspended_until, restricted_at, restricted_until,
                     xp_total, level, current_streak, longest_streak, created_at, updated_at, last_login_at
              FROM users'
             . $where
@@ -519,17 +519,63 @@ final class User
     /**
      * Limit an account to read-only access without suspending it. The account
      * keeps its sessions and can still sign in, browse, and manage settings.
+     * A null expiry means the limit stays until an administrator lifts it.
      */
-    public static function setRestricted(int $id, bool $restricted): bool
+    public static function setRestricted(int $id, bool $restricted, ?string $restrictedUntil = null): bool
     {
         $statement = Database::connection()->prepare(
             'UPDATE users
              SET restricted_at = ' . ($restricted ? 'UTC_TIMESTAMP()' : 'NULL') . ',
+                 restricted_until = ?,
                  updated_at = UTC_TIMESTAMP()
              WHERE id = ?',
         );
 
-        return $statement->execute([$id]);
+        return $statement->execute([
+            $restricted ? $restrictedUntil : null,
+            $id,
+        ]);
+    }
+
+    /**
+     * Lift a single read-only limit if it has expired, returning whether it
+     * changed. The timestamp alone already makes an expired limit inactive;
+     * this keeps the stored row tidy after the account returns.
+     */
+    public static function liftRestrictionIfExpired(int $id): bool
+    {
+        $statement = Database::connection()->prepare(
+            'UPDATE users
+             SET restricted_at = NULL, restricted_until = NULL, updated_at = UTC_TIMESTAMP()
+             WHERE id = ?
+               AND restricted_at IS NOT NULL
+               AND restricted_until IS NOT NULL
+               AND restricted_until <= UTC_TIMESTAMP()',
+        );
+        $statement->execute([$id]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    /**
+     * @param array<string, mixed> $user
+     */
+    public static function restrictionExpired(array $user): bool
+    {
+        if (
+            !isset($user['restricted_at'])
+            || $user['restricted_at'] === null
+            || $user['restricted_at'] === ''
+        ) {
+            return false;
+        }
+
+        $until = $user['restricted_until'] ?? null;
+
+        return is_string($until)
+            && $until !== ''
+            && strtotime($until . ' UTC') !== false
+            && strtotime($until . ' UTC') <= time();
     }
 
     /**
@@ -537,9 +583,23 @@ final class User
      */
     public static function isRestricted(array $user): bool
     {
-        return isset($user['restricted_at'])
-            && $user['restricted_at'] !== null
-            && $user['restricted_at'] !== '';
+        if (
+            !isset($user['restricted_at'])
+            || $user['restricted_at'] === null
+            || $user['restricted_at'] === ''
+        ) {
+            return false;
+        }
+
+        $until = $user['restricted_until'] ?? null;
+
+        if (!is_string($until) || $until === '') {
+            return true;
+        }
+
+        $expires = strtotime($until . ' UTC');
+
+        return $expires === false || $expires > time();
     }
 
     public static function setRole(int $id, string $role): bool
@@ -577,7 +637,8 @@ final class User
         }
 
         if (($filters['status'] ?? '') === 'restricted') {
-            $clauses[] = 'restricted_at IS NOT NULL';
+            $clauses[] = 'restricted_at IS NOT NULL
+                AND (restricted_until IS NULL OR restricted_until > UTC_TIMESTAMP())';
         } elseif (in_array($filters['status'] ?? '', ['active', 'suspended'], true)) {
             $clauses[] = 'status = ?';
             $parameters[] = $filters['status'];

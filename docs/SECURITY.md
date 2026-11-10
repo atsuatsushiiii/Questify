@@ -35,13 +35,24 @@ working exploit. Include the route, the request, and the observed behaviour.
   keep `suspended_until` null.
 - Read-only accounts are a separate, non-suspending control: `users.restricted_at`
   is set while `status` stays `active`, so the account keeps its session, sign-in,
-  public profile, and settings. `ReadOnlyMiddleware` is applied after
-  authentication and before CSRF on every quest mutation and on report form
-  access/submission, returning a `403` for JSON callers and an explanatory flash
-  redirect for browsers. Browsing, dashboards, achievements, leaderboards,
+  public profile, and settings. `users.restricted_until` optionally stores an
+  expiry (1, 2, 3, 7, 14, or 30 days; null means permanent). `ReadOnlyMiddleware`
+  is applied after authentication and before CSRF on every quest mutation and on
+  report form access/submission, returning a `403` for JSON callers and an
+  explanatory flash redirect for browsers. An expired `restricted_until` is
+  treated as lifted by `User::isRestricted()` and cleared on the next
+  authenticated request. Browsing, dashboards, achievements, leaderboards,
   notifications, and settings remain available. A read-only account cannot
   escalate its own state; only an administrator can set or clear the timestamp,
   and each transition is audited as `user.restricted` / `user.unrestricted`.
+- Appeals are the only write-like route a read-only account retains. `/appeal`
+  deliberately omits `ReadOnlyMiddleware`, but still requires authentication and
+  CSRF on submission. The service enforces a 20–2000 character message, one open
+  appeal per account, and a 24-hour cooldown after a decision. Accepting and
+  denying are admin-only, CSRF-protected mutations that only apply while the
+  appeal is open; accepting clears the read-only limit and audits both
+  `appeal.accepted` and `user.unrestricted`, while denying keeps the limit and
+  audits `appeal.denied`. Closed appeals are immutable.
 - Google sign-in uses OpenID Connect with the authorization-code grant, PKCE
   (`S256`), a single-use session-bound `state`, and a `nonce`. The ID token is
   received directly from Google's token endpoint over TLS; issuer, audience,
@@ -90,8 +101,11 @@ working exploit. Include the route, the request, and the observed behaviour.
   that names the reason and, for a suspension, its expiry, but never the
   reporter's identity or the private resolution note. Suspending from a report
   uses the same session/token revocation and `suspended_until` rules as the user
-  detail page; restricting from a report sets `restricted_at` without revoking
-  sessions.
+  detail page; restricting from a report sets `restricted_at` and
+  `restricted_until` without revoking sessions.
+- The appeals queue and detail pages sit behind `AuthMiddleware` +
+  `AdminMiddleware`. Accept/deny is CSRF-protected, refuses a closed appeal, and
+  cannot be used by the appealing account against itself.
 - Admin mutations enforce self-protection and last-administrator rules
   server-side; the disabled buttons are not the security boundary.
 - `tests/Unit/RouteAuthorizationTest.php` fails if an `/admin` route is added

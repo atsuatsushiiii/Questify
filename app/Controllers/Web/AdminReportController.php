@@ -66,6 +66,7 @@ final class AdminReportController
             'detail' => $detail,
             'reasons' => Report::REASONS,
             'suspensionOptions' => AdminService::SUSPENSION_OPTIONS,
+            'restrictionOptions' => AdminService::RESTRICTION_OPTIONS,
         ], 'layouts/app');
     }
 
@@ -115,6 +116,8 @@ final class AdminReportController
     public function restrict(Request $request, string $id): Response
     {
         $reportId = $this->idOr404($id);
+        $duration = $request->input('duration', '');
+        $duration = is_string($duration) ? trim($duration) : null;
         $message = $request->input('message', '');
         $message = is_string($message) ? trim($message) : null;
         $result = (new AdminService())->restrictReportedUser(
@@ -122,6 +125,7 @@ final class AdminReportController
             $reportId,
             $message,
             $request->ip(),
+            $duration,
         );
 
         return $this->accountActionResponse($reportId, $result);

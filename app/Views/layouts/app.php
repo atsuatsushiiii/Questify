@@ -42,6 +42,11 @@ foreach ($appNav as $section) {
 $sidebarState = ($_COOKIE['questify_sidebar'] ?? '') === 'collapsed' ? 'collapsed' : 'expanded';
 $isAdminSurface = nav_active('/admin');
 $isRestricted = account_restricted($currentUser);
+$restrictedUntilLabel = $isRestricted
+    && isset($currentUser['restricted_until'])
+    && $currentUser['restricted_until'] !== null
+    ? format_datetime((string) $currentUser['restricted_until'], 'UTC', 'j M Y, H:i')
+    : null;
 ?>
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
@@ -105,7 +110,14 @@ $isRestricted = account_restricted($currentUser);
                                 A moderator has limited this account while it is reviewed. You can still sign in, browse,
                                 and review your quests, but creating, editing, completing, archiving, restoring, or deleting
                                 quests and submitting reports is disabled.
+                                <?php if ($restrictedUntilLabel !== null): ?>
+                                    This limit ends on <?= e($restrictedUntilLabel) ?> UTC.
+                                <?php endif; ?>
                             </p>
+                            <a href="<?= e(url('/appeal')) ?>" class="mt-2 inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-ember-200 underline decoration-ember-400/40 underline-offset-4 transition hover:text-white">
+                                <i data-lucide="scale" class="h-3.5 w-3.5"></i>
+                                Request a review
+                            </a>
                         </div>
                     </div>
                 <?php endif; ?>

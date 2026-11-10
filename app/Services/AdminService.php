@@ -9,6 +9,7 @@ namespace App\Services;
 use App\Core\Database;
 use App\Models\AuditLog;
 use App\Models\Achievement;
+use App\Models\Appeal;
 use App\Models\Category;
 use App\Models\Quest;
 use App\Models\RememberToken;
@@ -37,6 +38,9 @@ final class AdminService
         'permanent' => 'Permanent',
     ];
 
+    /** Read-only lengths offered in the moderation UI. */
+    public const RESTRICTION_OPTIONS = self::SUSPENSION_OPTIONS;
+
     /** @return array<string, mixed> */
     public function dashboard(int $seriesDays = 14): array
     {
@@ -53,6 +57,7 @@ final class AdminService
                 'categories' => Category::countActive(),
                 'achievements' => Achievement::countActive(),
                 'open_reports' => Report::openCount(),
+                'open_appeals' => Appeal::openCount(),
             ],
             'signupSeries' => User::signupSeries($seriesDays),
             'completionSeries' => $this->completionSeries($seriesDays),
@@ -119,6 +124,7 @@ final class AdminService
             'achievementsUnlocked' => (int) $achievementStatement->fetchColumn(),
             'recentQuests' => Quest::recentForUser($userId, 12),
             'sessions' => UserSession::forUser($userId),
+            'appeals' => Appeal::latestForUser($userId, 5),
             'audit' => AuditLog::forTarget('user', $userId, 15),
         ];
     }
@@ -610,11 +616,18 @@ final class AdminService
         bool $restricted,
         string $ipAddress,
         ?string $message = null,
+        ?string $duration = null,
     ): array {
         $actorId = (int) $actor['id'];
 
         if ($targetId === $actorId) {
             return ['ok' => false, 'status' => 409, 'message' => 'You cannot change your own read-only access.'];
+        }
+
+        $duration = $duration === null || $duration === '' ? 'permanent' : $duration;
+
+        if ($restricted && !array_key_exists($duration, self::RESTRICTION_OPTIONS)) {
+            return ['ok' => false, 'status' => 422, 'message' => 'Choose a valid read-only length.'];
         }
 
         $target = User::find($targetId);
@@ -625,12 +638,17 @@ final class AdminService
 
         unset($target['password_hash']);
 
+        $restrictedUntil = $restricted && $duration !== 'permanent'
+            ? gmdate('Y-m-d H:i:s', time() + ((int) $duration) * 86400)
+            : null;
+
         return $this->applyRestriction(
             $actor,
             $target,
             $restricted,
             null,
             'community standards',
+            $restrictedUntil,
             $message,
             $ipAddress,
         );
@@ -794,7 +812,14 @@ final class AdminService
         int $reportId,
         ?string $message,
         string $ipAddress,
+        ?string $duration = null,
     ): array {
+        $duration = $duration === null || $duration === '' ? 'permanent' : $duration;
+
+        if (!array_key_exists($duration, self::RESTRICTION_OPTIONS)) {
+            return ['ok' => false, 'status' => 422, 'message' => 'Choose a valid read-only length.'];
+        }
+
         $context = $this->accountActionTarget($actor, $reportId);
 
         if (isset($context['error'])) {
@@ -803,6 +828,9 @@ final class AdminService
 
         $report = $context['report'];
         $reasonLabel = Report::REASONS[(string) $report['reason']] ?? ucfirst((string) $report['reason']);
+        $restrictedUntil = $duration !== 'permanent'
+            ? gmdate('Y-m-d H:i:s', time() + ((int) $duration) * 86400)
+            : null;
 
         return $this->applyRestriction(
             $actor,
@@ -810,6 +838,7 @@ final class AdminService
             true,
             $reportId,
             $reasonLabel,
+            $restrictedUntil,
             $message,
             $ipAddress,
         );
@@ -842,6 +871,7 @@ final class AdminService
             false,
             $reportId,
             $reasonLabel,
+            null,
             $message,
             $ipAddress,
         );
@@ -860,6 +890,7 @@ final class AdminService
         bool $restricted,
         ?int $reportId,
         string $reasonLabel,
+        ?string $restrictedUntil,
         ?string $message,
         string $ipAddress,
     ): array {
@@ -877,17 +908,20 @@ final class AdminService
         }
 
         $current = User::isRestricted($target);
+        $currentUntil = isset($target['restricted_until']) && $target['restricted_until'] !== null
+            ? (string) $target['restricted_until']
+            : null;
 
-        if ($current === $restricted) {
+        if ($current === $restricted && (!$restricted || $currentUntil === $restrictedUntil)) {
             return [
                 'ok' => true,
                 'message' => $restricted
-                    ? 'This account is already limited to read-only access.'
+                    ? 'This account is already limited to read-only access for that length.'
                     : 'This account already has full access.',
             ];
         }
 
-        if (!User::setRestricted($targetId, $restricted)) {
+        if (!User::setRestricted($targetId, $restricted, $restrictedUntil)) {
             return ['ok' => false, 'status' => 409, 'message' => 'That account could not be updated.'];
         }
 
@@ -897,6 +931,7 @@ final class AdminService
                 $targetId,
                 $reportId,
                 $reasonLabel,
+                $restrictedUntil,
                 $message !== '' ? $message : null,
             );
         } else {
@@ -910,11 +945,15 @@ final class AdminService
         }
 
         $reportSuffix = $reportId !== null ? ' from report #' . $reportId : '';
+        $expiryLabel = $restricted && $restrictedUntil !== null
+            ? (format_datetime($restrictedUntil, 'UTC', 'j M Y, H:i') ?? $restrictedUntil) . ' UTC'
+            : null;
         $summary = $restricted
             ? sprintf(
-                'Limited %s @%s to read-only access%s',
+                'Limited %s @%s to read-only access %s%s',
                 (string) $target['display_name'],
                 (string) $target['username'],
+                $expiryLabel !== null ? 'until ' . $expiryLabel : 'indefinitely',
                 $reportSuffix,
             )
             : sprintf(
@@ -934,6 +973,7 @@ final class AdminService
                 'report_id' => $reportId,
                 'reason' => $reasonLabel,
                 'read_only' => $restricted,
+                'restricted_until' => $restrictedUntil,
                 'message' => $message !== '' ? $message : null,
             ],
             'ip_address' => $ipAddress,
@@ -942,7 +982,9 @@ final class AdminService
         return [
             'ok' => true,
             'message' => $restricted
-                ? 'Account limited to read-only access. It keeps its sessions and can still browse.'
+                ? ($expiryLabel !== null
+                    ? 'Account limited to read-only access until ' . $expiryLabel . '. It keeps its sessions and can still browse.'
+                    : 'Account limited to read-only access indefinitely. It keeps its sessions and can still browse.')
                 : 'Full access restored. The account can create and complete quests again.',
         ];
     }

@@ -40,6 +40,16 @@ All notable changes to Questify are recorded in this file. The format follows
   available in the user directory.
 - The admin user detail accepts a suspension length, and the report detail shows
   the reported account's current suspension state.
+- Timed read-only limits: `users.restricted_until` stores an optional expiry for
+  read-only access, offered as 1, 2, 3, 7, 14, or 30 days or permanent. Expired
+  limits are lifted on the next authenticated request, and the read-only banner
+  and admin detail show the expiry.
+- Read-only appeals: a limited account can open `/appeal` and request a review
+  with a 20–2000 character message. One appeal can be open at a time and a
+  24-hour cooldown follows each decision. `/admin/appeals` provides a searchable
+  queue and detail view with audited accept and deny actions; accepting restores
+  full access, denying keeps the limit, and both notify the account with the
+  optional decision note. Closed appeals are immutable.
 
 ### Changed
 

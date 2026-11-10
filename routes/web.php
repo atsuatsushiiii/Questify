@@ -6,12 +6,14 @@ declare(strict_types=1);
 
 use App\Controllers\Web\AchievementController;
 use App\Controllers\Web\AdminAchievementController;
+use App\Controllers\Web\AdminAppealController;
 use App\Controllers\Web\AdminAuditController;
 use App\Controllers\Web\AdminCategoryController;
 use App\Controllers\Web\AdminDashboardController;
 use App\Controllers\Web\AdminQuestController;
 use App\Controllers\Web\AdminReportController;
 use App\Controllers\Web\AdminUserController;
+use App\Controllers\Web\AppealController;
 use App\Controllers\Web\AuthController;
 use App\Controllers\Web\DashboardController;
 use App\Controllers\Web\GoogleAuthController;
@@ -58,6 +60,11 @@ $router->get('/u/{username}', [PublicProfileController::class, 'show']);
 $router->get('/reports', [ReportController::class, 'index'], [AuthMiddleware::class]);
 $router->get('/reports/new', [ReportController::class, 'create'], [AuthMiddleware::class, ReadOnlyMiddleware::class]);
 $router->post('/reports', [ReportController::class, 'store'], [AuthMiddleware::class, ReadOnlyMiddleware::class, VerifyCsrfToken::class]);
+
+// Read-only accounts can ask for a review. These routes deliberately skip the
+// read-only guard so a limited account keeps a path back to full access.
+$router->get('/appeal', [AppealController::class, 'show'], [AuthMiddleware::class]);
+$router->post('/appeal', [AppealController::class, 'store'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 
 // Authenticated routes.
 $router->get('/dashboard', [DashboardController::class, 'index'], [AuthMiddleware::class]);
@@ -131,6 +138,11 @@ $router->post('/admin/reports/{id}/warn', [AdminReportController::class, 'warn']
 $router->post('/admin/reports/{id}/suspend', [AdminReportController::class, 'suspend'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/admin/reports/{id}/restrict', [AdminReportController::class, 'restrict'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/admin/reports/{id}/unrestrict', [AdminReportController::class, 'unrestrict'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+
+$router->get('/admin/appeals', [AdminAppealController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->get('/admin/appeals/{id}', [AdminAppealController::class, 'show'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->post('/admin/appeals/{id}/accept', [AdminAppealController::class, 'accept'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/admin/appeals/{id}/deny', [AdminAppealController::class, 'deny'], [AuthMiddleware::class, AdminMiddleware::class, VerifyCsrfToken::class]);
 
 $router->get('/admin/categories', [AdminCategoryController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
 $router->get('/admin/categories/create', [AdminCategoryController::class, 'create'], [AuthMiddleware::class, AdminMiddleware::class]);

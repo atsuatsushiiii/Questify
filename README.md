@@ -5,7 +5,7 @@
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 8 — production readiness complete: 95 PHPUnit unit tests,
+> **Status:** Phase 8 — production readiness complete: 102 PHPUnit unit tests,
 > eight HTTP regression suites, and a headless Chrome browser QA pass with
 > axe-core WCAG scans, alongside a repeatable demo seeder, a written
 > security/threat review with a production checklist, and documented
@@ -153,11 +153,11 @@ docs/            Architecture plan, security notes, and deployment guide
 | `php tests/quest_flow.php` | Quest engine, ownership, XP, recurring cadences, and locking suite (137 checks) |
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
-| `php tests/phase6_flow.php` | Admin authorization, KPIs, quest/user moderation, read-only limits, catalogue CRUD, reports, audit (221 checks) |
+| `php tests/phase6_flow.php` | Admin authorization, KPIs, quest/user moderation, timed read-only limits, appeals, catalogue CRUD, reports, audit (245 checks) |
 | `php tests/public_profile_flow.php` | Public profile rendering, privacy, 404s, leaderboard links (39 checks) |
 | `php tests/google_oauth_flow.php` | Google start, callback guards, account resolution, linking, CSP (49 checks) |
 | `npm run test:browser` | Chrome browser QA for auth, quests, profiles, mobile navigation, and WCAG scans |
-| `composer test` | Run the unit suite and all eight HTTP suites (744 checks) |
+| `composer test` | Run the unit suite and all eight HTTP suites (768 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -262,7 +262,7 @@ php tests/app_shell.php       # shell and Phase 4-6 pages (69 checks)
 php tests/quest_flow.php      # quests only (137 checks)
 php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leaderboard (78 checks)
 php tests/phase5_flow.php     # settings/email/sessions/export/deletion (96 checks)
-php tests/phase6_flow.php     # admin authorization/moderation/read-only/catalogue/reports/audit (221 checks)
+php tests/phase6_flow.php     # admin authorization/moderation/read-only/appeals/catalogue/reports/audit (245 checks)
 php tests/public_profile_flow.php  # public profiles/privacy/leaderboard links (39 checks)
 ```
 
@@ -289,11 +289,13 @@ single-use tokens, preference gating, per-device session revocation, export
 redaction, and account deletion cascade. The Phase 6 suite proves that guests are
 redirected and normal users receive `403` on every `/admin` route and API, then
 covers KPI data, user search/filter/pagination, suspend/activate and
-promote/demote rules, timed suspension expiry, read-only restrict/unrestrict
+promote/demote rules, timed suspension expiry, timed read-only restrict/unrestrict
 limits that preserve sessions while blocking quest and report mutations,
-warning and suspension actions from an open report, category CRUD with quest
-assignment and filtering, achievement CRUD with unlock-safe deletion, audit
-filters, and CSRF rejection on admin mutations. The public profile suite covers
+the read-only appeal flow (submission, duplicate and cooldown rejection,
+accept/deny decisions, notifications, and audit entries), warning and
+suspension actions from an open report, category CRUD with quest assignment and
+filtering, achievement CRUD with unlock-safe deletion, audit filters, and CSRF
+rejection on admin mutations. The public profile suite covers
 guest rendering, completed stats and achievements, dedicated privacy opt-out,
 suspended-account 404s, leaderboard links, and hidden-profile 404s. All seven
 delete their own data.
@@ -349,7 +351,7 @@ Every authenticated page renders inside `app/Views/layouts/app.php`:
   a notification bell, unread badge, and the account menu.
 - Seven live destinations for everyone: Dashboard, My Quests, Achievements,
   Leaderboard, My Profile, Notifications, and Settings. Administrators also see a
-  conditional Administration section (Dashboard, Users, Quests, Reports,
+  conditional Administration section (Dashboard, Users, Quests, Reports, Appeals,
   Categories, Achievements, Audit).
 - The dashboard reads real quest counts from the database and builds its recent
   activity feed from the XP ledger. It also shows live achievement progress,
@@ -372,6 +374,7 @@ Every authenticated page renders inside `app/Views/layouts/app.php`:
 | `/profile` | Live — owner-only editor, avatar, streak history, visibility |
 | `/reports` | Live — the signed-in reporter's own report history and status |
 | `/reports/new` | Live — report a public profile with a reason and optional details |
+| `/appeal` | Live — read-only accounts request a review and follow the decision |
 | `/notifications` | Live — owner-scoped inbox with read/unread filters |
 | `/settings` | Live — password, verified email, preferences, sessions, export, deletion |
 
@@ -420,9 +423,10 @@ the authenticated account.
 ### Notifications
 
 - In-app events (achievement, level-up, streak milestone, profile, leaderboard
-  rank, and report closure) are stored per user with `UNIQUE(user_id, event_key)`
-  deduplication. Report-closure notifications are always delivered, independent
-  of the achievement/streak/leaderboard preference gates, and never include the
+  rank, report closure, moderation, and appeal decisions) are stored per user
+  with `UNIQUE(user_id, event_key)` deduplication. Report-closure and moderation
+  notifications are always delivered, independent of the
+  achievement/streak/leaderboard preference gates, and never include the
   administrator's private resolution note.
 - The inbox is ownership-scoped; another user's notification cannot be read or
   marked read (`404`). JavaScript enhances mark-read/mark-all without a reload,
@@ -492,7 +496,7 @@ account menu only render the Administration section for admins.
 | `GET /admin/users/{id}` | Stats, recent quests, sessions, and moderation history |
 | `POST /admin/users/{id}/suspend` | Suspend an account for 1, 2, 3, 7, 14, or 30 days (or permanently) and revoke its sessions/tokens |
 | `POST /admin/users/{id}/activate` | Restore sign-in access and clear any suspension expiry |
-| `POST /admin/users/{id}/restrict` | Limit an account to read-only access without revoking its sessions |
+| `POST /admin/users/{id}/restrict` | Limit an account to read-only access for 1, 2, 3, 7, 14, or 30 days (or permanently) without revoking its sessions |
 | `POST /admin/users/{id}/unrestrict` | Restore full quest and report access |
 | `POST /admin/users/{id}/promote` | Grant administrator access |
 | `POST /admin/users/{id}/demote` | Remove administrator access |
@@ -507,6 +511,12 @@ account menu only render the Administration section for admins.
 | `POST /admin/reports/{id}/dismiss` | Close an open report as dismissed with an optional note |
 | `POST /admin/reports/{id}/warn` | Send the reported profile a moderation warning notification |
 | `POST /admin/reports/{id}/suspend` | Suspend the reported profile for a chosen length without closing the report |
+| `POST /admin/reports/{id}/restrict` | Limit the reported profile to read-only access for a chosen length |
+| `POST /admin/reports/{id}/unrestrict` | Restore full access for the reported profile |
+| `GET /admin/appeals` | Search/filter the read-only appeal queue by account and status |
+| `GET /admin/appeals/{id}` | Appeal message, account context, decision form, and history |
+| `POST /admin/appeals/{id}/accept` | Accept an open appeal, lift the read-only limit, and notify the account |
+| `POST /admin/appeals/{id}/deny` | Deny an open appeal, keep the limit, and notify the account |
 | `GET/POST /admin/categories` | List and create categories |
 | `GET/POST /admin/categories/{id}` | Edit a category (`_method=PUT`) |
 | `POST /admin/categories/{id}/delete` | Delete a category without deleting quests |
@@ -525,12 +535,24 @@ account menu only render the Administration section for admins.
   are lifted automatically on the next sign-in, authenticated request, or
   public-profile lookup after the expiry. Activation clears the expiry but
   deliberately leaves a read-only limit in place. Read-only mode is separate:
-  it stores `restricted_at`, keeps every session and the public profile, and
-  lets the account browse, review its quests, and manage settings while
-  `ReadOnlyMiddleware` blocks quest create/edit/complete/archive/restore/delete
-  and report submission with an explanatory flash and banner. Both transitions
-  notify the account and write `user.restricted` / `user.unrestricted` audit
-  entries. Promotions and demotions take effect on the target's next request.
+  it stores `restricted_at` plus an optional `restricted_until`, keeps every
+  session and the public profile, and lets the account browse, review its
+  quests, and manage settings while `ReadOnlyMiddleware` blocks quest
+  create/edit/complete/archive/restore/delete and report submission with an
+  explanatory flash and banner. Timed read-only limits mirror suspension
+  expiry: `User::isRestricted()` treats an elapsed `restricted_until` as lifted,
+  and the next authenticated request clears the row. Both transitions notify
+  the account and write `user.restricted` / `user.unrestricted` audit entries.
+  Promotions and demotions take effect on the target's next request.
+- **Appeals:** a read-only account can open `/appeal` and request a review. The
+  form is deliberately outside `ReadOnlyMiddleware`, requires a 20–2000
+  character message, allows one open appeal at a time, and enforces a 24-hour
+  cooldown after a decision. `/admin/appeals` lists appeals with search and
+  status filters; accepting restores full access and writes both
+  `appeal.accepted` and `user.unrestricted`, while denying keeps the limit and
+  writes `appeal.denied`. Decisions use an optional 1000-character note that is
+  shared with the account, which is also notified in-app. Closed appeals are
+  immutable.
 - **Quest moderation:** every quest is searchable by title, description, owner,
   status, difficulty, and category. Archiving hides a quest from the owner's
   board without touching its XP; restoring a completed quest returns it to

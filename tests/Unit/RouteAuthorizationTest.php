@@ -175,7 +175,7 @@ final class RouteAuthorizationTest extends TestCase
             }
 
             if (
-                !in_array($route['pattern'], ['/dashboard', '/quests', '/quests/{id}', '/reports', '/settings', '/notifications', '/achievements', '/leaderboard'], true)
+                !in_array($route['pattern'], ['/dashboard', '/quests', '/quests/{id}', '/reports', '/appeal', '/settings', '/notifications', '/achievements', '/leaderboard'], true)
             ) {
                 continue;
             }
@@ -186,6 +186,28 @@ final class RouteAuthorizationTest extends TestCase
                 $route['method'] . ' ' . $route['pattern'] . ' must stay available to read-only accounts.',
             );
         }
+    }
+
+    public function testAppealRoutesStayReachableForReadOnlyAccounts(): void
+    {
+        $show = $this->route('GET', '/appeal');
+        $store = $this->route('POST', '/appeal');
+
+        $this->assertNotNull($show);
+        $this->assertNotNull($store);
+
+        foreach ([$show, $store] as $route) {
+            $label = $route['method'] . ' ' . $route['pattern'];
+
+            $this->assertContains(AuthMiddleware::class, $route['middleware'], "{$label} must require sign-in.");
+            $this->assertNotContains(
+                ReadOnlyMiddleware::class,
+                $route['middleware'],
+                "{$label} is the limited account's path back to full access and must stay open.",
+            );
+        }
+
+        $this->assertContains(VerifyCsrfToken::class, $store['middleware'], 'POST /appeal must verify CSRF.');
     }
 
     /** @return array{method: string, pattern: string, middleware: list<class-string|callable>}|null */

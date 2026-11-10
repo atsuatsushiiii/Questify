@@ -182,10 +182,7 @@ if (!function_exists('account_restricted')) {
     {
         $user ??= auth_user();
 
-        return $user !== null
-            && isset($user['restricted_at'])
-            && $user['restricted_at'] !== null
-            && $user['restricted_at'] !== '';
+        return $user !== null && \App\Models\User::isRestricted($user);
     }
 }
 
