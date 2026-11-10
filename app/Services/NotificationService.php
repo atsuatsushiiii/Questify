@@ -164,7 +164,7 @@ final class NotificationService
         $message = $message !== null ? trim($message) : '';
 
         if ($message !== '') {
-            $body .= ' ' . $message;
+            $body .= ' Moderator note: ' . $message;
         }
 
         return self::create($db, [
@@ -200,7 +200,7 @@ final class NotificationService
         $body = 'Your account was suspended ' . $duration . ' after a review for ' . $reasonLabel . '.';
 
         if ($message !== '') {
-            $body .= ' ' . $message;
+            $body .= ' Moderator note: ' . $message;
         }
 
         $key = $reportId !== null
@@ -241,7 +241,7 @@ final class NotificationService
             . '. You can still sign in and browse, but creating, editing, completing, archiving, restoring, or deleting quests and submitting reports is disabled. You can request a review from the read-only banner.';
 
         if ($message !== '') {
-            $body .= ' ' . $message;
+            $body .= ' Moderator note: ' . $message;
         }
 
         $key = 'moderation.restricted:' . ($reportId !== null ? 'report:' . $reportId : 'user:' . $userId)
@@ -275,7 +275,7 @@ final class NotificationService
             . '. You can create, edit, complete, archive, restore, and delete quests again.';
 
         if ($message !== '') {
-            $body .= ' ' . $message;
+            $body .= ' Moderator note: ' . $message;
         }
 
         $key = 'moderation.unrestricted:' . ($reportId !== null ? 'report:' . $reportId : 'user:' . $userId)
@@ -291,6 +291,37 @@ final class NotificationService
             'related_type' => $reportId !== null ? 'report' : 'user',
             'related_id' => $reportId ?? $userId,
             'event_key' => $key,
+        ]);
+    }
+
+    /**
+     * Tell an account that its timed read-only limit ended on its own. The
+     * original restriction notification already carried any moderator note, so
+     * this message simply confirms that full access is back.
+     */
+    public static function moderationRestrictionExpired(
+        PDO $db,
+        int $userId,
+        ?string $until = null,
+        ?string $restrictedAt = null,
+    ): bool {
+        $duration = $until !== null && $until !== ''
+            ? 'The read-only limit that was set until '
+                . (format_datetime($until, 'UTC', 'j M Y, H:i') ?? $until) . ' UTC has ended.'
+            : 'The read-only limit on your account has ended.';
+        $body = $duration
+            . ' You can create, edit, complete, archive, restore, and delete quests again.';
+
+        return self::create($db, [
+            'user_id' => $userId,
+            'type' => 'moderation',
+            'title' => 'Read-only limit ended',
+            'message' => $body,
+            'icon' => 'shield-check',
+            'url' => '/dashboard',
+            'related_type' => 'user',
+            'related_id' => $userId,
+            'event_key' => 'moderation.restriction_expired:' . $userId . ':' . ($restrictedAt ?? $until ?? gmdate('YmdHis')),
         ]);
     }
 
@@ -318,11 +349,11 @@ final class NotificationService
     public static function appealAccepted(PDO $db, int $userId, int $appealId, ?string $note = null): bool
     {
         $note = $note !== null ? trim($note) : '';
-        $body = 'A moderator reviewed your appeal and restored full access to your account. '
+        $body = 'A moderator reviewed your appeal and lifted the read-only limit on your account. '
             . 'You can create, edit, complete, archive, restore, and delete quests again.';
 
         if ($note !== '') {
-            $body .= ' ' . $note;
+            $body .= ' Moderator note: ' . $note;
         }
 
         return self::create($db, [
@@ -347,7 +378,7 @@ final class NotificationService
         $body = 'A moderator reviewed your appeal and kept the read-only limit in place.';
 
         if ($note !== '') {
-            $body .= ' ' . $note;
+            $body .= ' Moderator note: ' . $note;
         }
 
         $body .= ' You can submit another appeal after 24 hours.';

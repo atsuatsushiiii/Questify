@@ -146,18 +146,18 @@ docs/            Architecture plan, security notes, and deployment guide
 | `npm run build` | Compile + minify CSS and JS |
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
-| `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, recurrence, mail, Google claims, route authz, navigation state (95 tests) |
+| `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, recurrence, mail, Google claims, route authz, navigation state (102 tests) |
 | `php scripts/seed_demo.php` | Create/reuse a local demo account with realistic quests |
 | `php tests/auth_flow.php` | End-to-end auth regression suite (55 checks) |
 | `php tests/app_shell.php` | Authenticated shell and Phase 4-6 pages suite (69 checks) |
 | `php tests/quest_flow.php` | Quest engine, ownership, XP, recurring cadences, and locking suite (137 checks) |
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
 | `php tests/phase5_flow.php` | Settings, email verification, sessions, export, deletion (96 checks) |
-| `php tests/phase6_flow.php` | Admin authorization, KPIs, quest/user moderation, timed read-only limits, appeals, catalogue CRUD, reports, audit (245 checks) |
+| `php tests/phase6_flow.php` | Admin authorization, KPIs, quest/user moderation, timed read-only limits, appeals, catalogue CRUD, reports, audit (247 checks) |
 | `php tests/public_profile_flow.php` | Public profile rendering, privacy, 404s, leaderboard links (39 checks) |
 | `php tests/google_oauth_flow.php` | Google start, callback guards, account resolution, linking, CSP (49 checks) |
 | `npm run test:browser` | Chrome browser QA for auth, quests, profiles, mobile navigation, and WCAG scans |
-| `composer test` | Run the unit suite and all eight HTTP suites (768 checks) |
+| `composer test` | Run the unit suite and all eight HTTP suites (770 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
@@ -262,7 +262,7 @@ php tests/app_shell.php       # shell and Phase 4-6 pages (69 checks)
 php tests/quest_flow.php      # quests only (137 checks)
 php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leaderboard (78 checks)
 php tests/phase5_flow.php     # settings/email/sessions/export/deletion (96 checks)
-php tests/phase6_flow.php     # admin authorization/moderation/read-only/appeals/catalogue/reports/audit (245 checks)
+php tests/phase6_flow.php     # admin authorization/moderation/read-only/appeals/catalogue/reports/audit (247 checks)
 php tests/public_profile_flow.php  # public profiles/privacy/leaderboard links (39 checks)
 ```
 
@@ -333,8 +333,8 @@ Coverage includes:
   inert background, Escape handling, and link navigation
 - axe scans of every page reached above at desktop width, plus the dashboard and
   open drawer at mobile width
-- notification mark-read behaviour, including the accessible label and hidden
-  unread marker
+- notification mark-read behaviour and the enlarged reader, including focus,
+  Escape handling, and the hidden unread marker
 
 Results are written to `storage/logs/browser-qa/report.json`; a failed step also
 leaves a full-page screenshot and a JSON snapshot beside it. CI runs the suite
@@ -430,7 +430,9 @@ the authenticated account.
   administrator's private resolution note.
 - The inbox is ownership-scoped; another user's notification cannot be read or
   marked read (`404`). JavaScript enhances mark-read/mark-all without a reload,
-  and the forms still submit normally without it.
+  and the forms still submit normally without it. Selecting a card opens a
+  native modal reader with the full title, message, timestamp, and related link;
+  every message also remains visible in the card without JavaScript.
 
 ### Leaderboards
 
@@ -541,8 +543,10 @@ account menu only render the Administration section for admins.
   create/edit/complete/archive/restore/delete and report submission with an
   explanatory flash and banner. Timed read-only limits mirror suspension
   expiry: `User::isRestricted()` treats an elapsed `restricted_until` as lifted,
-  and the next authenticated request clears the row. Both transitions notify
-  the account and write `user.restricted` / `user.unrestricted` audit entries.
+  the next authenticated request clears the row, and the account receives a
+  one-time **Read-only limit ended** notification. Both manual transitions notify
+  the account, label any moderator note explicitly, and write
+  `user.restricted` / `user.unrestricted` audit entries.
   Promotions and demotions take effect on the target's next request.
 - **Appeals:** a read-only account can open `/appeal` and request a review. The
   form is deliberately outside `ReadOnlyMiddleware`, requires a 20–2000
@@ -551,8 +555,9 @@ account menu only render the Administration section for admins.
   status filters; accepting restores full access and writes both
   `appeal.accepted` and `user.unrestricted`, while denying keeps the limit and
   writes `appeal.denied`. Decisions use an optional 1000-character note that is
-  shared with the account, which is also notified in-app. Closed appeals are
-  immutable.
+  shared with the account as a labelled **Moderator note**, and the account is
+  notified in-app. Accepting also confirms that the read-only limit was lifted;
+  closed appeals are immutable.
 - **Quest moderation:** every quest is searchable by title, description, owner,
   status, difficulty, and category. Archiving hides a quest from the owner's
   board without touching its XP; restoring a completed quest returns it to
@@ -639,9 +644,9 @@ php scripts/seed_demo.php
   `Progression`, `Validator`, `StreakService`, `Recurrence`, `MailService`,
   `GoogleAuthService`, and the route authorization table.
 - `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
-  before the eight HTTP suites (707 checks total).
-- `npm run test:browser` adds a headless Chrome pass with 72 functional checks
-  and 21 axe-core WCAG 2.0/2.1 A+AA scans. It lives outside `composer test`
+  before the eight HTTP suites (770 checks total).
+- `npm run test:browser` adds a headless Chrome pass with 78 functional checks
+  and 22 axe-core WCAG 2.0/2.1 A+AA scans. It lives outside `composer test`
   because it needs the app served by a web server.
 - `tests/bootstrap.php` boots configuration and autoloading without starting a
   session or opening a database connection.

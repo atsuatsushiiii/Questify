@@ -2129,6 +2129,17 @@ check(
         && !contains($expiredDashboard['body'], 'Read-only account')
         && row($pdo, 'SELECT restricted_at FROM users WHERE id = ?', [$userId])['restricted_at'] === null,
 );
+$expiryNotification = row(
+    $pdo,
+    "SELECT message FROM notifications WHERE user_id = ? AND type = 'moderation' AND title = 'Read-only limit ended' ORDER BY id DESC LIMIT 1",
+    [$userId],
+);
+check(
+    'An expired read-only limit notifies the account that access returned',
+    $expiryNotification !== null
+        && contains((string) ($expiryNotification['message'] ?? ''), 'has ended')
+        && contains((string) ($expiryNotification['message'] ?? ''), 'create, edit, complete'),
+);
 
 $appealRestrict = $adminClient->post('/admin/users/' . $userId . '/restrict', [
     '_csrf_token' => csrfFor($adminClient, '/admin/users/' . $userId),
@@ -2309,6 +2320,19 @@ check(
         "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND type = 'moderation' AND title = 'Appeal accepted'",
         [$userId],
     ) === 1,
+);
+$acceptedNotification = row(
+    $pdo,
+    "SELECT message FROM notifications WHERE user_id = ? AND type = 'moderation' AND title = 'Appeal accepted' ORDER BY id DESC LIMIT 1",
+    [$userId],
+);
+check(
+    'The accepted appeal notifies the account with the moderator note',
+    $acceptedNotification !== null
+        && contains(
+            (string) ($acceptedNotification['message'] ?? ''),
+            'Moderator note: Thanks for the context. Your full access is restored.',
+        ),
 );
 check(
     'The account can create quests again after the appeal is accepted',

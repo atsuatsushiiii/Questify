@@ -39,31 +39,42 @@ $showAction = $showAction ?? true;
                         <span class="sr-only" data-unread-label>Unread: </span>
                     <?php endif; ?>
                     <?php if ($href !== null): ?>
-                        <a href="<?= e($href) ?>" class="truncate transition hover:text-brand-200"><?= e((string) $notification['title']) ?></a>
+                        <a href="<?= e($href) ?>" class="truncate transition hover:text-brand-200" data-notification-title data-notification-link><?= e((string) $notification['title']) ?></a>
                     <?php else: ?>
-                        <span class="truncate"><?= e((string) $notification['title']) ?></span>
+                        <span class="truncate" data-notification-title><?= e((string) $notification['title']) ?></span>
                     <?php endif; ?>
                 </p>
-                <p class="mt-1 text-[11px] leading-relaxed text-muted"><?= e((string) $notification['message']) ?></p>
+                <p class="mt-1 text-[11px] leading-relaxed text-muted" data-notification-message><?= e((string) $notification['message']) ?></p>
             </div>
 
-            <?php if ($unread && $showAction): ?>
-                <form method="POST" action="<?= e(url('/notifications/' . (int) $notification['id'] . '/read')) ?>" data-notification-read>
-                    <?= csrf_field() ?>
-                    <button
-                        type="submit"
-                        class="inline-flex items-center gap-1 rounded-sm border border-line bg-white/[0.03] px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400 transition hover:border-brand-400/30 hover:text-brand-200"
-                    >
-                        <i data-lucide="check" class="h-3 w-3"></i>
-                        Mark read
-                    </button>
-                </form>
-            <?php endif; ?>
+            <div class="flex shrink-0 items-start gap-1.5">
+                <button
+                    type="button"
+                    data-notification-open
+                    class="inline-flex items-center gap-1 rounded-sm border border-line bg-white/[0.03] px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400 transition hover:border-brand-400/30 hover:text-brand-200"
+                    aria-label="Enlarge notification: <?= e((string) $notification['title']) ?>"
+                >
+                    <i data-lucide="maximize-2" class="h-3 w-3"></i>
+                </button>
+
+                <?php if ($unread && $showAction): ?>
+                    <form method="POST" action="<?= e(url('/notifications/' . (int) $notification['id'] . '/read')) ?>" data-notification-read>
+                        <?= csrf_field() ?>
+                        <button
+                            type="submit"
+                            class="inline-flex items-center gap-1 rounded-sm border border-line bg-white/[0.03] px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400 transition hover:border-brand-400/30 hover:text-brand-200"
+                        >
+                            <i data-lucide="check" class="h-3 w-3"></i>
+                            Mark read
+                        </button>
+                    </form>
+                <?php endif; ?>
+            </div>
         </div>
 
         <?php if ($createdAt !== null): ?>
             <p class="mt-2 font-mono text-[9px] text-muted-dim">
-                <time datetime="<?= e((string) iso_datetime((string) $notification['created_at'])) ?>"><?= e($createdAt) ?></time>
+                <time datetime="<?= e((string) iso_datetime((string) $notification['created_at'])) ?>" data-notification-time><?= e($createdAt) ?></time>
             </p>
         <?php endif; ?>
     </div>

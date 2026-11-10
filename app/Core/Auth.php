@@ -8,6 +8,7 @@ namespace App\Core;
 
 use App\Models\RememberToken;
 use App\Models\User;
+use App\Services\NotificationService;
 
 /**
  * Authentication state for the current request.
@@ -44,9 +45,7 @@ final class Auth
             }
 
             if ($user !== null && User::restrictionExpired($user)) {
-                if (User::liftRestrictionIfExpired((int) $user['id'])) {
-                    $user = User::find((int) $user['id']);
-                }
+                $user = self::liftExpiredRestriction($user);
             }
 
             if ($user !== null && ($user['status'] ?? '') === 'active') {
@@ -176,6 +175,46 @@ final class Auth
         return $hash ??= password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
     }
 
+    /**
+     * Clear an elapsed read-only limit and notify the account once. The
+     * notification is a courtesy, so a storage failure must never block
+     * authentication.
+     *
+     * @param array<string, mixed>|null $user
+     * @return array<string, mixed>|null
+     */
+    private static function liftExpiredRestriction(?array $user): ?array
+    {
+        if ($user === null) {
+            return null;
+        }
+
+        $userId = (int) $user['id'];
+        $expiredUntil = isset($user['restricted_until']) && $user['restricted_until'] !== null
+            ? (string) $user['restricted_until']
+            : null;
+        $restrictedAt = isset($user['restricted_at']) && $user['restricted_at'] !== null
+            ? (string) $user['restricted_at']
+            : null;
+
+        if (!User::liftRestrictionIfExpired($userId)) {
+            return $user;
+        }
+
+        try {
+            NotificationService::moderationRestrictionExpired(
+                Database::connection(),
+                $userId,
+                $expiredUntil,
+                $restrictedAt,
+            );
+        } catch (\Throwable) {
+            // The user still regains access even if the inbox write fails.
+        }
+
+        return User::find($userId) ?? $user;
+    }
+
     /** @return array<string, mixed>|null */
     private static function restoreFromRememberCookie(): ?array
     {
@@ -228,9 +267,7 @@ final class Auth
         }
 
         if ($user !== null && User::restrictionExpired($user)) {
-            if (User::liftRestrictionIfExpired((int) $user['id'])) {
-                $user = User::find((int) $user['id']);
-            }
+            $user = self::liftExpiredRestriction($user);
         }
 
         if ($user === null || ($user['status'] ?? '') !== 'active') {

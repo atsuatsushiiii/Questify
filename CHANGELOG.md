@@ -50,6 +50,13 @@ All notable changes to Questify are recorded in this file. The format follows
   queue and detail view with audited accept and deny actions; accepting restores
   full access, denying keeps the limit, and both notify the account with the
   optional decision note. Closed appeals are immutable.
+- Read-only lift notices: when a timed limit expires on an authenticated
+  request, the account receives a one-time in-app notification that full access
+  has returned. Appeal decisions and manual unrestricted actions label the
+  moderator's optional note explicitly.
+- Notification reader: selecting a notification opens an accessible native
+  modal with the full title, message, timestamp, and related link. The inbox
+  still renders and submits without JavaScript.
 
 ### Changed
 
@@ -68,6 +75,8 @@ All notable changes to Questify are recorded in this file. The format follows
   failed WCAG AA colour contrast on the users and audit pages.
 - Notification messages are no longer truncated at 255 characters, so moderation
   warnings and read-only notices keep the moderator's full optional message.
+- Timed read-only limits now send a notification when they expire instead of
+  lifting silently.
 
 ## [1.0.0] - 2026-11-07
 

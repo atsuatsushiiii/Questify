@@ -27,7 +27,7 @@ $query = static fn (array $overrides = []): string => url('/notifications?' . ht
             </p>
             <h1 class="mt-3 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Notifications</h1>
             <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-                Achievements, level-ups, streak milestones, profile events, and report updates, newest first.
+                Achievements, level-ups, streak milestones, profile events, and report updates, newest first. Select a notification to read it enlarged.
             </p>
         </div>
 
@@ -112,3 +112,44 @@ $query = static fn (array $overrides = []): string => url('/notifications?' . ht
         </nav>
     <?php endif; ?>
 </section>
+
+<?php if ($notifications !== []): ?>
+    <dialog
+        class="notification-reader"
+        data-notification-reader
+        aria-labelledby="notification-reader-title"
+        aria-describedby="notification-reader-message"
+    >
+        <div class="p-6 sm:p-7" data-notification-reader-panel>
+            <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="eyebrow">
+                        <i data-lucide="bell" class="h-3.5 w-3.5"></i>
+                        Notification
+                    </p>
+                    <h2 id="notification-reader-title" data-notification-reader-title class="mt-4 font-display text-2xl font-semibold tracking-tight text-white"></h2>
+                </div>
+                <button
+                    type="button"
+                    data-notification-reader-close
+                    class="inline-flex items-center gap-1 rounded-sm border border-line bg-white/[0.03] px-2.5 py-2 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400 transition hover:border-brand-400/30 hover:text-brand-200"
+                >
+                    <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                    Close
+                </button>
+            </div>
+
+            <p id="notification-reader-message" data-notification-reader-message class="mt-4 whitespace-pre-line text-sm leading-relaxed text-slate-200"></p>
+
+            <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+                <p class="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-dim">
+                    <time data-notification-reader-time></time>
+                </p>
+                <a href="#" data-notification-reader-link class="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-300 transition hover:text-brand-200" hidden>
+                    Open related page
+                    <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                </a>
+            </div>
+        </div>
+    </dialog>
+<?php endif; ?>

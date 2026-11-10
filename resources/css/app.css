@@ -248,6 +248,22 @@
   }
 
   /*
+   * The list is only marked enhanced once the reader is bound, so the pointer
+   * cue never promises a modal that cannot open.
+   */
+  [data-notification-list].is-enhanced [data-notification] {
+    cursor: pointer;
+  }
+
+  .notification-reader {
+    @apply max-h-[85vh] w-[calc(100vw-2rem)] max-w-2xl overflow-y-auto rounded-sm border border-brand-400/40 bg-panel p-0 text-slate-200 shadow-offset-lg;
+  }
+
+  .notification-reader::backdrop {
+    background-color: rgba(11, 9, 7, 0.82);
+  }
+
+  /*
    * Password visibility toggles ship with the hidden attribute so no-JS users
    * never see a dead control. The attribute has to outweigh the grid utility
    * class; the auth module unhooks it once it binds.

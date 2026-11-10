@@ -42,9 +42,11 @@ working exploit. Include the route, the request, and the observed behaviour.
   explanatory flash redirect for browsers. An expired `restricted_until` is
   treated as lifted by `User::isRestricted()` and cleared on the next
   authenticated request. Browsing, dashboards, achievements, leaderboards,
-  notifications, and settings remain available. A read-only account cannot
-  escalate its own state; only an administrator can set or clear the timestamp,
-  and each transition is audited as `user.restricted` / `user.unrestricted`.
+  notifications, and settings remain available. An elapsed limit creates one
+  idempotent in-app notice that full access returned; a notification-storage
+  failure never blocks authentication. A read-only account cannot escalate its
+  own state; only an administrator can set or clear the timestamp, and each
+  transition is audited as `user.restricted` / `user.unrestricted`.
 - Appeals are the only write-like route a read-only account retains. `/appeal`
   deliberately omits `ReadOnlyMiddleware`, but still requires authentication and
   CSRF on submission. The service enforces a 20–2000 character message, one open
@@ -102,7 +104,9 @@ working exploit. Include the route, the request, and the observed behaviour.
   reporter's identity or the private resolution note. Suspending from a report
   uses the same session/token revocation and `suspended_until` rules as the user
   detail page; restricting from a report sets `restricted_at` and
-  `restricted_until` without revoking sessions.
+  `restricted_until` without revoking sessions. Optional moderator notes are
+  shared with the affected account as a labelled **Moderator note**, never the
+  reporter's identity or another user's private resolution note.
 - The appeals queue and detail pages sit behind `AuthMiddleware` +
   `AdminMiddleware`. Accept/deny is CSRF-protected, refuses a closed appeal, and
   cannot be used by the appealing account against itself.

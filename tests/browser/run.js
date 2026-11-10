@@ -538,6 +538,50 @@ async function run() {
     const notifications = await bodyText();
     assert(textIncludes(notifications, 'Profile updated'), 'Profile changes create a notification');
 
+    const enlargeButton = await state.page.$('[data-notification] [data-notification-open]');
+    assert(Boolean(enlargeButton), 'Notifications expose an enlarge control');
+
+    if (enlargeButton) {
+      await enlargeButton.click();
+      await state.page.waitForFunction(
+        () => document.querySelector('[data-notification-reader]')?.open === true,
+        { timeout: 10000 },
+      );
+
+      const readerState = await state.page.evaluate(() => {
+        const reader = document.querySelector('[data-notification-reader]');
+        const card = document.querySelector('[data-notification]');
+
+        return {
+          title: reader?.querySelector('[data-notification-reader-title]')?.textContent?.trim() ?? '',
+          message: reader?.querySelector('[data-notification-reader-message]')?.textContent?.trim() ?? '',
+          cardTitle: card?.querySelector('[data-notification-title]')?.textContent?.trim() ?? '',
+          focusOnClose: document.activeElement === reader?.querySelector('[data-notification-reader-close]'),
+          relatedHref: reader?.querySelector('[data-notification-reader-link]')?.getAttribute('href') ?? '',
+        };
+      });
+
+      assert(
+        readerState.title !== '' && readerState.title === readerState.cardTitle,
+        'The enlarged notification mirrors the selected card title',
+      );
+      assert(readerState.message !== '', 'The enlarged notification shows the full message');
+      assert(readerState.focusOnClose, 'The enlarged notification moves focus to its close control');
+      assert(
+        readerState.relatedHref !== '' && readerState.relatedHref !== '#',
+        'The enlarged notification keeps the related-page link',
+      );
+
+      await audit('notification-reader');
+
+      await state.page.keyboard.press('Escape');
+      await state.page.waitForFunction(
+        () => document.querySelector('[data-notification-reader]')?.open === false,
+        { timeout: 10000 },
+      );
+      assert(true, 'Escape closes the enlarged notification');
+    }
+
     const unreadBefore = await state.page.$$eval('.notification-card.is-unread', (items) => items.length);
     const markRead = await state.page.$('form[data-notification-read] button[type="submit"]');
 
