@@ -560,8 +560,8 @@ config (debug off, HTTPS cookies, CSP).
 
 **Total: roughly 15–18 focused working days.**
 
-**Verification:** 63 PHPUnit unit tests (259 assertions), seven HTTP regression
-suites (585 checks), and 71 browser checks with 20 axe-core WCAG 2.0/2.1 A+AA
+**Verification:** 102 PHPUnit unit tests (455 assertions), eight HTTP regression
+suites (770 checks), and 96 browser checks with 28 axe-core WCAG 2.0/2.1 A+AA
 scans. CI runs all of them on every push and pull request.
 
 ---

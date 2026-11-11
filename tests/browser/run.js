@@ -6,11 +6,13 @@
  * Questify browser QA.
  *
  * Drives the real application in Chrome to cover registration, sign-in,
- * the full quest lifecycle, profile editing, mobile navigation, account
- * deletion, and WCAG 2.0/2.1 A+AA checks on every critical page.
+ * the full quest lifecycle, profile editing, mobile navigation, admin
+ * moderation and appeal decisions, account deletion, and WCAG 2.0/2.1 A+AA
+ * checks on every critical page.
  *
  * Requirements:
  *   - the app is already serving at APP_URL (default http://localhost:8000)
+ *   - PHP is on PATH or PHP_BINARY points at the executable
  *   - Chrome or Chromium is installed (set CHROME_PATH when it is not found)
  *
  * Usage:
@@ -51,6 +53,7 @@ const state = {
   checks: 0,
   accountCreated: false,
   accountDeleted: false,
+  adminFixture: null,
   failedStep: null,
   dialogs: [],
   pageErrors: [],
@@ -121,6 +124,79 @@ function resolveChrome() {
   }
 
   return null;
+}
+
+function resolvePhp() {
+  const candidates = [];
+
+  if (process.env.PHP_BINARY) {
+    candidates.push(process.env.PHP_BINARY);
+  }
+
+  if (process.platform === 'win32') {
+    candidates.push('C:\\xampp\\php\\php.exe', 'C:\\php\\php.exe', 'php.exe');
+  }
+
+  candidates.push('php');
+
+  for (const candidate of candidates) {
+    if (!candidate) {
+      continue;
+    }
+
+    if (fs.existsSync(candidate)) {
+      return fs.realpathSync(candidate);
+    }
+
+    const resolved = which(candidate);
+
+    if (resolved) {
+      return resolved;
+    }
+  }
+
+  return null;
+}
+
+function runFixture(args) {
+  if (!state.phpBinary) {
+    throw new Error('Unable to locate PHP. Set PHP_BINARY to the PHP executable.');
+  }
+
+  const output = execFileSync(
+    state.phpBinary,
+    [path.join(__dirname, 'fixture.php'), ...args],
+    {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
+
+  return JSON.parse(output);
+}
+
+function cleanupAdminFixture() {
+  const fixture = state.adminFixture;
+
+  if (!fixture) {
+    return;
+  }
+
+  console.log('\n[cleanup] removing the temporary admin fixtures');
+
+  try {
+    runFixture([
+      'cleanup',
+      String(fixture.admin_id),
+      String(fixture.target_id),
+      String(fixture.appeal_id),
+    ]);
+    fixture.cleaned = true;
+    console.log('  ok: temporary admin fixtures deleted');
+  } catch (error) {
+    console.warn(`  warning: could not delete the temporary admin fixtures (${error.message})`);
+  }
 }
 
 function assert(condition, message, detail = '') {
@@ -382,6 +458,14 @@ function writeReport({ startedAt, status, failure }) {
       created: state.accountCreated,
       deleted: state.accountDeleted,
     },
+    admin: state.adminFixture
+      ? {
+        username: state.adminFixture.admin_username,
+        target: state.adminFixture.target_username,
+        appealId: state.adminFixture.appeal_id,
+        cleaned: Boolean(state.adminFixture.cleaned),
+      }
+      : null,
     accessibility: {
       tags: AXE_TAGS,
       pagesScanned: state.audits.length,
@@ -742,6 +826,67 @@ async function run() {
     const rejected = await bodyText();
     assert(rejected.includes('Those credentials do not match our records.'), 'Deleted account is rejected');
   });
+
+  await step('Admin moderation pages render and pass axe', async () => {
+    const fixture = state.adminFixture;
+    assert(Boolean(fixture), 'The admin QA fixture is available');
+
+    await login(fixture.admin_email, fixture.admin_password);
+    await assertPath('/dashboard', 'The admin fixture signs in');
+
+    await scanPage('admin-dashboard', '/admin');
+    const dashboard = await bodyText();
+    assert(textIncludes(dashboard, 'Administration'), 'Admin dashboard renders the moderation shell');
+
+    await scanPage('admin-users', '/admin/users');
+    await scanPage('admin-appeals', '/admin/appeals');
+    const queue = await bodyText();
+    assert(
+      textIncludes(queue, fixture.target_username),
+      'The appeals queue lists the fixture account',
+    );
+
+    await scanPage('admin-appeal-detail', `/admin/appeals/${fixture.appeal_id}`);
+    const detail = await bodyText();
+    assert(
+      textIncludes(detail, 'Browser QA appeal'),
+      'The appeal detail shows the account message',
+    );
+    assert(
+      textIncludes(detail, 'Accept and restore access'),
+      'The appeal detail offers the accept action',
+    );
+
+    await fill('#accept_note', 'Approved by browser QA. Full access restored.');
+    await submit('form[action$="/accept"] button[type="submit"]');
+    await assertPath(
+      `/admin/appeals/${fixture.appeal_id}`,
+      'Accepting the appeal returns to its detail page',
+    );
+    const decided = await bodyText();
+    assert(
+      textIncludes(decided, 'Full access was restored'),
+      'The accepted appeal shows the restored state',
+    );
+
+    await scanPage('admin-user-detail', `/admin/users/${fixture.target_id}`);
+    const userDetail = await bodyText();
+    assert(
+      textIncludes(userDetail, fixture.target_username),
+      'The admin user detail opens the fixture account',
+    );
+    assert(
+      !textIncludes(userDetail, 'Read-only until'),
+      'Accepting the appeal clears the read-only expiry badge',
+    );
+
+    await scanPage('admin-audit', '/admin/audit');
+    const auditPage = await bodyText();
+    assert(
+      textIncludes(auditPage, 'appeal.accepted'),
+      'The admin audit lists the accepted appeal',
+    );
+  });
 }
 
 (async () => {
@@ -759,11 +904,23 @@ async function run() {
     return;
   }
 
+  const phpPath = resolvePhp();
+
+  if (!phpPath) {
+    console.error(
+      'Unable to locate PHP. Add PHP to PATH or set PHP_BINARY to the PHP executable.',
+    );
+    process.exitCode = 1;
+    return;
+  }
+
   state.chromePath = chromePath;
+  state.phpBinary = phpPath;
 
   console.log('Questify browser QA');
   console.log(`  base URL: ${BASE_URL}`);
   console.log(`  chrome:   ${chromePath}`);
+  console.log(`  php:      ${phpPath}`);
   console.log(`  headless: ${HEADLESS ? 'yes' : 'no'}`);
   console.log(`  account:  ${account.username}`);
 
@@ -777,6 +934,9 @@ async function run() {
     }
 
     console.log('  server:   reachable');
+
+    state.adminFixture = runFixture(['create', runId]);
+    console.log(`  admin:    ${state.adminFixture.admin_username}`);
 
     state.browser = await puppeteer.launch({
       executablePath: chromePath,
@@ -832,6 +992,8 @@ async function run() {
 
     await cleanupAccount();
   } finally {
+    cleanupAdminFixture();
+
     const { reportPath } = writeReport({ startedAt, status, failure });
 
     if (state.browser) {

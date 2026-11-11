@@ -156,7 +156,7 @@ docs/            Architecture plan, security notes, and deployment guide
 | `php tests/phase6_flow.php` | Admin authorization, KPIs, quest/user moderation, timed read-only limits, appeals, catalogue CRUD, reports, audit (247 checks) |
 | `php tests/public_profile_flow.php` | Public profile rendering, privacy, 404s, leaderboard links (39 checks) |
 | `php tests/google_oauth_flow.php` | Google start, callback guards, account resolution, linking, CSP (49 checks) |
-| `npm run test:browser` | Chrome browser QA for auth, quests, profiles, mobile navigation, and WCAG scans |
+| `npm run test:browser` | Chrome browser QA for auth, quests, profiles, mobile navigation, admin moderation, and WCAG scans |
 | `composer test` | Run the unit suite and all eight HTTP suites (770 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
@@ -331,10 +331,12 @@ Coverage includes:
 - profile editing and the owner/public profile views
 - the mobile bottom navigation plus the off-canvas drawer's focus, scroll lock,
   inert background, Escape handling, and link navigation
-- axe scans of every page reached above at desktop width, plus the dashboard and
-  open drawer at mobile width
 - notification mark-read behaviour and the enlarged reader, including focus,
   Escape handling, and the hidden unread marker
+- admin dashboard, user directory, appeals queue and detail, an appeal
+  acceptance, the resulting user detail, and the audit log
+- axe scans of every page reached above at desktop width, plus the dashboard and
+  open drawer at mobile width
 
 Results are written to `storage/logs/browser-qa/report.json`; a failed step also
 leaves a full-page screenshot and a JSON snapshot beside it. CI runs the suite
@@ -645,9 +647,11 @@ php scripts/seed_demo.php
   `GoogleAuthService`, and the route authorization table.
 - `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
   before the eight HTTP suites (770 checks total).
-- `npm run test:browser` adds a headless Chrome pass with 78 functional checks
-  and 22 axe-core WCAG 2.0/2.1 A+AA scans. It lives outside `composer test`
-  because it needs the app served by a web server.
+- `npm run test:browser` adds a headless Chrome pass with 96 functional checks
+  and 28 axe-core WCAG 2.0/2.1 A+AA scans. It creates a throwaway admin fixture
+  through `tests/browser/fixture.php`, so PHP must be on PATH or `PHP_BINARY`
+  must point at the executable. It lives outside `composer test` because it
+  needs the app served by a web server.
 - `tests/bootstrap.php` boots configuration and autoloading without starting a
   session or opening a database connection.
 - `.github/workflows/ci.yml` runs Composer/npm installs, the asset build, PHP

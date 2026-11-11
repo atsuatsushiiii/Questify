@@ -57,6 +57,10 @@ All notable changes to Questify are recorded in this file. The format follows
 - Notification reader: selecting a notification opens an accessible native
   modal with the full title, message, timestamp, and related link. The inbox
   still renders and submits without JavaScript.
+- Admin browser QA: the Chrome pass now signs in with a throwaway administrator,
+  scans the dashboard, user directory, appeals queue and detail, the affected
+  user record, and the audit log, and exercises accepting an appeal. Temporary
+  admin and restricted-account fixtures are removed after every run.
 
 ### Changed
 
