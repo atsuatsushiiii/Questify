@@ -662,9 +662,10 @@ php scripts/seed_demo.php
   needs the app served by a web server.
 - `tests/bootstrap.php` boots configuration and autoloading without starting a
   session or opening a database connection.
-- `.github/workflows/ci.yml` runs Composer/npm installs, the asset build, PHP
-  lint, migrations, the unit suite, all eight HTTP suites against MariaDB 10.11,
-  and the browser QA pass on every push and pull request.
+- `.github/workflows/ci.yml` runs Composer/npm installs, `composer audit` and
+  `npm audit` dependency gates, the asset build, PHP lint, migrations, the unit
+  suite, all eight HTTP suites against MariaDB 10.11, and the browser QA pass on
+  every push and pull request.
 
 ### Email
 

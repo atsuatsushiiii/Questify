@@ -88,6 +88,14 @@ All notable changes to Questify are recorded in this file. The format follows
 - Timed read-only limits now send a notification when they expire instead of
   lifting silently.
 
+### Security
+
+- Upgraded `esbuild` from `0.24` to `0.28.2`, clearing GHSA-67mh-4wv8-2f99
+  (dev-server cross-origin request exposure). `npm audit` now reports zero
+  vulnerabilities.
+- CI now runs `composer audit --locked` and `npm audit --audit-level=moderate`
+  after installing dependencies, so a new advisory fails the build.
+
 ## [1.0.0] - 2026-11-07
 
 The first complete release: every phase of the project plan has shipped, with

@@ -55,8 +55,14 @@ jobs:
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: Audit PHP dependencies
+        run: composer audit --locked --no-interaction
+
       - name: Install JavaScript dependencies
         run: npm ci
+
+      - name: Audit JavaScript dependencies
+        run: npm audit --audit-level=moderate
 
       - name: Build assets
         run: npm run build
