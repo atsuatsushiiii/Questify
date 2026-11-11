@@ -85,6 +85,23 @@ final class MailServiceTest extends TestCase
         $this->assertStringContainsString('/settings/email/confirm?token=change-token-456', $log);
     }
 
+    public function testEmailVerificationGoesToTheNewAccount(): void
+    {
+        (new MailService())->sendEmailVerification(
+            ['display_name' => 'Ada Lovelace', 'email' => 'ada@example.com'],
+            'verify-token-789',
+        );
+
+        $log = (string) file_get_contents(
+            $this->storage . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'mail.log',
+        );
+
+        $this->assertStringContainsString('EMAIL VERIFICATION', $log);
+        $this->assertStringContainsString('To: Ada Lovelace <ada@example.com>', $log);
+        $this->assertStringContainsString('/verify-email?token=verify-token-789', $log);
+        $this->assertStringContainsString('Expires: 1440 minutes', $log);
+    }
+
     public function testUnknownTransportFailsLoudly(): void
     {
         Config::set('mail.transport', 'carrier-pigeon');

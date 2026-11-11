@@ -16,6 +16,7 @@ use App\Controllers\Web\AdminUserController;
 use App\Controllers\Web\AppealController;
 use App\Controllers\Web\AuthController;
 use App\Controllers\Web\DashboardController;
+use App\Controllers\Web\EmailVerificationController;
 use App\Controllers\Web\GoogleAuthController;
 use App\Controllers\Web\LandingController;
 use App\Controllers\Web\LeaderboardController;
@@ -52,6 +53,11 @@ $router->post('/forgot-password', [PasswordResetController::class, 'send'], [Gue
 
 $router->get('/reset-password', [PasswordResetController::class, 'showReset'], [GuestMiddleware::class]);
 $router->post('/reset-password', [PasswordResetController::class, 'reset'], [GuestMiddleware::class, VerifyCsrfToken::class]);
+
+// Signup email verification. The link may be opened on another device, so the
+// page and submission are public; possession of the token proves the mailbox.
+$router->get('/verify-email', [EmailVerificationController::class, 'show']);
+$router->post('/verify-email', [EmailVerificationController::class, 'verify'], [VerifyCsrfToken::class]);
 
 // Public, opt-in profile pages. Hidden and suspended accounts resolve as 404.
 $router->get('/u/{username}', [PublicProfileController::class, 'show']);
@@ -100,6 +106,7 @@ $router->get('/settings', [SettingsController::class, 'show'], [AuthMiddleware::
 
 $router->post('/settings/password', [SettingsController::class, 'updatePassword'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/settings/email', [SettingsController::class, 'requestEmailChange'], [AuthMiddleware::class, VerifyCsrfToken::class]);
+$router->post('/settings/email/verify', [EmailVerificationController::class, 'resend'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 $router->get('/settings/email/confirm', [SettingsController::class, 'showEmailConfirmation'], [AuthMiddleware::class]);
 $router->post('/settings/email/confirm', [SettingsController::class, 'confirmEmailChange'], [AuthMiddleware::class, VerifyCsrfToken::class]);
 $router->post('/settings/notifications', [SettingsController::class, 'updateNotifications'], [AuthMiddleware::class, VerifyCsrfToken::class]);

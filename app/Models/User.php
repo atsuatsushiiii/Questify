@@ -219,6 +219,16 @@ final class User
         $statement->execute([mb_strtolower($email), $id]);
     }
 
+    public static function markEmailVerified(int $id): void
+    {
+        $statement = Database::connection()->prepare(
+            'UPDATE users
+             SET email_verified_at = COALESCE(email_verified_at, UTC_TIMESTAMP()), updated_at = UTC_TIMESTAMP()
+             WHERE id = ?',
+        );
+        $statement->execute([$id]);
+    }
+
     public static function updateNotificationPreferences(
         int $id,
         bool $achievements,

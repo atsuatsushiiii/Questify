@@ -335,7 +335,7 @@ scanning the ledger.
 users 1─N quests 1─N quest_completions
 users 1─N xp_transactions          (source_id → quests/achievements)
 users 1─N daily_activity
-users 1─N sessions / remember_tokens / password_resets
+users 1─N sessions / remember_tokens / password_resets / email_verifications
 users M─N achievements  (via user_achievements)
 categories 1─N quests
 users 1─N audit_logs (as actor)
@@ -514,8 +514,8 @@ layout shell, 404 page, git init, migration runner.
 
 ### Phase 1 — Authentication (2 days)
 Migrations for users/sessions/tokens/attempts, register, login, logout, remember
-me, password reset (mail logged to file in dev), rate limiting, CSRF, validation,
-suspended-account handling.
+me, password reset and signup email verification (mail logged to file in dev),
+rate limiting, CSRF, validation, suspended-account handling.
 **Done when:** full account lifecycle works, sessions persist in DB, 6th bad
 login is throttled, reset token is single-use.
 
@@ -560,8 +560,8 @@ config (debug off, HTTPS cookies, CSP).
 
 **Total: roughly 15–18 focused working days.**
 
-**Verification:** 102 PHPUnit unit tests (455 assertions), eight HTTP regression
-suites (770 checks), and 96 browser checks with 28 axe-core WCAG 2.0/2.1 A+AA
+**Verification:** 103 PHPUnit unit tests (462 assertions), eight HTTP regression
+suites (785 checks), and 106 browser checks with 31 axe-core WCAG 2.0/2.1 A+AA
 scans. CI runs all of them on every push and pull request.
 
 ---

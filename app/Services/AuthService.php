@@ -126,10 +126,17 @@ final class AuthService
 
         Auth::login($user);
 
+        $message = 'Welcome to Questify, ' . $displayName . '. Your adventure starts now.';
+        $verification = (new EmailVerificationService())->send($user);
+
+        if ($verification['ok']) {
+            $message .= ' Check your inbox to verify your email address.';
+        }
+
         return [
             'ok' => true,
             'redirect' => '/dashboard',
-            'message' => 'Welcome to Questify, ' . $displayName . '. Your adventure starts now.',
+            'message' => $message,
         ];
     }
 

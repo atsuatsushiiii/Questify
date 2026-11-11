@@ -22,9 +22,10 @@ working exploit. Include the route, the request, and the observed behaviour.
   password must contain at least one letter and one number.
 - Login attempts are throttled per account (5) and per IP (20) inside a
   15-minute decay window. The 6th bad attempt is rejected before the hash check.
-- Password reset and email-change tokens are 32 random bytes, stored as SHA-256
-  hashes, single-use, and expire after one hour. Requests are limited to three
-  per hour.
+- Password reset, email-change, and signup-verification tokens are 32 random
+  bytes, stored as SHA-256 hashes, and single-use. Resets and email changes
+  expire after one hour; signup verification expires after 24 hours. Requests
+  are limited to three per hour per account.
 - A successful password change or reset revokes every session and remember-me
   token for the account.
 - Suspended accounts are rejected at sign-in and any existing session is
@@ -254,13 +255,14 @@ periodically. Sessions can be discarded safely; users simply sign in again.
 
 ```powershell
 php vendor/bin/phpunit --no-coverage   # level, streak, recurrence, validation, mail, route authz
-php tests/auth_flow.php                # authentication and throttling
+php tests/auth_flow.php                # authentication, signup verification, throttling
 php tests/app_shell.php                # shell, navigation, copyright
 php tests/quest_flow.php               # ownership, single-use and per-period XP
 php tests/phase4_flow.php              # achievements, streaks, leaderboards
 php tests/phase5_flow.php              # account settings and deletion
 php tests/phase6_flow.php              # admin authorization, moderation, reports
 php tests/public_profile_flow.php      # public profiles, privacy, 404s
+php tests/google_oauth_flow.php        # Google start, callback guards, linking, CSP
 ```
 
 The Phase 6 suite is the executable form of the completion criterion: a normal

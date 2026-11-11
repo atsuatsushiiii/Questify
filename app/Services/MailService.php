@@ -13,9 +13,10 @@ use Throwable;
 /**
  * Outbound mail.
  *
- * Callers only depend on sendPasswordReset() and sendEmailChange(). The
- * transport is chosen by config/mail.php: local development appends to
- * storage/logs/mail.log, production sends over SMTP (STARTTLS or implicit TLS).
+ * Callers only depend on sendPasswordReset(), sendEmailChange(), and
+ * sendEmailVerification(). The transport is chosen by config/mail.php: local
+ * development appends to storage/logs/mail.log, production sends over SMTP
+ * (STARTTLS or implicit TLS).
  */
 final class MailService
 {
@@ -77,6 +78,39 @@ final class MailService
                 gmdate('c'),
                 $name,
                 $newEmail,
+                $email,
+                $minutes,
+                $url,
+            ),
+        );
+    }
+
+    /**
+     * Send a confirmation link for a newly registered address.
+     *
+     * @param array<string, mixed> $user
+     */
+    public function sendEmailVerification(array $user, string $token): void
+    {
+        $name = (string) ($user['display_name'] ?? $user['username'] ?? 'Adventurer');
+        $email = (string) ($user['email'] ?? '');
+        $url = url('/verify-email') . '?token=' . $token;
+        $minutes = (int) round(((int) config('auth.email_verification_ttl', 86400)) / 60);
+
+        $this->deliver(
+            $email,
+            $name,
+            'Verify your Questify email address',
+            sprintf(
+                "Hi %s,\n\nWelcome to Questify. Confirm this address to finish setting up your account. The link expires in %d minutes and can only be used once.\n\n%s\n\nIf you did not create this account, you can ignore this email.\n",
+                $name,
+                $minutes,
+                $url,
+            ),
+            sprintf(
+                "[%s] EMAIL VERIFICATION\nTo: %s <%s>\nSubject: Verify your Questify email address\nExpires: %d minutes\nLink: %s\n\n",
+                gmdate('c'),
+                $name,
                 $email,
                 $minutes,
                 $url,

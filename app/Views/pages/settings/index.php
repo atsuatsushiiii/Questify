@@ -229,6 +229,20 @@ $deviceLabel = static function (array $session): string {
                     <?php endif; ?>
                 </div>
 
+                <?php if (!$emailVerified): ?>
+                    <form method="POST" action="<?= e(url('/settings/email/verify')) ?>" class="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-brand-400/30 bg-brand-400/[0.06] px-3.5 py-3">
+                        <?= csrf_field() ?>
+                        <p class="flex min-w-0 flex-1 items-start gap-2 text-[11px] leading-relaxed text-brand-100">
+                            <i data-lucide="mail-warning" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-300"></i>
+                            <span>This address is not confirmed yet. Verify it so account recovery and security notices reach you.</span>
+                        </p>
+                        <button type="submit" class="btn btn-app-ghost shrink-0 text-[11px]">
+                            <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                            Resend verification email
+                        </button>
+                    </form>
+                <?php endif; ?>
+
                 <?php if ($pendingEmail !== null): ?>
                     <div class="mt-3 rounded-sm border border-brand-400/30 bg-brand-400/[0.06] px-3.5 py-3">
                         <p class="flex items-start gap-2 text-[11px] leading-relaxed text-brand-100">

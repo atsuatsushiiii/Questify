@@ -5,7 +5,7 @@
 A gamified productivity platform where everyday tasks become **quests**. Complete
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
-> **Status:** Phase 8 — production readiness complete: 102 PHPUnit unit tests,
+> **Status:** Phase 8 — production readiness complete: 103 PHPUnit unit tests,
 > eight HTTP regression suites, and a headless Chrome browser QA pass with
 > axe-core WCAG scans, alongside a repeatable demo seeder, a written
 > security/threat review with a production checklist, and documented
@@ -146,9 +146,9 @@ docs/            Architecture plan, security notes, and deployment guide
 | `npm run build` | Compile + minify CSS and JS |
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
-| `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, recurrence, mail, Google claims, route authz, navigation state (102 tests) |
+| `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, recurrence, mail, Google claims, route authz, navigation state (103 tests) |
 | `php scripts/seed_demo.php` | Create/reuse a local demo account with realistic quests |
-| `php tests/auth_flow.php` | End-to-end auth regression suite (55 checks) |
+| `php tests/auth_flow.php` | End-to-end auth regression suite (70 checks) |
 | `php tests/app_shell.php` | Authenticated shell and Phase 4-6 pages suite (69 checks) |
 | `php tests/quest_flow.php` | Quest engine, ownership, XP, recurring cadences, and locking suite (137 checks) |
 | `php tests/phase4_flow.php` | Achievements, streaks, profiles, notifications, leaderboards (78 checks) |
@@ -157,18 +157,20 @@ docs/            Architecture plan, security notes, and deployment guide
 | `php tests/public_profile_flow.php` | Public profile rendering, privacy, 404s, leaderboard links (39 checks) |
 | `php tests/google_oauth_flow.php` | Google start, callback guards, account resolution, linking, CSP (49 checks) |
 | `npm run test:browser` | Chrome browser QA for auth, quests, profiles, mobile navigation, admin moderation, and WCAG scans |
-| `composer test` | Run the unit suite and all eight HTTP suites (770 checks) |
+| `composer test` | Run the unit suite and all eight HTTP suites (785 checks) |
 | `php -S localhost:8000 -t public scripts/router.php` | Dev server |
 
 ## Authentication
 
 | Route | Purpose |
 |---|---|
-| `GET/POST /register` | Create an account, then sign in automatically |
+| `GET/POST /register` | Create an account, sign in automatically, and mail a verification link |
 | `GET/POST /login` | Sign in with email or username; optional 30-day remember-me |
 | `POST /logout` | End the session and revoke the remember-me token |
 | `GET/POST /forgot-password` | Request a reset link (generic response, no account enumeration) |
 | `GET/POST /reset-password` | Set a new password with a single-use, one-hour token |
+| `GET/POST /verify-email` | Confirm a new account's email with a single-use, 24-hour token |
+| `POST /settings/email/verify` | Resend the signup verification link (three per hour) |
 | `POST /auth/google` | Start Google sign-in (CSRF-protected) |
 | `GET /auth/google/callback` | Google redirect target; validates state, nonce, and ID token |
 | `POST /settings/google` | Connect Google to the signed-in account |
@@ -189,6 +191,10 @@ Security properties:
 - Reset tokens are 32 random bytes, stored as SHA-256 hashes, single-use, and
   expire after one hour. A successful reset revokes all sessions and
   remember-me tokens for the account.
+- Signup verification links use the same hashed, single-use token scheme and
+  expire after 24 hours. They can be confirmed without a session because
+  possession of the emailed link proves control of the mailbox; Settings shows
+  the verified state and offers a rate-limited resend.
 - Signed-in users are redirected away from guest-only auth pages, and guest
   requests to protected pages remember the intended URL.
 - Validation is server-side (mirrored by HTML constraints); failures re-render
@@ -245,7 +251,7 @@ dropping the message.
 The unit suite is database-free and runs without a server:
 
 ```powershell
-php vendor/bin/phpunit --no-coverage   # 78 tests, 333 assertions
+php vendor/bin/phpunit --no-coverage   # 103 tests, 462 assertions
 ```
 
 The remaining suites drive the real HTTP surface, so start MySQL, migrate, build
@@ -257,7 +263,7 @@ npm run build
 php -S localhost:8000 -t public scripts/router.php
 
 composer test                 # unit suite + all eight HTTP suites
-php tests/auth_flow.php       # auth only (55 checks)
+php tests/auth_flow.php       # auth and signup verification (70 checks)
 php tests/app_shell.php       # shell and Phase 4-6 pages (69 checks)
 php tests/quest_flow.php      # quests only (137 checks)
 php tests/phase4_flow.php     # achievements/streaks/profile/notifications/leaderboard (78 checks)
@@ -326,6 +332,8 @@ Coverage includes:
 - guest landing, login, registration, password-reset, 404, and public profile
   pages
 - registration, sign-in, sign-out, and account deletion
+- signup email verification, including the resend action, the mail-log link, and
+  the resulting verified badge
 - quest creation, completion, archive, restore, and the active, completed, and
   archived journal tabs
 - profile editing and the owner/public profile views
@@ -642,13 +650,13 @@ php scripts/seed_demo.php
 
 ### Tests
 
-- `phpunit.xml` + `tests/Unit` provide 78 DB-free tests / 333 assertions over
+- `phpunit.xml` + `tests/Unit` provide 103 DB-free tests / 462 assertions over
   `Progression`, `Validator`, `StreakService`, `Recurrence`, `MailService`,
   `GoogleAuthService`, and the route authorization table.
 - `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
-  before the eight HTTP suites (770 checks total).
-- `npm run test:browser` adds a headless Chrome pass with 96 functional checks
-  and 28 axe-core WCAG 2.0/2.1 A+AA scans. It creates a throwaway admin fixture
+  before the eight HTTP suites (785 checks total).
+- `npm run test:browser` adds a headless Chrome pass with 106 functional checks
+  and 31 axe-core WCAG 2.0/2.1 A+AA scans. It creates a throwaway admin fixture
   through `tests/browser/fixture.php`, so PHP must be on PATH or `PHP_BINARY`
   must point at the executable. It lives outside `composer test` because it
   needs the app served by a web server.

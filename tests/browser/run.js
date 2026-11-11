@@ -518,6 +518,38 @@ async function run() {
     await audit('dashboard');
   });
 
+  await step('Signup email verification', async () => {
+    await scanPage('settings-unverified', '/settings');
+    const unverified = await bodyText();
+    assert(textIncludes(unverified, 'Unverified'), 'A new account starts with an unverified email');
+    assert(textIncludes(unverified, 'Resend verification email'), 'Settings offers a resend action');
+
+    const mailLog = path.join(ROOT, 'storage', 'logs', 'mail.log');
+    const before = fs.existsSync(mailLog) ? fs.statSync(mailLog).size : 0;
+
+    await submit('form[action$="/settings/email/verify"] button[type="submit"]');
+    await assertPath('/settings', 'Resend returns to the settings page');
+    const hash = await state.page.evaluate(() => window.location.hash);
+    assert(hash === '#email', 'Resend returns to the email section');
+    await waitForText('Verification link sent to');
+
+    const chunk = fs.existsSync(mailLog) ? fs.readFileSync(mailLog, 'utf8').slice(before) : '';
+    const match = chunk.match(/\/verify-email\?token=([a-f0-9]{64})/);
+    assert(Boolean(match), 'Resend writes a verification link to the mail log');
+    const token = match[1];
+
+    await scanPage('verify-email', `/verify-email?token=${token}`);
+    const confirmPage = await bodyText();
+    assert(textIncludes(confirmPage, 'Confirm your email'), 'The verification page opens from the link');
+
+    await submit('form[action$="/verify-email"] button[type="submit"]');
+    await assertPath('/settings', 'Verifying returns to settings');
+    await waitForText('Email address verified');
+    const verified = await bodyText();
+    assert(textIncludes(verified, 'Verified'), 'Settings shows the verified state');
+    await audit('settings-verified');
+  });
+
   await step('Quest creation and the active quest view', async () => {
     await scanPage('quests-empty', '/quests');
     const emptyLog = await bodyText();

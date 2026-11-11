@@ -61,6 +61,12 @@ All notable changes to Questify are recorded in this file. The format follows
   scans the dashboard, user directory, appeals queue and detail, the affected
   user record, and the audit log, and exercises accepting an appeal. Temporary
   admin and restricted-account fixtures are removed after every run.
+- Signup email verification: registration sends a hashed, single-use,
+  24-hour verification link and Settings shows an **Unverified** badge with a
+  rate-limited **Resend verification email** action. Confirming marks
+  `users.email_verified_at` and clears every outstanding link for the account;
+  the link works without a session, and accounts created through Google are
+  verified automatically. Verified by the auth HTTP suite and the Chrome pass.
 
 ### Changed
 

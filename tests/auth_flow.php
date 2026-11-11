@@ -245,6 +245,9 @@ check('Registration without CSRF is rejected with 419', $noCsrf['status'] === 41
 echo "\n3. Successful registration\n";
 
 $csrf = $client->csrf($invalid['body']) ?? $csrf;
+$mailLog = (string) config('paths.storage') . '/logs/mail.log';
+clearstatcache(true, $mailLog);
+$verificationLogStart = is_file($mailLog) ? (int) filesize($mailLog) : 0;
 $registered = $client->post('/register', [
     '_csrf_token' => $csrf,
     'display_name' => $displayName,
@@ -269,7 +272,81 @@ $dashboard = $client->get('/dashboard');
 check('Dashboard loads after registration', $dashboard['status'] === 200 && contains($dashboard['body'], $displayName));
 check('Dashboard shows real starting level', contains($dashboard['body'], 'Level 1'));
 
-echo "\n4. CSRF and logout\n";
+echo "\n4. Signup email verification\n";
+
+$verificationMail = is_file($mailLog) ? substr((string) file_get_contents($mailLog), $verificationLogStart) : '';
+preg_match('/verify-email\?token=([a-f0-9]{64})/', $verificationMail, $verifyMatch);
+$verifyToken = $verifyMatch[1] ?? '';
+check('Registration mails a verification link', strlen($verifyToken) === 64);
+
+$storedVerify = $pdo->prepare('SELECT * FROM email_verifications WHERE user_id = ?');
+$storedVerify->execute([(int) $user['id']]);
+$verifyRow = $storedVerify->fetch(PDO::FETCH_ASSOC);
+check('Verification token is stored hashed', is_array($verifyRow) && $verifyRow['token_hash'] === hash('sha256', $verifyToken));
+check('Raw verification token is not stored', is_array($verifyRow) && $verifyRow['token_hash'] !== $verifyToken);
+
+$settings = $client->get('/settings');
+check(
+    'Settings marks the new address unverified and offers a resend',
+    contains($settings['body'], 'Unverified') && contains($settings['body'], 'Resend verification email'),
+);
+
+$settingsCsrf = $client->csrf($settings['body']);
+$resend = $client->post('/settings/email/verify', ['_csrf_token' => $settingsCsrf]);
+check('Resend returns to the email section', $resend['status'] === 302 && str_ends_with($resend['headers']['location'] ?? '', '/settings#email'));
+
+$resendMail = is_file($mailLog) ? (string) file_get_contents($mailLog) : '';
+preg_match_all('/verify-email\?token=([a-f0-9]{64})/', $resendMail, $resendMatches);
+$resendToken = (string) (end($resendMatches[1]) ?: '');
+check('Resend mails a fresh verification link', strlen($resendToken) === 64 && $resendToken !== $verifyToken);
+
+$earlierPage = $client->get('/verify-email?token=' . $verifyToken);
+check('Earlier verification links stay valid until confirmation', $earlierPage['status'] === 200);
+
+$guest = new HttpClient($baseUrl);
+$verifyPage = $guest->get('/verify-email?token=' . $resendToken);
+$guestCsrf = $guest->csrf($verifyPage['body']);
+check(
+    'Verification page accepts a valid token without a session',
+    $verifyPage['status'] === 200 && $guestCsrf !== null && contains($verifyPage['body'], 'Confirm your email'),
+);
+
+$verified = $guest->post('/verify-email', [
+    '_csrf_token' => $guestCsrf,
+    'token' => $resendToken,
+]);
+check(
+    'Verification succeeds for a guest and returns to sign-in',
+    $verified['status'] === 302 && str_ends_with($verified['headers']['location'] ?? '', '/login'),
+);
+
+$verifiedRow = $pdo->prepare('SELECT email_verified_at FROM users WHERE id = ?');
+$verifiedRow->execute([(int) $user['id']]);
+check('Email is marked verified', $verifiedRow->fetchColumn() !== null);
+
+$remainingVerify = $pdo->prepare('SELECT COUNT(*) FROM email_verifications WHERE user_id = ?');
+$remainingVerify->execute([(int) $user['id']]);
+check('A consumed verification token is deleted', (int) $remainingVerify->fetchColumn() === 0);
+
+$oldLink = $guest->get('/verify-email?token=' . $verifyToken);
+check(
+    'Outstanding links are cleared after verification',
+    $oldLink['status'] === 302 && str_ends_with($oldLink['headers']['location'] ?? '', '/login'),
+);
+
+$reuse = $guest->get('/verify-email?token=' . $resendToken);
+check(
+    'A used verification link is rejected',
+    $reuse['status'] === 302 && str_ends_with($reuse['headers']['location'] ?? '', '/login'),
+);
+
+$reusePage = $guest->get('/login');
+check('The rejected link explains the failure', contains($reusePage['body'], 'invalid or has expired'));
+
+$settings = $client->get('/settings');
+check('Settings shows the verified badge', contains($settings['body'], 'Verified'));
+
+echo "\n5. CSRF and logout\n";
 
 $dashboardCsrf = $client->csrf($dashboard['body']);
 check('Dashboard exposes a logout CSRF token', $dashboardCsrf !== null);
@@ -283,7 +360,7 @@ check('Logout redirects to sign-in', $logout['status'] === 302 && str_ends_with(
 $afterLogout = $client->get('/dashboard');
 check('Session no longer accesses dashboard', $afterLogout['status'] === 302);
 
-echo "\n5. Login throttling\n";
+echo "\n6. Login throttling\n";
 
 $loginPage = $client->get('/login');
 $csrf = $client->csrf($loginPage['body']);
@@ -320,7 +397,7 @@ $login = $client->post('/login', [
 check('Correct password signs in after throttle window', $login['status'] === 302 && str_ends_with($login['headers']['location'] ?? '', '/dashboard'));
 check('Successful login rotates the session cookie', jarValue($client->cookieJar(), 'questify_session') !== null);
 
-echo "\n6. Remember-me\n";
+echo "\n7. Remember-me\n";
 
 $dashboardCsrf = $client->csrf($client->get('/dashboard')['body']);
 $client->post('/logout', ['_csrf_token' => $dashboardCsrf]);
@@ -375,13 +452,14 @@ $revoked = $pdo->prepare('SELECT COUNT(*) FROM remember_tokens WHERE selector = 
 $revoked->execute([$parts[0] ?? '']);
 check('Tampered remember-me token is revoked', (int) $revoked->fetchColumn() === 0);
 
-echo "\n7. Password reset\n";
+echo "\n8. Password reset\n";
 
 $forgotPage = $client->get('/forgot-password');
 $csrf = $client->csrf($forgotPage['body']);
 check('Forgot-password page renders', $forgotPage['status'] === 200 && $csrf !== null);
 
 $mailLog = (string) config('paths.storage') . '/logs/mail.log';
+clearstatcache(true, $mailLog);
 $beforeSize = is_file($mailLog) ? (int) filesize($mailLog) : 0;
 
 $forgot = $client->post('/forgot-password', [
@@ -390,6 +468,7 @@ $forgot = $client->post('/forgot-password', [
 ]);
 check('Reset request returns generic success', $forgot['status'] === 302 && str_ends_with($forgot['headers']['location'] ?? '', '/forgot-password'));
 
+clearstatcache(true, $mailLog);
 $mailContents = is_file($mailLog) ? (string) file_get_contents($mailLog) : '';
 $newMail = substr($mailContents, $beforeSize);
 preg_match('/token=([a-f0-9]{64})/', $newMail, $tokenMatch);
@@ -441,7 +520,7 @@ $newLogin = $guest->post('/login', [
 ]);
 check('New password signs in', $newLogin['status'] === 302);
 
-echo "\n8. Session expiration\n";
+echo "\n9. Session expiration\n";
 
 $sessionId = jarValue($guest->cookieJar(), 'questify_session');
 check('Session cookie is present', is_string($sessionId) && $sessionId !== '');
@@ -454,7 +533,7 @@ if (is_string($sessionId) && $sessionId !== '') {
 $expired = $guest->get('/dashboard');
 check('Expired session is redirected to sign-in', $expired['status'] === 302 && str_ends_with($expired['headers']['location'] ?? '', '/login'));
 
-echo "\n9. Cleanup\n";
+echo "\n10. Cleanup\n";
 
 $pdo->prepare('DELETE FROM login_attempts WHERE identifier = ?')->execute([strtolower($email)]);
 $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([(int) $user['id']]);
