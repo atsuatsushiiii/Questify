@@ -7,7 +7,7 @@
  * @var string $type success|error|info
  * @var string $message
  */
-$tone = match ($type ?? 'info') {
+$tone = match ($type) {
     'success' => [
         'wrap' => 'border-aqua-400/30 border-l-2 border-l-aqua-400 bg-aqua-500/[0.07] text-aqua-100',
         'icon' => 'check-circle-2',
@@ -29,12 +29,12 @@ $tone = match ($type ?? 'info') {
         'iconTone' => 'text-brand-300',
     ],
 };
-$role = ($type ?? 'info') === 'error' ? 'alert' : 'status';
+$role = $type === 'error' ? 'alert' : 'status';
 ?>
 <div
     class="mb-6 flex items-start gap-3 rounded-sm border px-4 py-3 text-sm leading-relaxed <?= e($tone['wrap']) ?>"
     role="<?= e($role) ?>"
 >
     <i data-lucide="<?= e($tone['icon']) ?>" class="mt-0.5 h-4 w-4 shrink-0 <?= e($tone['iconTone']) ?>"></i>
-    <p class="min-w-0 flex-1"><?= e($message ?? '') ?></p>
+    <p class="min-w-0 flex-1"><?= e($message) ?></p>
 </div>

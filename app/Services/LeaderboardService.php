@@ -95,7 +95,7 @@ final class LeaderboardService
         }
 
         $userId = (int) $viewer['id'];
-        $oldRank = isset($viewer['last_leaderboard_rank']) && $viewer['last_leaderboard_rank'] !== null
+        $oldRank = isset($viewer['last_leaderboard_rank'])
             ? (int) $viewer['last_leaderboard_rank']
             : null;
 

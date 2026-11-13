@@ -387,10 +387,6 @@ final class GoogleAuthService
 
         $hash = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
 
-        if ($hash === false) {
-            throw new RuntimeException('Unable to create a placeholder password hash.');
-        }
-
         return User::createFromGoogle([
             'username' => $this->uniqueUsername($email),
             'email' => $email,
@@ -502,7 +498,7 @@ final class GoogleAuthService
 
             $status = 0;
 
-            foreach ($http_response_header ?? [] as $header) {
+            foreach ($http_response_header as $header) {
                 if (preg_match('#^HTTP/\S+\s+(\d{3})#', $header, $matches) === 1) {
                     $status = (int) $matches[1];
                 }

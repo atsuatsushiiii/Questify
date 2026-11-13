@@ -13,7 +13,7 @@ use App\Core\Response;
 /**
  * Keeps signed-in users out of guest-only pages.
  */
-final class GuestMiddleware
+final class GuestMiddleware implements MiddlewareInterface
 {
     public function handle(Request $request, callable $next): Response
     {

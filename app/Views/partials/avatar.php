@@ -8,8 +8,7 @@
  * @var string $name
  * @var string $size xs|sm|md|lg|xl
  */
-$avatarSize = $size ?? 'md';
-$avatarClasses = match ($avatarSize) {
+$avatarClasses = match ($size) {
     'xs' => 'h-8 w-8 rounded-sm text-[10px]',
     'sm' => 'h-9 w-9 rounded-sm text-[11px]',
     'lg' => 'h-20 w-20 rounded-sm text-2xl',

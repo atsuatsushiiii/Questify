@@ -16,7 +16,6 @@ use App\Models\RememberToken;
 use App\Models\User;
 use App\Models\UserSession;
 use PDOException;
-use RuntimeException;
 use Throwable;
 
 /**
@@ -92,10 +91,6 @@ final class SettingsService
         }
 
         $hash = password_hash($newPassword, PASSWORD_DEFAULT);
-
-        if ($hash === false) {
-            throw new RuntimeException('Unable to hash the new password.');
-        }
 
         $db = Database::connection();
         $db->beginTransaction();

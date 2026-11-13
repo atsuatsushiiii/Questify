@@ -13,7 +13,7 @@ use App\Core\Response;
 /**
  * Rejects state-changing requests without a matching session token.
  */
-final class VerifyCsrfToken
+final class VerifyCsrfToken implements MiddlewareInterface
 {
     public function handle(Request $request, callable $next): Response
     {

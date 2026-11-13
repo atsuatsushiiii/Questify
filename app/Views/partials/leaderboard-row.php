@@ -15,8 +15,6 @@ $username = (string) ($entry['username'] ?? '');
 $level = (int) ($entry['level'] ?? 1);
 $xp = (int) ($entry['period_xp'] ?? $entry['xp_total'] ?? 0);
 $rankTitle = (string) ($entry['rank_title'] ?? '');
-$isViewer = $isViewer ?? false;
-$metricLabel = $metricLabel ?? 'XP';
 $profileUrl = (int) ($entry['show_profile'] ?? 0) === 1 && $username !== ''
     ? url('/u/' . rawurlencode($username))
     : null;

@@ -21,6 +21,7 @@ use PDO;
  */
 final class AchievementService
 {
+    /** @var list<'quests_completed'|'xp_total'|'level'|'epic_quests'|'longest_streak'> */
     private const CRITERIA = [
         'quests_completed',
         'xp_total',
@@ -91,7 +92,7 @@ final class AchievementService
             }
 
             $threshold = max(1, (int) ($definition['threshold'] ?? 1));
-            $value = (int) ($metrics[$type] ?? 0);
+            $value = $metrics[$type];
 
             if ($value < $threshold) {
                 continue;
@@ -130,7 +131,7 @@ final class AchievementService
         foreach ($rows as $row) {
             $type = (string) ($row['criteria_type'] ?? '');
             $threshold = max(1, (int) ($row['threshold'] ?? 1));
-            $metric = in_array($type, self::CRITERIA, true) ? (int) ($metrics[$type] ?? 0) : 0;
+            $metric = in_array($type, self::CRITERIA, true) ? $metrics[$type] : 0;
             $isUnlocked = ($row['unlocked_at'] ?? null) !== null;
             $current = $isUnlocked ? $threshold : min($metric, $threshold);
             $percent = $isUnlocked

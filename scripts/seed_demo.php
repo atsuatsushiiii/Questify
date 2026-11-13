@@ -151,7 +151,7 @@ if ($existingQuests > 0) {
         if ($quest['complete']) {
             $result = $service->complete($questId, $userId);
 
-            if ($result['ok'] ?? false) {
+            if ($result['ok']) {
                 $completed++;
             } else {
                 fwrite(STDERR, "Could not complete '{$quest['title']}': " . ($result['message'] ?? 'unknown error') . "\n");

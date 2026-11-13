@@ -190,10 +190,10 @@ final class Auth
         }
 
         $userId = (int) $user['id'];
-        $expiredUntil = isset($user['restricted_until']) && $user['restricted_until'] !== null
+        $expiredUntil = isset($user['restricted_until'])
             ? (string) $user['restricted_until']
             : null;
-        $restrictedAt = isset($user['restricted_at']) && $user['restricted_at'] !== null
+        $restrictedAt = isset($user['restricted_at'])
             ? (string) $user['restricted_at']
             : null;
 

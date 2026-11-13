@@ -1,0 +1,10 @@
+# Code © 2026 Kevin Cyril Maraño, MIT license.
+
+parameters:
+    level: 6
+    paths:
+        - app
+        - config
+        - routes
+        - scripts
+    tmpDir: storage/phpstan

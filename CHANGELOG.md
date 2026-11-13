@@ -67,6 +67,12 @@ All notable changes to Questify are recorded in this file. The format follows
   `users.email_verified_at` and clears every outstanding link for the account;
   the link works without a session, and accounts created through Google are
   verified automatically. Verified by the auth HTTP suite and the Chrome pass.
+- Static analysis gate: PHPStan level 6 (`composer analyse`) covers `app/`,
+  `config/`, `routes/`, and `scripts/`, and ESLint 10 (`npm run lint:js`) covers
+  the first-party modules and browser QA suite. Both run in CI before the tests
+  and fail the build on findings. The pass also introduced a typed
+  `MiddlewareInterface` for the router and replaced the preflight script's
+  global counters with a report object.
 
 ### Changed
 
@@ -93,6 +99,8 @@ All notable changes to Questify are recorded in this file. The format follows
 - Upgraded `esbuild` from `0.24` to `0.28.2`, clearing GHSA-67mh-4wv8-2f99
   (dev-server cross-origin request exposure). `npm audit` now reports zero
   vulnerabilities.
+- Added an npm `overrides` pin for `minimatch` 11.0.8 so ESLint's config loader
+  stays clear of GHSA-g3hv-75wg-m249 (glob-pattern denial of service).
 - CI now runs `composer audit --locked` and `npm audit --audit-level=moderate`
   after installing dependencies, so a new advisory fails the build.
 

@@ -47,7 +47,7 @@ final class StreakService
         $localDate = self::localDate($now, (string) ($user['timezone'] ?? 'UTC'));
         $current = max(0, (int) ($user['current_streak'] ?? 0));
         $longest = max(0, (int) ($user['longest_streak'] ?? 0));
-        $last = isset($user['last_streak_date']) && $user['last_streak_date'] !== null
+        $last = isset($user['last_streak_date'])
             ? (string) $user['last_streak_date']
             : null;
         $incremented = false;
@@ -84,7 +84,7 @@ final class StreakService
     public static function effectiveCurrent(array $user, ?DateTimeImmutable $now = null): int
     {
         $current = max(0, (int) ($user['current_streak'] ?? 0));
-        $last = isset($user['last_streak_date']) && $user['last_streak_date'] !== null
+        $last = isset($user['last_streak_date'])
             ? (string) $user['last_streak_date']
             : null;
 

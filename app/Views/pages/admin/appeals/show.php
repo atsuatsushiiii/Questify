@@ -29,10 +29,10 @@ $statusLabels = ['open' => 'Open', 'accepted' => 'Accepted', 'denied' => 'Denied
 $avatarUrl = avatar_url(isset($account['avatar_path']) ? (string) $account['avatar_path'] : null);
 $initial = mb_strtoupper(mb_substr($account['display_name'], 0, 1));
 $created = format_datetime((string) $appeal['created_at'], 'UTC', 'j M Y, H:i');
-$resolved = isset($appeal['resolved_at']) && $appeal['resolved_at'] !== null
+$resolved = isset($appeal['resolved_at'])
     ? format_datetime((string) $appeal['resolved_at'], 'UTC', 'j M Y, H:i')
     : null;
-$restrictedUntil = isset($account['restricted_until']) && $account['restricted_until'] !== null
+$restrictedUntil = isset($account['restricted_until'])
     ? format_datetime((string) $account['restricted_until'], 'UTC', 'j M Y, H:i')
     : null;
 ?>

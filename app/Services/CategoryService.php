@@ -20,6 +20,7 @@ final class CategoryService
 
     /**
      * @param array<string, mixed> $input
+     * @param array<string, mixed> $actor
      * @return array{ok: bool, status?: int, errors?: array<string, string>, old?: array<string, string>, message?: string, id?: int}
      */
     public function create(array $input, array $actor, string $ipAddress): array
@@ -48,6 +49,7 @@ final class CategoryService
 
     /**
      * @param array<string, mixed> $input
+     * @param array<string, mixed> $actor
      * @return array{ok: bool, status?: int, errors?: array<string, string>, old?: array<string, string>, message?: string, id?: int}
      */
     public function update(int $id, array $input, array $actor, string $ipAddress): array
@@ -80,6 +82,7 @@ final class CategoryService
     }
 
     /**
+     * @param array<string, mixed> $actor
      * @return array{ok: bool, status?: int, message: string}
      */
     public function delete(int $id, array $actor, string $ipAddress): array

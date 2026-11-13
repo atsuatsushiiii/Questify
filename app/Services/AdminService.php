@@ -536,7 +536,7 @@ final class AdminService
         }
 
         $current = (string) $target['status'];
-        $currentUntil = isset($target['suspended_until']) && $target['suspended_until'] !== null
+        $currentUntil = isset($target['suspended_until'])
             ? (string) $target['suspended_until']
             : null;
         $suspendedUntil = $status === 'suspended' && $duration !== 'permanent'
@@ -908,7 +908,7 @@ final class AdminService
         }
 
         $current = User::isRestricted($target);
-        $currentUntil = isset($target['restricted_until']) && $target['restricted_until'] !== null
+        $currentUntil = isset($target['restricted_until'])
             ? (string) $target['restricted_until']
             : null;
 

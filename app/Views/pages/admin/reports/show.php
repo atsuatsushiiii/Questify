@@ -7,6 +7,7 @@
  * @var array{report: array<string, mixed>, target: array<string, mixed>|null, audit: list<array<string, mixed>>} $detail
  * @var array<string, string> $reasons
  * @var array<string, string> $suspensionOptions
+ * @var array<string, string> $restrictionOptions
  */
 $report = $detail['report'];
 $target = $detail['target'];
@@ -195,7 +196,7 @@ $reporterAvatar = avatar_url(isset($report['reporter_avatar_path']) ? (string) $
                         <span class="rounded-sm border border-line bg-white/[0.03] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-400"><?= e(ucfirst((string) $account['status'])) ?></span>
                         <span class="rounded-sm border border-line bg-white/[0.03] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-400"><?= (int) $account['show_profile'] === 1 ? 'Profile public' : 'Profile hidden' ?></span>
                         <?php if (account_restricted($account)): ?>
-                            <?php $badgeRestrictedUntil = isset($account['restricted_until']) && $account['restricted_until'] !== null
+                            <?php $badgeRestrictedUntil = isset($account['restricted_until'])
                                 ? format_datetime((string) $account['restricted_until'], 'UTC', 'j M Y, H:i')
                                 : null; ?>
                             <span class="rounded-sm border border-ember-400/30 bg-ember-500/[0.08] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-ember-300">Read-only<?= $badgeRestrictedUntil !== null ? ' until ' . e($badgeRestrictedUntil) . ' UTC' : '' ?></span>
@@ -266,11 +267,11 @@ $reporterAvatar = avatar_url(isset($report['reporter_avatar_path']) ? (string) $
     <?php
     $account = $target['record'];
     $targetName = (string) ($account['display_name'] ?? $account['username'] ?? 'this account');
-    $targetSuspendedUntil = isset($account['suspended_until']) && $account['suspended_until'] !== null
+    $targetSuspendedUntil = isset($account['suspended_until'])
         ? format_datetime((string) $account['suspended_until'], 'UTC', 'j M Y, H:i')
         : null;
     $targetRestricted = account_restricted($account);
-    $targetRestrictedUntil = isset($account['restricted_until']) && $account['restricted_until'] !== null
+    $targetRestrictedUntil = isset($account['restricted_until'])
         ? format_datetime((string) $account['restricted_until'], 'UTC', 'j M Y, H:i')
         : null;
     ?>

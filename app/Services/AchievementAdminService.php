@@ -23,6 +23,7 @@ final class AchievementAdminService
 
     /**
      * @param array<string, mixed> $input
+     * @param array<string, mixed> $actor
      * @return array{ok: bool, status?: int, errors?: array<string, string>, old?: array<string, string>, message?: string, id?: int}
      */
     public function create(array $input, array $actor, string $ipAddress): array
@@ -47,6 +48,7 @@ final class AchievementAdminService
 
     /**
      * @param array<string, mixed> $input
+     * @param array<string, mixed> $actor
      * @return array{ok: bool, status?: int, errors?: array<string, string>, old?: array<string, string>, message?: string, id?: int}
      */
     public function update(int $id, array $input, array $actor, string $ipAddress): array
@@ -83,6 +85,7 @@ final class AchievementAdminService
      * Definitions that users have already unlocked are retained so their
      * trophy history survives. Deactivate them instead.
      *
+     * @param array<string, mixed> $actor
      * @return array{ok: bool, status?: int, message: string}
      */
     public function delete(int $id, array $actor, string $ipAddress): array

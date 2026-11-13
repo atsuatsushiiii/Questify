@@ -22,34 +22,37 @@ use App\Core\Database;
 
 define('BASE_PATH', dirname(__DIR__));
 
-$passed = 0;
-$failed = 0;
-$warnings = 0;
-
-/**
- * @param bool $warnOnly Report a failure as a warning instead of a blocker.
- */
-function line(string $label, bool $ok, string $detail = '', bool $warnOnly = false): void
+final class PreflightReport
 {
-    global $passed, $failed, $warnings;
+    public int $passed = 0;
+    public int $failed = 0;
+    public int $warnings = 0;
 
-    if ($ok) {
-        $passed++;
-        echo "  [ok]   {$label}" . ($detail !== '' ? " — {$detail}" : '') . PHP_EOL;
+    /**
+     * @param bool $warnOnly Report a failure as a warning instead of a blocker.
+     */
+    public function line(string $label, bool $ok, string $detail = '', bool $warnOnly = false): void
+    {
+        if ($ok) {
+            $this->passed++;
+            echo "  [ok]   {$label}" . ($detail !== '' ? " — {$detail}" : '') . PHP_EOL;
 
-        return;
+            return;
+        }
+
+        if ($warnOnly) {
+            $this->warnings++;
+            echo "  [warn] {$label}" . ($detail !== '' ? " — {$detail}" : '') . PHP_EOL;
+
+            return;
+        }
+
+        $this->failed++;
+        echo "  [fail] {$label}" . ($detail !== '' ? " — {$detail}" : '') . PHP_EOL;
     }
-
-    if ($warnOnly) {
-        $warnings++;
-        echo "  [warn] {$label}" . ($detail !== '' ? " — {$detail}" : '') . PHP_EOL;
-
-        return;
-    }
-
-    $failed++;
-    echo "  [fail] {$label}" . ($detail !== '' ? " — {$detail}" : '') . PHP_EOL;
 }
+
+$report = new PreflightReport();
 
 function section(string $name): void
 {
@@ -59,21 +62,21 @@ function section(string $name): void
 echo "Questify production preflight\n";
 
 section('Runtime');
-line('PHP 8.2 or newer', version_compare(PHP_VERSION, '8.2.0', '>='), PHP_VERSION);
+$report->line('PHP 8.2 or newer', version_compare(PHP_VERSION, '8.2.0', '>='), PHP_VERSION);
 
 foreach (['pdo', 'pdo_mysql', 'mbstring', 'openssl', 'curl', 'json', 'fileinfo'] as $extension) {
-    line("Extension: {$extension}", extension_loaded($extension));
+    $report->line("Extension: {$extension}", extension_loaded($extension));
 }
 
 section('Files');
 $autoload = BASE_PATH . '/vendor/autoload.php';
 $canBoot = is_file($autoload);
-line('Composer dependencies installed', $canBoot, $canBoot ? 'vendor/autoload.php' : 'run composer install');
-line('.env exists', is_file(BASE_PATH . '/.env'), is_file(BASE_PATH . '/.env') ? '.env' : 'copy .env.production.example to .env');
+$report->line('Composer dependencies installed', $canBoot, $canBoot ? 'vendor/autoload.php' : 'run composer install');
+$report->line('.env exists', is_file(BASE_PATH . '/.env'), is_file(BASE_PATH . '/.env') ? '.env' : 'copy .env.production.example to .env');
 $cssBuilt = is_file(BASE_PATH . '/public/assets/css/app.css');
 $jsBuilt = is_file(BASE_PATH . '/public/assets/js/app.js');
-line('Built CSS exists', $cssBuilt, $cssBuilt ? 'public/assets/css/app.css' : 'run npm ci && npm run build');
-line('Built JavaScript exists', $jsBuilt, $jsBuilt ? 'public/assets/js/app.js' : 'run npm ci && npm run build');
+$report->line('Built CSS exists', $cssBuilt, $cssBuilt ? 'public/assets/css/app.css' : 'run npm ci && npm run build');
+$report->line('Built JavaScript exists', $jsBuilt, $jsBuilt ? 'public/assets/js/app.js' : 'run npm ci && npm run build');
 
 foreach ([
     'storage',
@@ -84,11 +87,11 @@ foreach ([
     'public/uploads/avatars',
 ] as $path) {
     $absolute = BASE_PATH . '/' . $path;
-    line("Writable: {$path}", is_dir($absolute) && is_writable($absolute));
+    $report->line("Writable: {$path}", is_dir($absolute) && is_writable($absolute));
 }
 
 if (!$canBoot) {
-    echo PHP_EOL . "Blocking problems found: {$failed}. Fix the items above and re-run.\n";
+    echo PHP_EOL . "Blocking problems found: {$report->failed}. Fix the items above and re-run.\n";
     exit(1);
 }
 
@@ -102,14 +105,14 @@ $url = (string) config('app.url');
 $https = str_starts_with(strtolower($url), 'https://');
 $production = $environment === 'production';
 
-line('APP_ENV is production', $production, $production ? 'production' : "got {$environment}", !$production);
-line('APP_DEBUG is off', !(bool) config('app.debug'), (bool) config('app.debug') ? 'set APP_DEBUG=false' : 'false', !$production);
-line('APP_URL is set', $url !== '', $url);
-line('APP_URL uses HTTPS', $https, $url, !$production);
+$report->line('APP_ENV is production', $production, $production ? 'production' : "got {$environment}", !$production);
+$report->line('APP_DEBUG is off', !(bool) config('app.debug'), (bool) config('app.debug') ? 'set APP_DEBUG=false' : 'false', !$production);
+$report->line('APP_URL is set', $url !== '', $url);
+$report->line('APP_URL uses HTTPS', $https, $url, !$production);
 
 if ($https) {
     $secureCookie = (bool) env('SESSION_SECURE', false);
-    line('SESSION_SECURE is enabled', $secureCookie, $secureCookie ? 'true' : 'set SESSION_SECURE=true');
+    $report->line('SESSION_SECURE is enabled', $secureCookie, $secureCookie ? 'true' : 'set SESSION_SECURE=true');
 }
 
 $googleId = (string) config('oauth.google.client_id');
@@ -117,12 +120,12 @@ $googleSecret = (string) config('oauth.google.client_secret');
 
 if ($googleId !== '' || $googleSecret !== '') {
     $googleReady = $googleId !== '' && $googleSecret !== '';
-    line('Google client ID and secret are both set', $googleReady, $googleReady ? 'configured' : 'set both values or neither');
+    $report->line('Google client ID and secret are both set', $googleReady, $googleReady ? 'configured' : 'set both values or neither');
 
     $redirect = (string) config('oauth.google.redirect_uri');
     $redirect = $redirect !== '' ? $redirect : $url . '/auth/google/callback';
 
-    line(
+    $report->line(
         'Google redirect URI matches APP_URL',
         str_starts_with($redirect, $url . '/'),
         $redirect,
@@ -135,7 +138,7 @@ section('Database');
 
 try {
     $pdo = Database::connection();
-    line('Database connection', true, 'MySQL ' . (string) $pdo->query('SELECT VERSION()')->fetchColumn());
+    $report->line('Database connection', true, 'MySQL ' . (string) $pdo->query('SELECT VERSION()')->fetchColumn());
 
     $directory = BASE_PATH . '/database/migrations';
     $files = glob($directory . '/*.php') ?: [];
@@ -155,7 +158,7 @@ try {
         static fn (string $file): bool => !isset($applied[basename($file)]),
     ));
 
-    line(
+    $report->line(
         'All migrations applied',
         $pending === [],
         $pending === []
@@ -163,29 +166,29 @@ try {
             : count($pending) . ' pending — run php scripts/migrate.php migrate',
     );
 } catch (Throwable $exception) {
-    line('Database connection', false, $exception->getMessage());
+    $report->line('Database connection', false, $exception->getMessage());
 }
 
 section('Mail');
 
 if ($production) {
     $transport = (string) config('mail.transport');
-    line('Mail transport is not the local log', $transport !== 'log', "got {$transport}");
+    $report->line('Mail transport is not the local log', $transport !== 'log', "got {$transport}");
 
     if ($transport === 'smtp') {
         $mailHost = (string) config('mail.host');
         $mailFrom = (string) config('mail.from_address');
-        line('MAIL_HOST is set', $mailHost !== '', $mailHost !== '' ? $mailHost : 'set MAIL_HOST');
-        line('MAIL_FROM_ADDRESS is set', $mailFrom !== '', $mailFrom !== '' ? $mailFrom : 'set MAIL_FROM_ADDRESS');
+        $report->line('MAIL_HOST is set', $mailHost !== '', $mailHost !== '' ? $mailHost : 'set MAIL_HOST');
+        $report->line('MAIL_FROM_ADDRESS is set', $mailFrom !== '', $mailFrom !== '' ? $mailFrom : 'set MAIL_FROM_ADDRESS');
     }
 } else {
     echo "  [info] Non-production environment; mail checks skipped.\n";
 }
 
 echo PHP_EOL . str_repeat('=', 46) . PHP_EOL;
-echo "  {$passed} passed, {$warnings} warning(s), {$failed} failure(s)\n";
+echo "  {$report->passed} passed, {$report->warnings} warning(s), {$report->failed} failure(s)\n";
 
-if ($failed > 0) {
+if ($report->failed > 0) {
     echo "Preflight failed. Fix the blocking items before going live.\n";
     exit(1);
 }

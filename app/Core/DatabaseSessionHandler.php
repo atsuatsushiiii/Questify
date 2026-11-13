@@ -38,7 +38,7 @@ final class DatabaseSessionHandler implements SessionHandlerInterface, SessionUp
         return true;
     }
 
-    public function read(string $id): string|false
+    public function read(string $id): string
     {
         $key = $this->key($id);
         $now = time();
@@ -103,7 +103,7 @@ final class DatabaseSessionHandler implements SessionHandlerInterface, SessionUp
         return $statement->execute([$this->key($id)]);
     }
 
-    public function gc(int $max_lifetime): int|false
+    public function gc(int $max_lifetime): int
     {
         $now = time();
 

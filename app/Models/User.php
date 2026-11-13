@@ -572,11 +572,7 @@ final class User
      */
     public static function restrictionExpired(array $user): bool
     {
-        if (
-            !isset($user['restricted_at'])
-            || $user['restricted_at'] === null
-            || $user['restricted_at'] === ''
-        ) {
+        if (!isset($user['restricted_at']) || $user['restricted_at'] === '') {
             return false;
         }
 
@@ -593,11 +589,7 @@ final class User
      */
     public static function isRestricted(array $user): bool
     {
-        if (
-            !isset($user['restricted_at'])
-            || $user['restricted_at'] === null
-            || $user['restricted_at'] === ''
-        ) {
+        if (!isset($user['restricted_at']) || $user['restricted_at'] === '') {
             return false;
         }
 

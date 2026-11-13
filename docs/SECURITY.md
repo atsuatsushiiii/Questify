@@ -272,8 +272,10 @@ never leak.
 
 `.github/workflows/ci.yml` runs the unit suite and all eight HTTP suites against
 a MariaDB service on every push and pull request, so the verification above is
-not manual-only. It also runs `composer audit --locked` and
+not manual-only. It also runs PHPStan level 6 (`composer analyse`) and ESLint
+(`npm run lint:js`) before the tests, and `composer audit --locked` plus
 `npm audit --audit-level=moderate` after installing dependencies, which fails the
 build when a known advisory affects a locked PHP or JavaScript package. The
 JavaScript tree is currently clear; `esbuild` is pinned at `0.28.2` or newer,
-past GHSA-67mh-4wv8-2f99.
+past GHSA-67mh-4wv8-2f99, and `minimatch` is pinned to 11.0.8 through npm
+`overrides` so ESLint's loader stays past GHSA-g3hv-75wg-m249.

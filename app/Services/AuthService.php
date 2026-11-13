@@ -91,10 +91,6 @@ final class AuthService
 
         $hash = password_hash((string) $data['password'], PASSWORD_DEFAULT);
 
-        if ($hash === false) {
-            throw new RuntimeException('Unable to hash the password.');
-        }
-
         try {
             $userId = User::create([
                 'username' => $username,
@@ -230,10 +226,7 @@ final class AuthService
 
         if (password_needs_rehash((string) $user['password_hash'], PASSWORD_DEFAULT)) {
             $rehash = password_hash($password, PASSWORD_DEFAULT);
-
-            if ($rehash !== false) {
-                User::updatePassword((int) $user['id'], $rehash);
-            }
+            User::updatePassword((int) $user['id'], $rehash);
         }
 
         LoginAttempt::clearFailures($identifier, $ip);
@@ -371,10 +364,6 @@ final class AuthService
         }
 
         $newHash = password_hash((string) $data['password'], PASSWORD_DEFAULT);
-
-        if ($newHash === false) {
-            throw new RuntimeException('Unable to hash the password.');
-        }
 
         $pdo = Database::connection();
         $pdo->beginTransaction();

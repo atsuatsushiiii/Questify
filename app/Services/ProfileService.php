@@ -159,12 +159,12 @@ final class ProfileService
 
         $allowed = self::ALLOWED_MIME[$mime];
 
-        if ((int) ($info[2] ?? 0) !== $allowed['type']) {
+        if ($info[2] !== $allowed['type']) {
             return ['ok' => false, 'message' => 'The image content does not match its format.'];
         }
 
-        $width = (int) ($info[0] ?? 0);
-        $height = (int) ($info[1] ?? 0);
+        $width = (int) $info[0];
+        $height = (int) $info[1];
         $minDimension = max(1, (int) config('game.avatar.min_dimension', 64));
         $maxDimension = max($minDimension, (int) config('game.avatar.max_dimension', 4096));
 

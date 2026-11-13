@@ -6,9 +6,9 @@ A gamified productivity platform where everyday tasks become **quests**. Complet
 quests to earn XP, level up, unlock achievements, and keep daily streaks alive.
 
 > **Status:** Phase 8 — production readiness complete: 103 PHPUnit unit tests,
-> eight HTTP regression suites, and a headless Chrome browser QA pass with
-> axe-core WCAG scans, alongside a repeatable demo seeder, a written
-> security/threat review with a production checklist, and documented
+> eight HTTP regression suites, a headless Chrome browser QA pass with axe-core
+> WCAG scans, PHPStan level 6, and ESLint, alongside a repeatable demo seeder, a
+> written security/threat review with a production checklist, and documented
 > backup/restore steps. These sit alongside recurring daily/weekly/monthly
 > quests, public opt-in profiles, the Phase 7 polish pass, and the Phase 1–6
 > auth, shell, quest engine, achievements, streaks, profiles, notifications,
@@ -55,7 +55,7 @@ locally or on any PHP-capable host (see [Local setup](#local-setup)).
 - PHP **8.2+** with `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`
 - MySQL **8** or MariaDB **10.4+**
 - Composer 2
-- Node.js 20+ and npm
+- Node.js 22+ and npm
 - Apache (XAMPP is fine) or PHP's built-in server
 
 ---
@@ -144,6 +144,8 @@ docs/            Architecture plan, security notes, and deployment guide
 | `php scripts/migrate.php rollback` | Roll back the last batch |
 | `php scripts/preflight.php` | Check a host for production readiness |
 | `npm run build` | Compile + minify CSS and JS |
+| `composer analyse` | PHPStan level 6 over `app/`, `config/`, `routes/`, and `scripts/` |
+| `npm run lint:js` | ESLint over first-party JS modules and the browser suite |
 | `npm run dev:css` | Tailwind watch mode |
 | `npm run dev:js` | esbuild watch mode |
 | `php vendor/bin/phpunit` | Unit suite — progression, validation, streaks, recurrence, mail, Google claims, route authz, navigation state (103 tests) |
@@ -655,6 +657,9 @@ php scripts/seed_demo.php
   `GoogleAuthService`, and the route authorization table.
 - `composer test:unit` runs PHPUnit; `composer test` now runs the unit suite
   before the eight HTTP suites (785 checks total).
+- `composer analyse` runs PHPStan level 6 over `app/`, `config/`, `routes/`, and
+  `scripts/`, and `npm run lint:js` runs ESLint 10 over `resources/js` and
+  `tests/browser`. CI fails on either finding.
 - `npm run test:browser` adds a headless Chrome pass with 106 functional checks
   and 31 axe-core WCAG 2.0/2.1 A+AA scans. It creates a throwaway admin fixture
   through `tests/browser/fixture.php`, so PHP must be on PATH or `PHP_BINARY`
@@ -663,9 +668,9 @@ php scripts/seed_demo.php
 - `tests/bootstrap.php` boots configuration and autoloading without starting a
   session or opening a database connection.
 - `.github/workflows/ci.yml` runs Composer/npm installs, `composer audit` and
-  `npm audit` dependency gates, the asset build, PHP lint, migrations, the unit
-  suite, all eight HTTP suites against MariaDB 10.11, and the browser QA pass on
-  every push and pull request.
+  `npm audit` dependency gates, PHPStan, ESLint, the asset build, PHP lint,
+  migrations, the unit suite, all eight HTTP suites against MariaDB 10.11, and
+  the browser QA pass on every push and pull request.
 
 ### Email
 

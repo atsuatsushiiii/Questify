@@ -19,7 +19,7 @@ use App\Models\User;
  * Browsing, account settings, and sign-out stay available. The account is not
  * suspended: it keeps its session and can still review everything it owns.
  */
-final class ReadOnlyMiddleware
+final class ReadOnlyMiddleware implements MiddlewareInterface
 {
     public const MESSAGE = 'Your account is read-only. You can browse and review your quests, but creating, editing, completing, archiving, restoring, or deleting quests and submitting reports is disabled while a moderator reviews your account. You can request a review from the read-only banner.';
 

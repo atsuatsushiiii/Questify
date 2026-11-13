@@ -59,7 +59,7 @@ final class EmailVerificationController
         $result = (new EmailVerificationService())->verify($token);
 
         if (!$result['ok']) {
-            Flash::error((string) ($result['message'] ?? 'The email address could not be verified.'));
+            Flash::error((string) $result['message']);
 
             return redirect($this->fallback());
         }

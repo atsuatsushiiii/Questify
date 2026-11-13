@@ -6,19 +6,21 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use App\Middleware\MiddlewareInterface;
+
 /**
  * Tiny regex router with per-route middleware.
  */
 final class Router
 {
     /**
-     * @var list<array{method: string, pattern: string, regex: string, handler: array{0: class-string, 1: string}|callable, middleware: list<class-string|callable>}>
+     * @var list<array{method: string, pattern: string, regex: string, handler: array{0: class-string, 1: string}|callable, middleware: list<class-string<MiddlewareInterface>|callable|MiddlewareInterface>}>
      */
     private array $routes = [];
 
     /**
      * @param array{0: class-string, 1: string}|callable $handler
-     * @param list<class-string|callable> $middleware
+     * @param list<class-string<MiddlewareInterface>|callable|MiddlewareInterface> $middleware
      */
     public function get(string $pattern, array|callable $handler, array $middleware = []): void
     {
@@ -27,7 +29,7 @@ final class Router
 
     /**
      * @param array{0: class-string, 1: string}|callable $handler
-     * @param list<class-string|callable> $middleware
+     * @param list<class-string<MiddlewareInterface>|callable|MiddlewareInterface> $middleware
      */
     public function post(string $pattern, array|callable $handler, array $middleware = []): void
     {
@@ -36,7 +38,7 @@ final class Router
 
     /**
      * @param array{0: class-string, 1: string}|callable $handler
-     * @param list<class-string|callable> $middleware
+     * @param list<class-string<MiddlewareInterface>|callable|MiddlewareInterface> $middleware
      */
     public function put(string $pattern, array|callable $handler, array $middleware = []): void
     {
@@ -45,7 +47,7 @@ final class Router
 
     /**
      * @param array{0: class-string, 1: string}|callable $handler
-     * @param list<class-string|callable> $middleware
+     * @param list<class-string<MiddlewareInterface>|callable|MiddlewareInterface> $middleware
      */
     public function patch(string $pattern, array|callable $handler, array $middleware = []): void
     {
@@ -54,7 +56,7 @@ final class Router
 
     /**
      * @param array{0: class-string, 1: string}|callable $handler
-     * @param list<class-string|callable> $middleware
+     * @param list<class-string<MiddlewareInterface>|callable|MiddlewareInterface> $middleware
      */
     public function delete(string $pattern, array|callable $handler, array $middleware = []): void
     {
@@ -67,7 +69,7 @@ final class Router
      * Diagnostics and the authorization suite use this so a new admin route
      * cannot silently skip the role gate.
      *
-     * @return list<array{method: string, pattern: string, middleware: list<class-string|callable>}>
+     * @return list<array{method: string, pattern: string, middleware: list<class-string<MiddlewareInterface>|callable|MiddlewareInterface>}>
      */
     public function routes(): array
     {
@@ -110,7 +112,7 @@ final class Router
 
     /**
      * @param array{0: class-string, 1: string}|callable $handler
-     * @param list<class-string|callable> $middleware
+     * @param list<class-string<MiddlewareInterface>|callable|MiddlewareInterface> $middleware
      */
     private function add(string $method, string $pattern, array|callable $handler, array $middleware): void
     {
@@ -141,7 +143,7 @@ final class Router
     }
 
     /**
-     * @param list<class-string|callable> $middleware
+     * @param list<class-string<MiddlewareInterface>|callable|MiddlewareInterface> $middleware
      * @param array{0: class-string, 1: string}|callable $handler
      * @param array<string, string> $params
      */
@@ -151,13 +153,15 @@ final class Router
 
         foreach (array_reverse($middleware) as $layer) {
             $next = static function (Request $current) use ($layer, $next): Response {
-                if ($layer instanceof \Closure || (is_object($layer) && !method_exists($layer, 'handle'))) {
-                    return $layer($current, $next);
+                if ($layer instanceof MiddlewareInterface) {
+                    return $layer->handle($current, $next);
                 }
 
-                $instance = is_string($layer) ? new $layer() : $layer;
+                if (is_string($layer)) {
+                    return (new $layer())->handle($current, $next);
+                }
 
-                return $instance->handle($current, $next);
+                return $layer($current, $next);
             };
         }
 

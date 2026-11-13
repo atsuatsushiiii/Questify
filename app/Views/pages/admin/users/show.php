@@ -21,14 +21,14 @@ $lastLogin = format_datetime(
     'j M Y, H:i',
 );
 $timezone = (string) ($account['timezone'] ?? 'UTC');
-$suspendedUntil = isset($account['suspended_until']) && $account['suspended_until'] !== null
+$suspendedUntil = isset($account['suspended_until'])
     ? format_datetime((string) $account['suspended_until'], 'UTC', 'j M Y, H:i')
     : null;
 $isRestricted = account_restricted($account);
-$restrictedAt = isset($account['restricted_at']) && $account['restricted_at'] !== null
+$restrictedAt = isset($account['restricted_at'])
     ? format_datetime((string) $account['restricted_at'], 'UTC', 'j M Y, H:i')
     : null;
-$restrictedUntil = isset($account['restricted_until']) && $account['restricted_until'] !== null
+$restrictedUntil = isset($account['restricted_until'])
     ? format_datetime((string) $account['restricted_until'], 'UTC', 'j M Y, H:i')
     : null;
 $appeals = $detail['appeals'] ?? [];

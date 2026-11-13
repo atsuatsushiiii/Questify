@@ -31,7 +31,7 @@ final class AuditLog
             $entry['target_type'],
             $entry['target_id'],
             $entry['summary'],
-            isset($entry['metadata']) && $entry['metadata'] !== null
+            isset($entry['metadata'])
                 ? json_encode($entry['metadata'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
                 : null,
             $entry['ip_address'] ?? null,

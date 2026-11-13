@@ -10,12 +10,16 @@
     "build:css": "tailwindcss -i ./resources/css/app.css -o ./public/assets/css/app.css --minify",
     "build:js": "esbuild ./resources/js/app.js --bundle --minify --target=es2020 --outfile=./public/assets/js/app.js",
     "build": "npm run build:css && npm run build:js",
+    "lint:js": "eslint resources/js tests/browser",
     "test:browser": "node tests/browser/run.js"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "autoprefixer": "^10.4.20",
     "axe-core": "^4.14.0",
     "esbuild": "^0.28.2",
+    "eslint": "^10.14.0",
+    "globals": "^16.5.0",
     "postcss": "^8.4.49",
     "puppeteer-core": "^25.16.0",
     "tailwindcss": "^3.4.17"
@@ -24,5 +28,8 @@
     "chart.js": "^4.4.7",
     "gsap": "^3.12.5",
     "lucide": "^0.468.0"
+  },
+  "overrides": {
+    "minimatch": "^11.0.8"
   }
 }

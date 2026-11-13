@@ -11,6 +11,8 @@
  * @var string $username
  * @var string $initial
  * @var array<string, mixed> $progression
+ * @var string|null $avatarUrl
+ * @var string $sidebarState
  */
 ?>
 <aside
@@ -131,7 +133,7 @@
                     class="flex min-w-0 flex-1 items-center gap-2.5 rounded-sm border border-line bg-panel/40 p-2 transition hover:border-brand-400/40 hover:bg-panel"
                     title="<?= e($displayName . ' — profile') ?>"
                 >
-                    <?php if (isset($avatarUrl) && $avatarUrl !== null): ?>
+                    <?php if (isset($avatarUrl)): ?>
                         <img src="<?= e($avatarUrl) ?>" alt="" class="h-8 w-8 shrink-0 rounded-sm border border-line object-cover">
                     <?php else: ?>
                         <span class="grid h-8 w-8 shrink-0 place-items-center rounded-sm border border-brand-500 bg-brand-400 font-mono text-[11px] font-bold text-[#14100B]">

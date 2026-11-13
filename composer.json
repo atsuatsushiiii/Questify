@@ -10,6 +10,7 @@
         "vlucas/phpdotenv": "^5.6"
     },
     "require-dev": {
+        "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^11.5"
     },
     "autoload": {
@@ -33,6 +34,8 @@
         "optimize-autoloader": true
     },
     "scripts": {
+        "analyse": "@php vendor/bin/phpstan analyse --no-progress",
+        "lint": "@analyse",
         "migrate": "@php scripts/migrate.php migrate",
         "migrate:status": "@php scripts/migrate.php status",
         "migrate:rollback": "@php scripts/migrate.php rollback",

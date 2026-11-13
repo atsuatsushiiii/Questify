@@ -44,7 +44,6 @@ $isAdminSurface = nav_active('/admin');
 $isRestricted = account_restricted($currentUser);
 $restrictedUntilLabel = $isRestricted
     && isset($currentUser['restricted_until'])
-    && $currentUser['restricted_until'] !== null
     ? format_datetime((string) $currentUser['restricted_until'], 'UTC', 'j M Y, H:i')
     : null;
 ?>

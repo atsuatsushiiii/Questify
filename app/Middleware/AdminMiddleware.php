@@ -20,7 +20,7 @@ use App\Core\Session;
  * authenticated account that is not an admin always receives 403, whether the
  * request asks for HTML or JSON.
  */
-final class AdminMiddleware
+final class AdminMiddleware implements MiddlewareInterface
 {
     public function handle(Request $request, callable $next): Response
     {

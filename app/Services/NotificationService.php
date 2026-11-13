@@ -15,6 +15,9 @@ use PDO;
  */
 final class NotificationService
 {
+    /**
+     * @param array<string, mixed> $achievement
+     */
     public static function achievementUnlocked(PDO $db, int $userId, array $achievement): bool
     {
         $key = (string) ($achievement['achievement_key'] ?? '');

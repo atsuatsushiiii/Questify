@@ -49,7 +49,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
 
       - name: Install PHP dependencies
@@ -58,11 +58,17 @@ jobs:
       - name: Audit PHP dependencies
         run: composer audit --locked --no-interaction
 
+      - name: Analyse PHP
+        run: composer analyse
+
       - name: Install JavaScript dependencies
         run: npm ci
 
       - name: Audit JavaScript dependencies
         run: npm audit --audit-level=moderate
+
+      - name: Lint JavaScript
+        run: npm run lint:js
 
       - name: Build assets
         run: npm run build

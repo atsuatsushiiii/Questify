@@ -16,7 +16,7 @@ use App\Core\HttpException;
 /**
  * Requires an authenticated user and remembers the intended destination.
  */
-final class AuthMiddleware
+final class AuthMiddleware implements MiddlewareInterface
 {
     public function handle(Request $request, callable $next): Response
     {

@@ -561,8 +561,9 @@ config (debug off, HTTPS cookies, CSP).
 **Total: roughly 15–18 focused working days.**
 
 **Verification:** 103 PHPUnit unit tests (462 assertions), eight HTTP regression
-suites (785 checks), and 106 browser checks with 31 axe-core WCAG 2.0/2.1 A+AA
-scans. CI runs all of them on every push and pull request.
+suites (785 checks), 106 browser checks with 31 axe-core WCAG 2.0/2.1 A+AA
+scans, PHPStan level 6, and ESLint. CI runs all of them on every push and pull
+request.
 
 ---
 
@@ -574,7 +575,7 @@ scans. CI runs all of them on every push and pull request.
 | PHP | 8.2+ (8.2.12 present) | runtime; `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`, `json` |
 | MariaDB | 10.4+ (10.4.32 present) | database |
 | Composer | 2.x | PHP autoload + packages |
-| Node.js | 20+ (24.12.0 present) | asset build |
+| Node.js | 22+ (24.12.0 present) | asset build, linting |
 | Apache | XAMPP | local host (or PHP built-in server) |
 
 ### Composer (production)
@@ -583,11 +584,12 @@ scans. CI runs all of them on every push and pull request.
 
 ### Composer (dev)
 - `phpunit/phpunit` — unit/feature tests
-- `squizlabs/php_codesniffer` (optional) — style consistency
+- `phpstan/phpstan` — level 6 static analysis
 
 ### npm (dev)
 - `tailwindcss@3.4`, `postcss`, `autoprefixer` — styling pipeline
 - `esbuild` — JS bundling/minification
+- `eslint`, `@eslint/js`, `globals` — static analysis for first-party JS
 - `gsap`, `chart.js`, `lucide` — runtime libraries, bundled locally (no CDN)
 
 I recommend Tailwind **3.4.x** over v4: the config-file theme model is stable,

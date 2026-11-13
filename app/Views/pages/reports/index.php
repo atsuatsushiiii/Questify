@@ -43,7 +43,7 @@ $link = static fn (int $target): string => url('/reports?page=' . $target);
         <?php foreach (['open', 'resolved', 'dismissed'] as $status): ?>
             <span class="inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] <?= e($statusTones[$status]) ?>">
                 <?= e(ucfirst($status)) ?>
-                <span class="tabular-nums opacity-80"><?= e((string) ($statusCounts[$status] ?? 0)) ?></span>
+                <span class="tabular-nums opacity-80"><?= e((string) $statusCounts[$status]) ?></span>
             </span>
         <?php endforeach; ?>
         <span class="font-mono text-[9px] uppercase tracking-[0.1em] text-muted-dim">

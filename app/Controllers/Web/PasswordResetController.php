@@ -35,7 +35,7 @@ final class PasswordResetController
                 'description' => 'Request a password reset link for your Questify account.',
                 'old' => $result['old'] ?? ['email' => ''],
                 'errors' => $result['errors'] ?? [],
-                'message' => $result['message'] ?? null,
+                'message' => $result['message'],
             ], 'layouts/auth')->withStatus((int) ($result['status'] ?? 422));
         }
 
@@ -71,7 +71,7 @@ final class PasswordResetController
                 'token' => $token ?? '',
                 'invalidToken' => $token === null || !$this->isValidToken($token),
                 'errors' => $result['errors'] ?? [],
-                'message' => $result['message'] ?? null,
+                'message' => $result['message'],
             ], 'layouts/auth')->withStatus((int) ($result['status'] ?? 422));
         }
 

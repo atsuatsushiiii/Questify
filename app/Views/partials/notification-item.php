@@ -19,7 +19,6 @@ $createdAt = format_datetime(
     $timezone,
     'j M Y, H:i',
 );
-$showAction = $showAction ?? true;
 ?>
 <article
     class="notification-card <?= $unread ? 'is-unread' : '' ?> flex items-start gap-3 rounded-sm border px-4 py-3.5 transition"
